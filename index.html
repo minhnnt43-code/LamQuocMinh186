@@ -7,7 +7,7 @@
     
     <!-- SEO Meta Tags -->
     <meta name="description" content="Ứng dụng quản lý công việc, thời gian và mục tiêu cá nhân hiệu quả. Theo dõi tiến độ, đặt deadline, và đạt được mục tiêu của bạn một cách có tổ chức.">
-    <meta name="keywords" content="quản lý công việc, quản lý thời gian, lịch, calendar, todo list, mục tiêu cá nhân, productivity, task management, thói quen, dashboard, báo cáo, dark mode, recurring tasks, task prioritization, color customization, personal info, pomodoro, project management">
+    <meta name="keywords" content="quản lý công việc, quản lý thời gian, lịch, calendar, todo list, mục tiêu cá nhân, productivity, task management, thói quen, dashboard, báo cáo, dark mode, recurring tasks, task prioritization, color customization, personal info, pomodoro, project management, goals">
     <meta name="author" content="Lâm Quốc Minh">
     <meta name="robots" content="index, follow">
     
@@ -25,12 +25,14 @@
     <!-- Tích hợp Fonts từ Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700&family=Roboto:wght@400;700&display=swap" rel="stylesheet">
     
-    <!-- *** THAY ĐỔI QUAN TRỌNG: Liên kết đến file CSS bên ngoài *** -->
+    <!-- SortableJS for Draggable Dashboard -->
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
+
     <link rel="stylesheet" href="style.css">
 </head>
-<body>
+<body data-theme="default" data-font="default">
     <div id="login-container">
         <div class="login-box">
             <h2>Đăng Nhập</h2>
@@ -57,6 +59,12 @@
                 <div id="current-date">--/--/----</div>
                 <div id="current-location">Đang xác định vị trí...</div>
             </div>
+
+            <!-- START: Global Search -->
+            <div class="global-search-wrapper">
+                <input type="search" id="global-search-input" placeholder="🔍 Tìm kiếm mọi thứ...">
+            </div>
+            <!-- END: Global Search -->
             
             <ul class="nav-menu" role="navigation" aria-label="Menu chính">
                 <li>
@@ -73,6 +81,7 @@
                 <li class="nav-group">
                     <button class="nav-group-toggle">Phát triển cá nhân</button>
                     <ul class="nav-submenu">
+                        <li><button class="nav-btn" onclick="showSection('goals', this)">Mục tiêu</button></li>
                         <li><button class="nav-btn" onclick="showSection('habit-tracker', this)">Theo dõi thói quen</button></li>
                         <li><button class="nav-btn" onclick="showSection('focus-mode', this)">Chế độ tập trung</button></li>
                         <li><button class="nav-btn" onclick="showSection('achievements', this)">Thành tích</button></li>
@@ -109,23 +118,23 @@
                 <h1>Tổng quan</h1>
                 <div id="dashboard-grid">
                     <div class="dashboard-card">
-                        <h3>Công việc hôm nay</h3>
                         <ul class="dashboard-list" id="dashboard-today-tasks"></ul>
+                        <h3>Công việc hôm nay</h3>
                         <p class="empty-state" id="dashboard-today-tasks-empty" style="display: none;">Không có công việc nào hôm nay.</p>
                     </div>
                     <div class="dashboard-card">
-                        <h3>Sự kiện sắp tới</h3>
                         <ul class="dashboard-list" id="dashboard-upcoming-events"></ul>
+                        <h3>Sự kiện sắp tới</h3>
                         <p class="empty-state" id="dashboard-upcoming-events-empty" style="display: none;">Không có sự kiện nào sắp tới.</p>
                     </div>
                     <div class="dashboard-card">
-                        <h3>Thói quen hàng ngày</h3>
                         <ul class="dashboard-list" id="dashboard-habits"></ul>
+                        <h3>Thói quen hàng ngày</h3>
                         <p class="empty-state" id="dashboard-habits-empty" style="display: none;">Chưa có thói quen nào được thiết lập.</p>
                     </div>
                     <div class="dashboard-card">
-                        <h3>Thành tích gần đây</h3>
                         <ul class="dashboard-list" id="dashboard-recent-achievements"></ul>
+                        <h3>Thành tích gần đây</h3>
                         <p class="empty-state" id="dashboard-recent-achievements-empty" style="display: none;">Chưa có thành tích nào.</p>
                     </div>
                 </div>
@@ -146,6 +155,16 @@
                     <button class="btn-submit personal-info-edit-button" onclick="openEditModal('personal-info')">Chỉnh sửa thông tin</button>
                 </div>
             </section>
+            
+            <section id="goals" class="content-section">
+                <h1>Quản lý Mục tiêu</h1>
+                <div class="achievements-header">
+                    <p style="color: var(--text-color-secondary); margin-bottom: 0;">Đặt ra các mục tiêu dài hạn và liên kết chúng với các công việc hàng ngày.</p>
+                    <button class="btn-submit" onclick="openGoalModal()">Thêm Mục tiêu mới +</button>
+                </div>
+                <div id="goal-list-container"></div>
+                <p class="empty-state" id="goal-list-empty" style="display: none; text-align: center; padding: 2rem;">Chưa có mục tiêu nào. Hãy nhấn "Thêm Mục tiêu mới" để bắt đầu!</p>
+            </section>
 
             <section id="tasks" class="content-section">
                 <h1>Quản lý công việc</h1>
@@ -155,12 +174,13 @@
                 <div class="form-container">
                     <div class="form-grid">
                         <div class="form-group" style="grid-column: 1 / -1;"><label for="task-name">Tên công việc</label><input type="text" id="task-name" placeholder="Nhập tên công việc..."><p class="inline-error" id="task-name-error"></p></div>
-                        <div class="form-group"><label for="task-priority">Ưu tiên</label><select id="task-priority"><option value="low">Thấp</option><option value="medium">Trung bình</option><option value="high">Cao</option></select></div>
+                        <div class="form-group"><label for="task-priority">Ưu tiên</label><select id="task-priority"><option value="low">Thấp</option><option value="medium" selected>Trung bình</option><option value="high">Cao</option></select></div>
                         <div class="form-group"><label for="task-category">Phân loại</label><select id="task-category"></select></div>
                         <div class="form-group"><label for="task-due-date">Hạn chót</label><input type="date" id="task-due-date"></div>
                         <div class="form-group"><label for="task-status">Tiến độ</label><select id="task-status"></select></div>
                         <div class="form-group"><label for="task-recurrence">Lặp lại</label><select id="task-recurrence"><option value="none">Không</option><option value="daily">Hàng ngày</option><option value="weekly">Hàng tuần</option><option value="monthly">Hàng tháng</option></select></div>
                         <div class="form-group"><label for="task-project">Dự án</label><select id="task-project"><option value="">Không có</option></select></div>
+                        <div class="form-group"><label for="task-goal">Mục tiêu</label><select id="task-goal"><option value="">Không có</option></select></div>
                         <div class="form-group"><label for="task-link">Đính kèm</label><input type="text" id="task-link" placeholder="https://..."></div>
                         <div class="form-group" style="grid-column: 1 / -1;"><label for="task-tags">Thẻ (cách nhau bởi dấu phẩy)</label><input type="text" id="task-tags" placeholder="ví dụ: học tập, quan trọng"></div>
                         <div class="form-group" style="grid-column: 1 / -1;"><label for="task-notes">Ghi chú</label><textarea id="task-notes" placeholder="Thêm ghi chú chi tiết..."></textarea></div>
@@ -268,6 +288,9 @@
                     <div class="stat-card"><h3>Thói quen đã duy trì</h3><p class="value" id="stat-habits-maintained">0</p></div>
                     <div class="stat-card"><h3>Số sự kiện</h3><p class="value" id="stat-total-events">0</p></div>
                 </div>
+                <div style="text-align: center; margin-bottom: 2rem;">
+                    <button class="btn-submit" id="generate-report-btn">Tạo Báo cáo Tuần</button>
+                </div>
                 <div class="chart-container">
                     <h3>Tỷ lệ hoàn thành công việc</h3>
                     <div class="progress-bar-stack" id="task-completion-chart"></div>
@@ -315,6 +338,21 @@
                             <label for="notification-toggle" style="margin-bottom: 0;">Thông báo trình duyệt</label>
                             <label class="toggle-switch"><input type="checkbox" id="notification-toggle"><span class="slider"></span></label>
                         </div>
+                        <div style="margin-top: 1.5rem;">
+                            <label for="theme-select" style="display: block; margin-bottom: 0.5rem;">Chủ đề màu sắc</label>
+                            <select id="theme-select" class="settings-input-group" style="width: 100%; padding: 0.8rem;">
+                                <option value="default">Mặc định (Xanh & Cam)</option>
+                                <option value="ocean">Đại dương (Ocean)</option>
+                                <option value="forest">Rừng xanh (Forest)</option>
+                            </select>
+                        </div>
+                        <div style="margin-top: 1.5rem;">
+                            <label for="font-select" style="display: block; margin-bottom: 0.5rem;">Font chữ</label>
+                            <select id="font-select" class="settings-input-group" style="width: 100%; padding: 0.8rem;">
+                                <option value="default">Mặc định (UTM Avo)</option>
+                                <option value="roboto">Roboto</option>
+                            </select>
+                        </div>
                     </div>
                     <div class="settings-card" id="categories-settings">
                         <h3>Phân loại Công việc</h3>
@@ -335,6 +373,17 @@
                         <h3>Quản lý Dự án</h3>
                         <div class="settings-input-group"><input type="text" id="new-project-name" placeholder="Tên dự án mới..."><button class="btn-submit" style="padding: 0.8rem;" onclick="addProjectFromSettings()">Thêm</button></div>
                         <ul class="settings-list" id="project-settings-list"></ul>
+                    </div>
+                    <div class="settings-card" id="vacation-settings">
+                        <h3>Chế độ nghỉ (Vacation Mode)</h3>
+                        <p style="font-size: 0.9rem; color: var(--text-color-secondary); margin-bottom: 1rem;">Tạm dừng theo dõi thói quen mà không làm mất chuỗi (streak).</p>
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                            <label for="vacation-mode-toggle" style="margin-bottom: 0;">Bật chế độ nghỉ</label>
+                            <label class="toggle-switch"><input type="checkbox" id="vacation-mode-toggle"><span class="slider"></span></label>
+                        </div>
+                        <div class="form-group"><label for="vacation-start-date">Ngày bắt đầu</label><input type="date" id="vacation-start-date"></div>
+                        <div class="form-group"><label for="vacation-end-date">Ngày kết thúc</label><input type="date" id="vacation-end-date"></div>
+                        <button class="btn-submit" style="padding: 0.8rem;" onclick="saveVacationModeSettings()">Lưu Cài đặt Nghỉ</button>
                     </div>
                     <div class="settings-card" id="backup-settings">
                         <h3>Quản lý Dữ liệu</h3>
@@ -413,6 +462,22 @@
         </div>
     </div>
 
+    <!-- NEW: Weekly Report Modal -->
+    <div id="report-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header"><h2 class="modal-title" id="report-modal-title">Báo cáo tuần</h2><button class="close-btn" onclick="closeReportModal()">&times;</button></div>
+            <div class="modal-body" id="report-modal-body"></div>
+        </div>
+    </div>
+    
+    <!-- Global Search Modal -->
+    <div id="search-results-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header"><h2 class="modal-title">Kết quả tìm kiếm</h2><button class="close-btn" id="close-search-modal-btn">&times;</button></div>
+            <div class="modal-body" id="search-results-body"></div>
+        </div>
+    </div>
+
     <!-- Side Panel for SV5T Criteria -->
     <div id="sv5t-panel-overlay" class="sv5t-panel-overlay"></div>
     <div id="sv5t-side-panel" class="sv5t-side-panel">
@@ -430,7 +495,6 @@
     
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.2/dist/confetti.browser.min.js"></script>
 
-    <!-- *** THAY ĐỔI QUAN TRỌNG: Liên kết đến file JS duy nhất *** -->
     <script src="script.js"></script>
 </body>
 </html>
