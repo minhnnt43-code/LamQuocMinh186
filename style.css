@@ -1369,4 +1369,5 @@ body.dark-mode .focus-mode-settings input[type="number"] {
     .personal-info-detail { grid-template-columns: 1fr; text-align: center; }
     .personal-info-detail dt { margin-bottom: 0.25rem; }
     .personal-info-card { padding: 1rem; }
+
 }
