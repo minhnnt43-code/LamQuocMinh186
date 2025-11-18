@@ -429,7 +429,11 @@
                             <button class="btn-submit" style="background-color: var(--success-color);" onclick="importDataFromFile()">Nhập Từ File</button>
                         </div>
                         <h4 style="margin-top: 1.5rem;">Thao tác Nguy hiểm</h4>
-                        <button class="btn-submit" style="background-color: var(--danger-color);" onclick="clearAllData()">Xóa Toàn Bộ Dữ Liệu</button>
+                        <button class="btn-submit" style="background-color: var(--warning-color); color: var(--text-color);" id="deduplicate-btn">
+                            <div class="btn-spinner"></div>
+                            <span class="btn-text">Tìm & Xóa các mục trùng lặp</span>
+                        </button>
+                        <button class="btn-submit" style="background-color: var(--danger-color); margin-top: 0.5rem;" onclick="clearAllData()">Xóa Toàn Bộ Dữ Liệu</button>
                     </div>
                 </div>
             </section>
@@ -446,6 +450,45 @@
     <div id="document-viewer-modal" class="modal"><div class="modal-content" style="max-width: 800px;"><div class="modal-header"><h2 class="modal-title" id="viewer-title"></h2><button class="close-btn" onclick="closeDocumentViewer()">&times;</button></div><div class="modal-body" id="viewer-body"></div></div></div>
     <div id="outline-modal" class="modal"><div class="modal-content" style="max-width: 500px;"><div class="modal-header"><h2 class="modal-title" id="outline-modal-title">Tạo Dàn ý</h2><button class="close-btn" onclick="closeOutlineModal()">&times;</button></div><div class="modal-body"><input type="hidden" id="outline-id"><div class="form-group"><label for="outline-title">Tên Dàn ý</label><input type="text" id="outline-title"></div><div style="display: flex; justify-content: flex-end; gap: 1rem; margin-top: 1.5rem;"><button class="btn-submit" onclick="saveOutline()">Lưu</button></div></div></div></div>
 
+    <!-- MODALS MỚI CHO CÁC TÍNH NĂNG ĐƯỢC THÊM -->
+    <div id="import-options-modal" class="modal">
+        <div class="modal-content" style="max-width: 500px;">
+            <div class="modal-header">
+                <h2 class="modal-title">Tùy chọn Nhập Dữ liệu</h2>
+                <button class="close-btn" id="close-import-options-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p>Bạn muốn làm gì với dữ liệu từ tệp tin?</p>
+                <div style="background-color: var(--light-gray); padding: 1rem; border-radius: 8px; margin-top: 1rem;">
+                    <h4>Hợp nhất Dữ liệu</h4>
+                    <p style="font-size: 0.9rem; color: var(--text-color-secondary);">Thêm dữ liệu mới và cập nhật các mục đã tồn tại. Dữ liệu hiện tại không có trong tệp sẽ được giữ lại. (Khuyên dùng)</p>
+                    <button class="btn-submit" style="background-color: var(--success-color);" id="import-merge-btn">Hợp nhất</button>
+                </div>
+                <div style="background-color: #fff0f0; padding: 1rem; border-radius: 8px; margin-top: 1rem; border: 1px solid var(--danger-color);">
+                    <h4 style="color: var(--danger-color);">Ghi đè Toàn bộ</h4>
+                    <p style="font-size: 0.9rem; color: var(--danger-color);"><b>Cảnh báo:</b> Thao tác này sẽ xóa toàn bộ dữ liệu hiện tại của bạn và thay thế bằng dữ liệu từ tệp tin.</p>
+                    <button class="btn-submit" style="background-color: var(--danger-color);" id="import-overwrite-btn">Ghi đè</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="duplicate-review-modal" class="modal">
+        <div class="modal-content" style="max-width: 800px;">
+            <div class="modal-header">
+                <h2 class="modal-title">Xem lại các mục trùng lặp</h2>
+                <button class="close-btn" id="close-duplicate-modal">&times;</button>
+            </div>
+            <div class="modal-body" id="duplicate-review-body">
+                <!-- Nội dung sẽ được tạo tự động bằng JavaScript -->
+            </div>
+            <div style="display: flex; justify-content: flex-end; gap: 1rem; margin-top: 1.5rem; padding-top: 1rem; border-top: 1px solid var(--border-color);">
+                 <button class="btn-submit" style="background-color: var(--dark-gray);" id="cancel-duplicate-modal">Hủy</button>
+                 <button class="btn-submit" style="background-color: var(--danger-color);" id="confirm-delete-duplicates-btn">Xóa các mục đã chọn</button>
+            </div>
+        </div>
+    </div>
+    
     <!-- Side Panels -->
     <div id="sv5t-panel-overlay" class="sv5t-panel-overlay"></div>
     <div id="sv5t-side-panel" class="sv5t-side-panel"><div class="sv5t-panel-header"><h2 id="sv5t-panel-title"></h2><button id="sv5t-panel-close-btn">&times;</button></div><div class="sv5t-panel-body" id="sv5t-panel-body"></div></div>
