@@ -447,8 +447,8 @@ function showSection(sectionId, clickedButton) {
     if (sectionId === 'dashboard') renderDashboard();
     if (sectionId === 'personal-info') renderPersonalInfo();
     if (sectionId === 'tasks') renderTasks();
-    if (sectionId === 'todo-list') renderTodoList(); // BỔ SUNG
-    if (sectionId === 'drafts') renderDrafts(); // BỔ SUNG
+    if (sectionId === 'todo-list') renderTodoList();
+    if (sectionId === 'drafts') renderDrafts();
     if (sectionId === 'projects') renderProjects();
     if (sectionId === 'focus-mode') renderFocusMode();
     if (sectionId === 'time-management') renderCalendar();
@@ -493,8 +493,8 @@ async function loadAllData(){
             personalInfo = e.personalInfo || {};
             documents = e.documents || []; 
             outlines = e.outlines || [];
-            todos = e.todos || []; // BỔ SUNG
-            drafts = e.drafts || []; // BỔ SUNG
+            todos = e.todos || [];
+            drafts = e.drafts || [];
             customColors = e.customColors || customColors;
         }
     } catch(e) {
@@ -519,8 +519,8 @@ function initializeDefaultData() {
     if (!projects) projects = [];
     if (!documents) documents = [];
     if (!outlines) outlines = [];
-    if (!todos) todos = []; // BỔ SUNG
-    if (!drafts) drafts = []; // BỔ SUNG
+    if (!todos) todos = [];
+    if (!drafts) drafts = [];
     if (!personalInfo || Object.keys(personalInfo).length === 0) {
         personalInfo = {
             fullName: 'Lâm Quốc Minh',
@@ -576,8 +576,8 @@ function renderAll(){
     renderDashboard();
     renderPersonalInfo();
     renderTasks();
-    renderTodoList(); // BỔ SUNG
-    renderDrafts(); // BỔ SUNG
+    renderTodoList();
+    renderDrafts();
     renderProjects();
     renderFocusMode();
     renderCalendar();
@@ -590,37 +590,121 @@ function renderAll(){
     renderSettings();
     updateTaskTicker();
 }
-async function exportDataToFile(){try{const e=await dbGet("appData","mainData"),t=[];for(const n of await dbGetAll("files")){const e=await fileToBase64(n.file);t.push({id:n.id,name:n.file.name,type:n.file.type,data:e})}const n={mainData:e,files:t},o=JSON.stringify(n,null,2),a=new Blob([o],{type:"application/json"}),d=URL.createObjectURL(a),i=document.createElement("a");i.href=d,i.download=`DuLieu-QuanLy-${(new Date).toISOString().slice(0,10)}.json`,i.click(),URL.revokeObjectURL(d),showNotification("Xuất dữ liệu thành công!","success")}catch(e){console.error(e),showNotification("Xuất dữ liệu thất bại!","error")}}function importDataFromFile(){document.getElementById("import-file-input").click()}
+async function exportDataToFile(){try{const e=await dbGet("appData","mainData"),t=[];for(const n of await dbGetAll("files")){const e=await fileToBase64(n.file);t.push({id:n.id,name:n.file.name,type:n.file.type,data:e})}const n={mainData:e,files:t},o=JSON.stringify(n,null,2),a=new Blob([o],{type:"application/json"}),d=URL.createObjectURL(a),i=document.createElement("a");i.href=d,i.download=`DuLieu-QuanLy-${(new Date).toISOString().slice(0,10)}.json`,i.click(),URL.revokeObjectURL(d),showNotification("Xuất dữ liệu thành công!","success")}catch(e){console.error(e),showNotification("Xuất dữ liệu thất bại!","error")}}
+
+function importDataFromFile(){document.getElementById("import-file-input").click()}
+
+/**
+ * Hợp nhất dữ liệu mới vào dữ liệu hiện có.
+ * @param {object} currentData Dữ liệu hiện tại trong ứng dụng.
+ * @param {object} importedData Dữ liệu được đọc từ tệp tin.
+ * @returns {object} Dữ liệu đã được hợp nhất.
+ */
+function mergeData(currentData, importedData) {
+    const mergedData = { ...currentData };
+
+    // Hàm trợ giúp để hợp nhất một mảng các đối tượng có ID
+    const mergeArrayById = (currentArray, importedArray) => {
+        if (!Array.isArray(importedArray)) return currentArray;
+        const map = new Map(currentArray.map(item => [item.id, item]));
+        importedArray.forEach(item => {
+            map.set(item.id, item); // Thêm mới hoặc cập nhật nếu ID đã tồn tại
+        });
+        return Array.from(map.values());
+    };
+
+    // Hợp nhất các mảng dữ liệu chính
+    mergedData.tasks = mergeArrayById(currentData.tasks || [], importedData.tasks);
+    mergedData.projects = mergeArrayById(currentData.projects || [], importedData.projects);
+    mergedData.achievements = mergeArrayById(currentData.achievements || [], importedData.achievements);
+    mergedData.calendarEvents = mergeArrayById(currentData.calendarEvents || [], importedData.calendarEvents);
+    mergedData.documents = mergeArrayById(currentData.documents || [], importedData.documents);
+    mergedData.outlines = mergeArrayById(currentData.outlines || [], importedData.outlines);
+    mergedData.todos = mergeArrayById(currentData.todos || [], importedData.todos);
+    mergedData.drafts = mergeArrayById(currentData.drafts || [], importedData.drafts);
+
+    // Hợp nhất các đối tượng cài đặt (ưu tiên cài đặt từ tệp nhập vào)
+    mergedData.settings = { ...(currentData.settings || {}), ...(importedData.settings || {}) };
+    mergedData.personalInfo = { ...(currentData.personalInfo || {}), ...(importedData.personalInfo || {}) };
+    mergedData.studentJourney = { ...(currentData.studentJourney || {}), ...(importedData.studentJourney || {}) };
+    mergedData.customColors = { ...(currentData.customColors || {}), ...(importedData.customColors || {}) };
+
+    return mergedData;
+}
+
 function handleImportFile(event) {
     const file = event.target.files[0];
     if (!file) return;
     const reader = new FileReader();
+
     reader.onload = async function(e) {
         try {
-            const data = JSON.parse(e.target.result);
-            showConfirmModal('Bạn có chắc muốn nhập dữ liệu? Dữ liệu hiện tại sẽ bị ghi đè.', async () => {
+            const importedFullData = JSON.parse(e.target.result);
+            const importedMainData = importedFullData.mainData;
+            const importedFiles = importedFullData.files || [];
+
+            if (!importedMainData) {
+                showNotification('File dữ liệu không hợp lệ!', 'error');
+                return;
+            }
+
+            const modal = document.getElementById('import-options-modal');
+            const closeBtn = document.getElementById('close-import-options-modal');
+            const mergeBtn = document.getElementById('import-merge-btn');
+            const overwriteBtn = document.getElementById('import-overwrite-btn');
+
+            const closeModal = () => modal.style.display = 'none';
+
+            // Logic Ghi đè
+            const overwriteLogic = async () => {
                 await dbClear('appData');
                 await dbClear('files');
-
-                if (data.mainData) {
-                    await dbSet('appData', data.mainData);
-                }
-                if (data.files && Array.isArray(data.files)) {
-                    for(const fileInfo of data.files) {
-                        const file = base64ToFile(fileInfo.data, fileInfo.name, fileInfo.type);
-                        await dbSet('files', { id: fileInfo.id, file: file });
-                    }
+                await dbSet('appData', importedMainData);
+                for (const fileInfo of importedFiles) {
+                    const file = base64ToFile(fileInfo.data, fileInfo.name, fileInfo.type);
+                    await dbSet('files', { id: fileInfo.id, file: file });
                 }
                 await loadAllData();
-                showNotification('Nhập dữ liệu thành công!', 'success');
-            });
+                showNotification('Đã ghi đè và nhập dữ liệu thành công!', 'success');
+                closeModal();
+            };
+
+            // Logic Hợp nhất
+            const mergeLogic = async () => {
+                const currentData = (await dbGet("appData", "mainData"))?.key ? await dbGet("appData", "mainData") : {};
+                const mergedData = mergeData(currentData, importedMainData);
+                await dbSet('appData', mergedData);
+
+                // Hợp nhất các tệp đính kèm
+                for (const fileInfo of importedFiles) {
+                    const file = base64ToFile(fileInfo.data, fileInfo.name, fileInfo.type);
+                    // dbSet sẽ tự động cập nhật nếu id đã tồn tại
+                    await dbSet('files', { id: fileInfo.id, file: file });
+                }
+                await loadAllData();
+                showNotification('Đã hợp nhất và nhập dữ liệu thành công!', 'success');
+                closeModal();
+            };
+            
+            // Gán sự kiện cho các nút trong modal (cần gán lại mỗi lần mở)
+            mergeBtn.onclick = mergeLogic;
+            overwriteBtn.onclick = overwriteLogic;
+            closeBtn.onclick = closeModal;
+
+            // Hiển thị modal
+            modal.style.display = 'flex';
+
         } catch (error) {
             console.error(error);
-            showNotification('File dữ liệu không hợp lệ!', 'error');
+            showNotification('File dữ liệu không hợp lệ hoặc đã bị lỗi!', 'error');
+        } finally {
+            // Reset input để có thể chọn lại cùng một file
+            event.target.value = '';
         }
     };
     reader.readAsText(file);
 }
+
 async function clearAllData(){
     showConfirmModal("BẠN CÓ CHẮC MUỐN XÓA TOÀN BỘ DỮ LIỆU? Hành động này không thể hoàn tác!", async () => {
         await dbClear("appData");
@@ -634,8 +718,8 @@ async function clearAllData(){
         personalInfo = {};
         documents = [];
         outlines = [];
-        todos = []; // BỔ SUNG
-        drafts = []; // BỔ SUNG
+        todos = [];
+        drafts = [];
         customColors = { primaryBlue: '#005B96', primaryOrange: '#FF7A00' };
         await loadAllData();
         showNotification("Đã xóa toàn bộ dữ liệu.", "success");
@@ -851,14 +935,13 @@ function renderTasks() {
     updateTaskTicker();
 }
 
-// --- BỔ SUNG: TO-DO LIST ---
+// --- TO-DO LIST ---
 function filterTodoList(filter) {
     currentTodoFilter = filter;
     document.querySelectorAll('#todo-filter-controls .filter-btn').forEach(btn => btn.classList.remove('active'));
     document.querySelector(`#todo-filter-controls .filter-btn[onclick="filterTodoList('${filter}')"]`).classList.add('active');
     renderTodoList();
 }
-
 async function addTodoItem() {
     const input = document.getElementById('new-todo-input');
     const text = input.value.trim();
@@ -875,7 +958,6 @@ async function addTodoItem() {
     input.value = '';
     showNotification('Đã thêm việc cần làm.', 'success');
 }
-
 async function toggleTodoStatus(id) {
     const todo = todos.find(t => t.id === id);
     if (todo) {
@@ -884,7 +966,6 @@ async function toggleTodoStatus(id) {
         renderTodoList();
     }
 }
-
 function deleteTodoItem(id) {
     showConfirmModal('Bạn có chắc muốn xóa việc này?', async () => {
         todos = todos.filter(t => t.id !== id);
@@ -893,7 +974,6 @@ function deleteTodoItem(id) {
         showNotification('Đã xóa việc cần làm.', 'success');
     });
 }
-
 function renderTodoList() {
     const container = document.getElementById('todo-list-container');
     if (!container) return;
@@ -911,7 +991,7 @@ function renderTodoList() {
     }
 
     container.innerHTML = filteredTodos.map(todo => `
-        <div class="todo-item ${todo.completed ? 'completed' : ''}">
+        <div class="todo-item ${todo.completed ? 'completed' : ''}" draggable="true" data-id="${todo.id}">
             <input type="checkbox" class="todo-checkbox" onchange="toggleTodoStatus('${todo.id}')" ${todo.completed ? 'checked' : ''}>
             <label class="todo-label">${escapeHTML(todo.text)}</label>
             <button class="delete-todo-btn" onclick="deleteTodoItem('${todo.id}')">&times;</button>
@@ -919,9 +999,9 @@ function renderTodoList() {
     `).join('');
 }
 
-// --- BỔ SUNG: DRAFTS (BẢN NHÁP) ---
+// --- DRAFTS ---
 function initializeDrafts() {
-    if (quillEditor) return; // Chỉ khởi tạo một lần
+    if (quillEditor) return;
 
     quillEditor = new Quill('#editor-container', {
         theme: 'snow',
@@ -937,23 +1017,19 @@ function initializeDrafts() {
         }
     });
 
-    // Tự động lưu nội dung
     quillEditor.on('text-change', (delta, oldDelta, source) => {
         if (source === 'user') {
             handleDraftChange();
         }
     });
 
-    // Tự động lưu tiêu đề
     document.getElementById('draft-title-input').addEventListener('input', handleDraftTitleChange);
 }
-
 function renderDrafts() {
     initializeDrafts();
     renderDraftsList();
     renderDraftEditor();
 }
-
 function renderDraftsList() {
     const container = document.getElementById('drafts-list-column');
     const searchTerm = document.getElementById('drafts-search').value.toLowerCase();
@@ -977,7 +1053,6 @@ function renderDraftsList() {
         `;
     }).join('');
 }
-
 function renderDraftEditor() {
     const welcomeScreen = document.getElementById('drafts-editor-welcome');
     const editorContent = document.getElementById('drafts-editor-content');
@@ -1000,12 +1075,11 @@ function renderDraftEditor() {
         statusEl.textContent = `Lưu lần cuối: ${new Date(draft.lastModified).toLocaleTimeString('vi-VN')}`;
     }
 }
-
 async function createNewDraft() {
     const newDraft = {
         id: `draft_${crypto.randomUUID()}`,
         title: 'Bản nháp không có tiêu đề',
-        content: { ops: [] }, // Nội dung trống của Quill
+        content: { ops: [] },
         lastModified: new Date().toISOString()
     };
     drafts.push(newDraft);
@@ -1013,13 +1087,11 @@ async function createNewDraft() {
     await saveAllData();
     renderDrafts();
 }
-
 function selectDraft(id) {
     currentDraftId = id;
-    renderDraftsList(); // Cập nhật highlight
-    renderDraftEditor(); // Tải nội dung
+    renderDraftsList();
+    renderDraftEditor();
 }
-
 let saveTimeout;
 function handleDraftChange() {
     if (!currentDraftId) return;
@@ -1029,15 +1101,13 @@ function handleDraftChange() {
         draft.lastModified = new Date().toISOString();
         document.getElementById('draft-status').textContent = 'Đang lưu...';
         
-        // Debounce saving to avoid too many writes
         clearTimeout(saveTimeout);
         saveTimeout = setTimeout(async () => {
             await saveAllData();
             document.getElementById('draft-status').textContent = `Lưu lần cuối: ${new Date(draft.lastModified).toLocaleTimeString('vi-VN')}`;
-        }, 1000); // Lưu sau 1 giây không gõ
+        }, 1000);
     }
 }
-
 async function handleDraftTitleChange() {
     if (!currentDraftId) return;
     const draft = drafts.find(d => d.id === currentDraftId);
@@ -1045,10 +1115,9 @@ async function handleDraftTitleChange() {
         draft.title = document.getElementById('draft-title-input').value;
         draft.lastModified = new Date().toISOString();
         await saveAllData();
-        renderDraftsList(); // Cập nhật lại danh sách để hiển thị tiêu đề mới
+        renderDraftsList();
     }
 }
-
 function deleteDraft(id) {
     showConfirmModal('Bạn có chắc muốn xóa bản nháp này?', async () => {
         drafts = drafts.filter(d => d.id !== id);
@@ -2527,6 +2596,94 @@ async function saveTaskChanges() {
 }
 function showConfirmModal(e,t){document.getElementById("confirm-modal-text").textContent=e,confirmAction=t,document.getElementById("confirm-modal").style.display="flex"}function closeConfirmModal(){document.getElementById("confirm-modal").style.display="none",confirmAction=null}
 
+// --- DEDUPLICATION LOGIC ---
+async function startDeduplicationProcess() {
+    const btn = document.getElementById('deduplicate-btn');
+    btn.classList.add('loading');
+    btn.disabled = true;
+    await new Promise(resolve => setTimeout(resolve, 500));
+    const duplicates = findDuplicates();
+    btn.classList.remove('loading');
+    btn.disabled = false;
+    if (Object.values(duplicates).every(arr => arr.length === 0)) {
+        showNotification('Tuyệt vời! Không tìm thấy mục nào bị trùng lặp.', 'success');
+    } else {
+        showDuplicateReviewModal(duplicates);
+    }
+}
+function findDuplicates() {
+    const results = { tasks: [], todos: [], documents: [], achievements: [] };
+    const processArray = (array, keyGenerator, sortField = 'id') => {
+        const map = new Map();
+        array.forEach(item => {
+            const key = keyGenerator(item);
+            if (!map.has(key)) { map.set(key, []); }
+            map.get(key).push(item);
+        });
+        const duplicateGroups = [];
+        for (const group of map.values()) {
+            if (group.length > 1) {
+                group.sort((a, b) => new Date(b[sortField] || 0) - new Date(a[sortField] || 0));
+                duplicateGroups.push(group);
+            }
+        }
+        return duplicateGroups;
+    };
+    results.tasks = processArray(tasks, item => `${item.name.trim().toLowerCase()}|${item.dueDate || ''}`, 'completionDate');
+    results.todos = processArray(todos, item => `${item.text.trim().toLowerCase()}`);
+    results.documents = processArray(documents, item => `${item.title.trim().toLowerCase()}|${item.source || ''}`, 'dateAdded');
+    results.achievements = processArray(achievements, item => `${item.name.trim().toLowerCase()}|${item.date}`, 'date');
+    return results;
+}
+function showDuplicateReviewModal(duplicates) {
+    const modal = document.getElementById('duplicate-review-modal');
+    const body = document.getElementById('duplicate-review-body');
+    let html = '<p>Chúng tôi đã tìm thấy các nhóm mục có nội dung giống nhau. Mục được đánh dấu <b style="color: var(--success-color);">"Giữ lại"</b> sẽ được giữ, các mục còn lại sẽ bị xóa.</p>';
+    const typeNames = { tasks: 'Công việc', todos: 'To-do List', documents: 'Tài liệu Thư viện', achievements: 'Thành tích' };
+    for (const type in duplicates) {
+        if (duplicates[type].length > 0) {
+            html += `<h3 style="margin-top: 1.5rem; border-bottom: 1px solid var(--border-color); padding-bottom: 0.5rem;">${typeNames[type]} (${duplicates[type].length} nhóm)</h3>`;
+            duplicates[type].forEach((group) => {
+                html += `<div class="duplicate-group">`;
+                group.forEach((item, itemIndex) => {
+                    const isKept = itemIndex === 0;
+                    html += `
+                        <div class="duplicate-item">
+                            <span style="font-size: 1.2rem; flex-shrink: 0;">${isKept ? '✅' : '❌'}</span>
+                            <div style="flex-grow: 1;">
+                                <strong>${escapeHTML(item.name || item.text || item.title)}</strong>
+                                <small style="display: block; color: var(--text-color-secondary);">${isKept ? 'Sẽ được giữ lại' : 'Sẽ bị xóa'}</small>
+                            </div>
+                            <span class="item-id-for-deletion" data-id="${item.id}" data-type="${type}" style="display: ${isKept ? 'none' : 'inline'};"></span>
+                        </div>`;
+                });
+                html += `</div>`;
+            });
+        }
+    }
+    body.innerHTML = html;
+    modal.style.display = 'flex';
+}
+async function executeDeletion() {
+    const itemsToDelete = document.querySelectorAll('#duplicate-review-modal .item-id-for-deletion');
+    const idsToDelete = { tasks: new Set(), todos: new Set(), documents: new Set(), achievements: new Set() };
+    itemsToDelete.forEach(item => {
+        const id = item.dataset.id;
+        const type = item.dataset.type;
+        if (idsToDelete[type]) { idsToDelete[type].add(id); }
+    });
+    let deleteCount = 0;
+    tasks = tasks.filter(item => !idsToDelete.tasks.has(item.id));
+    todos = todos.filter(item => !idsToDelete.todos.has(item.id));
+    documents = documents.filter(item => !idsToDelete.documents.has(item.id));
+    achievements = achievements.filter(item => !idsToDelete.achievements.has(item.id));
+    Object.values(idsToDelete).forEach(set => deleteCount += set.size);
+    await saveAllData();
+    document.getElementById('duplicate-review-modal').style.display = 'none';
+    showNotification(`Đã xóa thành công ${deleteCount} mục bị trùng lặp.`, 'success');
+    renderAll();
+}
+
 // --- GENERAL UTILITIES ---
 function toLocalISOString(date) {
     if (!(date instanceof Date) || isNaN(date)) return "";
@@ -2597,7 +2754,6 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('primary-blue-color-picker').addEventListener('input', handleColorChange);
     document.getElementById('primary-orange-color-picker').addEventListener('input', handleColorChange);
 
-    // BỔ SUNG: Event listeners cho các tính năng mới
     document.getElementById('new-todo-input').addEventListener('keydown', (e) => { if (e.key === 'Enter') addTodoItem(); });
     document.getElementById('drafts-search').addEventListener('input', renderDraftsList);
     document.getElementById('document-file-input').addEventListener('change', handleDocumentFileSelect);
@@ -2612,7 +2768,13 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('pomodoro-reset-btn').addEventListener('click', resetPomodoro);
     document.getElementById('focus-duration').addEventListener('change', updatePomodoroSettings);
     document.getElementById('break-duration').addEventListener('change', updatePomodoroSettings);
-
+    
+    // Listeners for new features
+    document.getElementById('deduplicate-btn').addEventListener('click', startDeduplicationProcess);
+    document.getElementById('close-duplicate-modal').addEventListener('click', () => document.getElementById('duplicate-review-modal').style.display = 'none');
+    document.getElementById('cancel-duplicate-modal').addEventListener('click', () => document.getElementById('duplicate-review-modal').style.display = 'none');
+    document.getElementById('confirm-delete-duplicates-btn').addEventListener('click', executeDeletion);
+    
     document.querySelectorAll('.nav-group-toggle').forEach(toggle => {
         toggle.addEventListener('click', () => {
             const group = toggle.parentElement;
@@ -2638,6 +2800,9 @@ document.addEventListener('DOMContentLoaded', () => {
             closeDocumentModal();
             closeDocumentViewer();
             closeOutlineModal();
+            // Close new modals if clicked on overlay
+            document.getElementById('import-options-modal').style.display = 'none';
+            document.getElementById('duplicate-review-modal').style.display = 'none';
         }
     });
 
