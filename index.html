@@ -3,511 +3,82 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Quản Lý Công Việc & Thời Gian - Ứng Dụng Cá Nhân Hiệu Quả</title>
+    <title>Test Firebase - ToDo List</title>
     
-    <!-- SEO Meta Tags -->
-    <meta name="description" content="Ứng dụng quản lý công việc, thời gian và mục tiêu cá nhân hiệu quả. Theo dõi tiến độ, đặt deadline, và đạt được mục tiêu của bạn một cách có tổ chức.">
-    <meta name="keywords" content="quản lý công việc, quản lý thời gian, todo list, bản nháp, drafts, so tay, quilljs, rich text editor, calendar, mục tiêu cá nhân, productivity, task management, dashboard, dark mode, personal info, pomodoro, project management, thư viện số, nghiên cứu khoa học, xây dựng dàn ý">
-    <meta name="author" content="Lâm Quốc Minh">
-    <meta name="robots" content="index, follow">
-    
-    <!-- Open Graph Meta Tags -->
-    <meta property="og:title" content="Quản Lý Công Việc & Thời Gian - Ứng Dụng Cá Nhân">
-    <meta property="og:description" content="Ứng dụng quản lý công việc, thời gian và mục tiêu cá nhân hiệu quả.">
-    <meta property="og:type" content="website">
-    
-    <!-- Favicon -->
-    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzIiIGhlaWdodD0iMzIiIHZpZXdCb3g9IjAgMCAzMiAzMiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjMyIiBoZWlnaHQ9IjMyIiBmaWxsPSIjMDA1Qjk2Ii8+Cjx0ZXh0IHg9IjE2IiB5PSIyMCIgZm9udC1mYW1pbHk9IkFyaWFsIiBmb250LXNpemU9IjE4IiBmb250LWdlaWdodD0iYm9sZCIgZmlsbD0id2hpdGUiIHRleHQtYW5jaGyPSJtaWRkbGUiPkM8L3RleHQ+Cjwvc3ZnPg==">
-    
-    <!-- Content Security Policy -->
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self' blob:; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.jsdelivr.net; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https:; connect-src 'self' https://nominatim.openstreetmap.org;">
-    
-    <!-- Google Fonts -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700&display=swap" rel="stylesheet">
-    
-    <!-- Quill.js -->
-    <link href="https://cdn.jsdelivr.net/npm/quill@2.0.0/dist/quill.snow.css" rel="stylesheet" />
-
+    <!-- Giữ nguyên CSS cũ để giao diện đẹp -->
     <link rel="stylesheet" href="style.css">
+    
+    <!-- Font chữ -->
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700&display=swap" rel="stylesheet">
 </head>
 <body>
+
+    <!-- 1. MÀN HÌNH ĐĂNG NHẬP -->
     <div id="login-container">
         <div class="login-box">
-            <h2>Đăng Nhập</h2>
-            <p id="login-error">Tên đăng nhập hoặc mật khẩu không đúng!</p>
-            <div class="form-group"><label for="username">Tên đăng nhập</label><input type="text" id="username" value="lamquocminh" aria-describedby="username-help" autocomplete="username"></div>
-            <div class="form-group"><label for="password">Mật khẩu</label><input type="password" id="password" value="lamquocminh" aria-describedby="password-help" autocomplete="current-password"></div>
-            <button class="btn-submit" onclick="handleLogin()" aria-label="Đăng nhập vào hệ thống">Đăng Nhập</button>
+            <h2>Đăng Nhập Test</h2>
+            <p id="login-error" style="color: red; display: none;"></p>
+            <p style="color: gray; font-size: 0.9rem;">Phiên bản thử nghiệm kết nối Firebase</p>
+            <br>
+            <button class="btn-submit" onclick="handleLogin()">Đăng nhập bằng Google</button>
         </div>
     </div>
     
-    <div id="loading-spinner" class="loading-spinner" style="display: none;">
-        <div class="spinner"></div>
-        <div class="loading-text">Đang tải ứng dụng...</div>
-    </div>
-    
+    <!-- 2. MÀN HÌNH ỨNG DỤNG (Ẩn khi chưa đăng nhập) -->
     <div id="app-container" style="display: none;">
+        
+        <!-- Sidebar rút gọn -->
         <aside class="sidebar">
             <div class="sidebar-header">
-                <img id="sidebar-profile-pic" class="profile-picture" src="https://placehold.co/80x80/FFFFFF/005B96?text=User" alt="Ảnh đại diện">
-                <div class="welcome-message">Xin chào, <strong id="sidebar-user-name">Lâm Quốc Minh</strong> chúc bạn một ngày vui vẻ!</div>
-            </div>
-            <div class="info-widget">
-                <div id="current-time">--:--:--</div>
-                <div id="current-date">--/--/----</div>
-                <div id="current-location">Đang xác định vị trí...</div>
+                <img id="user-avatar" class="profile-picture" src="" alt="Avatar">
+                <div class="welcome-message">Xin chào, <strong id="user-name">...</strong></div>
             </div>
             
-            <ul class="nav-menu" role="navigation" aria-label="Menu chính">
-                <li>
-                    <button class="nav-btn active" onclick="showSection('dashboard', this)">Tổng quan</button>
-                </li>
-                <li class="nav-group">
-                    <button class="nav-group-toggle">Không gian làm việc</button>
-                    <ul class="nav-submenu">
-                        <li><button class="nav-btn" onclick="showSection('tasks', this)">Quản lý công việc</button></li>
-                        <li><button class="nav-btn" onclick="showSection('todo-list', this)">To-do List</button></li>
-                        <li><button class="nav-btn" onclick="showSection('drafts', this)">Bản Nháp</button></li>
-                        <li><button class="nav-btn" onclick="showSection('projects', this)">Dự án</button></li>
-                        <li><button class="nav-btn" onclick="showSection('time-management', this)">Quản lý thời gian</button></li>
-                    </ul>
-                </li>
-                <li class="nav-group">
-                    <button class="nav-group-toggle">Phát triển cá nhân</button>
-                    <ul class="nav-submenu">
-                        <li><button class="nav-btn" onclick="showSection('focus-mode', this)">Chế độ tập trung</button></li>
-                        <li><button class="nav-btn" onclick="showSection('achievements', this)">Thành tích</button></li>
-                    </ul>
-                </li>
-                
-                <li class="nav-group">
-                    <button class="nav-group-toggle">Nghiên cứu Khoa học</button>
-                    <ul class="nav-submenu">
-                        <li><button class="nav-btn" onclick="showSection('digital-library', this)">Thư viện Số</button></li>
-                        <li><button class="nav-btn" onclick="showSection('outline-composer', this)">Xây dựng Dàn ý</button></li>
-                    </ul>
-                </li>
-
-                <li class="nav-group">
-                    <button class="nav-group-toggle">Mục tiêu Sinh viên 5 tốt</button>
-                    <ul class="nav-submenu">
-                        <li><button class="nav-btn" onclick="showSection('student-journey', this)">Hành trình SV5T</button></li>
-                        <li><button class="nav-btn" onclick="showSection('proofs-management', this)">Quản lý Minh chứng</button></li>
-                    </ul>
-                </li>
-                <li class="nav-group">
-                    <button class="nav-group-toggle">Hệ thống</button>
-                    <ul class="nav-submenu">
-                        <li><button class="nav-btn" onclick="showSection('personal-info', this)">Hồ sơ cá nhân</button></li>
-                        <li><button class="nav-btn" onclick="showSection('statistics', this)">Thống kê & Báo cáo</button></li>
-                        <li><button class="nav-btn" onclick="showSection('settings', this)">Cài đặt</button></li>
-                    </ul>
-                </li>
+            <ul class="nav-menu">
+                <li><button class="nav-btn active">📝 To-do List</button></li>
             </ul>
 
             <div class="sidebar-footer">
-                <div class="data-actions">
-                    <button class="import-btn" onclick="importDataFromFile()">Nhập Dữ Liệu</button>
-                    <button class="export-btn" onclick="exportDataToFile()">Xuất Dữ Liệu</button>
-                </div>
                 <button class="logout-btn" onclick="handleLogout()">Đăng xuất</button>
             </div>
         </aside>
 
+        <!-- Nội dung chính -->
         <main class="main-content">
-            <section id="dashboard" class="content-section active">
-                <h1>Tổng quan</h1>
-                <div id="dashboard-grid">
-                    <div class="dashboard-card">
-                        <h3>Công việc hôm nay</h3>
-                        <ul class="dashboard-list" id="dashboard-today-tasks"></ul>
-                        <p class="empty-state" id="dashboard-today-tasks-empty" style="display: none;">Không có công việc nào hôm nay.</p>
-                    </div>
-                    <div class="dashboard-card">
-                        <h3>Sự kiện sắp tới</h3>
-                        <ul class="dashboard-list" id="dashboard-upcoming-events"></ul>
-                        <p class="empty-state" id="dashboard-upcoming-events-empty" style="display: none;">Không có sự kiện nào sắp tới.</p>
-                    </div>
-                    <div class="dashboard-card">
-                        <h3>To-do List</h3>
-                        <ul class="dashboard-list" id="dashboard-todo-list"></ul>
-                        <p class="empty-state" id="dashboard-todo-list-empty" style="display: none;">Không có việc cần làm nào.</p>
-                    </div>
-                    <div class="dashboard-card">
-                        <h3>Bản nháp gần đây</h3>
-                        <ul class="dashboard-list" id="dashboard-recent-drafts"></ul>
-                        <p class="empty-state" id="dashboard-recent-drafts-empty" style="display: none;">Chưa có bản nháp nào.</p>
-                    </div>
-                    <div class="dashboard-card">
-                        <h3>Thành tích gần đây</h3>
-                        <ul class="dashboard-list" id="dashboard-recent-achievements"></ul>
-                        <p class="empty-state" id="dashboard-recent-achievements-empty" style="display: none;">Chưa có thành tích nào.</p>
-                    </div>
-                </div>
-            </section>
-
-            <section id="personal-info" class="content-section">
-                <h1>Hồ sơ cá nhân</h1>
-                <div class="personal-info-card">
-                    <h2>Thông tin của bạn</h2>
-                    <dl class="personal-info-detail" id="personal-info-display">
-                        <dt>Tên đầy đủ:</dt><dd id="pi-full-name">Chưa có</dd>
-                        <dt>Ngày sinh:</dt><dd id="pi-dob">Chưa có</dd>
-                        <dt>Email:</dt><dd id="pi-email">Chưa có</dd>
-                        <dt>Điện thoại:</dt><dd id="pi-phone">Chưa có</dd>
-                        <dt>Nghề nghiệp:</dt><dd id="pi-occupation">Chưa có</dd>
-                        <dt>Mạng xã hội:</dt><dd id="pi-social">Chưa có</dd>
-                    </dl>
-                    <button class="btn-submit personal-info-edit-button" onclick="openEditModal('personal-info')">Chỉnh sửa thông tin</button>
-                </div>
-            </section>
-
-            <section id="tasks" class="content-section">
-                <h1>Quản lý công việc</h1>
-                <div class="task-ticker-container"><p class="task-ticker"></p></div>
-                <div class="quick-add-container"><input type="text" id="quick-add-task-input" placeholder="Thêm nhanh một công việc rồi nhấn Enter..."></div>
+            <section class="content-section active" style="display: block;">
+                <h1>Danh sách việc cần làm</h1>
+                <p style="margin-bottom: 20px; color: gray;">Dữ liệu này sẽ được đồng bộ lên Google Firebase.</p>
+                
+                <!-- Form thêm việc -->
                 <div class="form-container">
-                    <div class="form-grid">
-                        <div class="form-group" style="grid-column: 1 / -1;"><label for="task-name">Tên công việc</label><input type="text" id="task-name" placeholder="Nhập tên công việc..."><p class="inline-error" id="task-name-error"></p></div>
-                        <div class="form-group"><label for="task-priority">Ưu tiên</label><select id="task-priority"><option value="low">Thấp</option><option value="medium">Trung bình</option><option value="high">Cao</option></select></div>
-                        <div class="form-group"><label for="task-category">Phân loại</label><select id="task-category"></select></div>
-                        <div class="form-group"><label for="task-due-date">Hạn chót</label><input type="date" id="task-due-date"></div>
-                        <div class="form-group"><label for="task-status">Tiến độ</label><select id="task-status"></select></div>
-                        <div class="form-group"><label for="task-recurrence">Lặp lại</label><select id="task-recurrence"><option value="none">Không</option><option value="daily">Hàng ngày</option><option value="weekly">Hàng tuần</option><option value="monthly">Hàng tháng</option></select></div>
-                        <div class="form-group"><label for="task-project">Dự án</label><select id="task-project"><option value="">Không có</option></select></div>
-                        <div class="form-group"><label for="task-link">Đính kèm</label><input type="text" id="task-link" placeholder="https://..."></div>
-                        <div class="form-group" style="grid-column: 1 / -1;"><label for="task-tags">Thẻ (cách nhau bởi dấu phẩy)</label><input type="text" id="task-tags" placeholder="ví dụ: học tập, quan trọng"></div>
-                        <div class="form-group" style="grid-column: 1 / -1;"><label for="task-notes">Ghi chú</label><textarea id="task-notes" placeholder="Thêm ghi chú chi tiết..."></textarea></div>
-                    </div>
-                    <button id="add-task-btn" class="btn-submit" onclick="addTask()"><div class="btn-spinner"></div><span class="btn-text">Thêm công việc</span></button>
-                </div>
-                <div class="task-controls">
-                    <div class="task-search-sort">
-                        <input type="search" id="task-search" placeholder="Tìm kiếm công việc...">
-                        <select id="task-sort">
-                            <option value="priority">Sắp xếp theo: Ưu tiên</option>
-                            <option value="dueDate-asc">Sắp xếp theo: Hạn chót (gần nhất)</option>
-                            <option value="dueDate-desc">Sắp xếp theo: Hạn chót (xa nhất)</option>
-                            <option value="name-asc">Sắp xếp theo: Tên (A-Z)</option>
-                        </select>
-                    </div>
-                    <div class="task-filter-controls" id="task-filter-controls">
-                        <button class="filter-btn active" onclick="filterTasks('all')">Tất cả</button>
-                        <button class="filter-btn" onclick="filterTasks('today')">Hôm nay</button>
-                        <button class="filter-btn" onclick="filterTasks('important')">Quan trọng</button>
-                        <button class="filter-btn" onclick="filterTasks('incomplete')">Chưa xong</button>
-                    </div>
-                </div>
-                <div class="list-container" id="task-list"></div>
-            </section>
-
-            <section id="todo-list" class="content-section">
-                <h1>To-do List Hàng Ngày</h1>
-                <p style="margin-bottom: 2rem; color: var(--text-color-secondary);">Ghi lại nhanh những việc cần làm trong ngày. Kéo-thả để sắp xếp, double-click để sửa.</p>
-                <div class="form-container" style="padding: 1.5rem; margin-bottom: 1.5rem;">
                     <div class="settings-input-group">
-                        <input type="text" id="new-todo-input" placeholder="Thêm một việc cần làm và nhấn Enter...">
-                        <button class="btn-submit" onclick="addTodoItem()">Thêm</button>
+                        <input type="text" id="todo-input" placeholder="Nhập việc cần làm rồi nhấn Enter...">
+                        <button class="btn-submit" onclick="addTodo()">Thêm</button>
                     </div>
                 </div>
-                <div class="task-filter-controls" id="todo-filter-controls">
-                    <button class="filter-btn active" onclick="filterTodoList('all')">Tất cả</button>
-                    <button class="filter-btn" onclick="filterTodoList('active')">Cần làm</button>
-                    <button class="filter-btn" onclick="filterTodoList('completed')">Đã xong</button>
-                </div>
-                <div id="todo-list-container" class="list-container"></div>
-            </section>
-            
-            <section id="drafts" class="content-section">
-                <h1>Bản Nháp Hoạt Động</h1>
-                <div class="composer-toolbar">
-                    <input type="search" id="drafts-search" placeholder="Tìm kiếm theo tiêu đề và nội dung...">
-                    <button class="btn-submit" onclick="createNewDraft()">Tạo Bản Nháp Mới +</button>
-                </div>
-                <div class="composer-main-container">
-                    <div id="drafts-list-column" class="outline-list-column"></div>
-                    <div id="drafts-editor-column" class="outline-editor-column" style="padding: 0;">
-                        <div id="drafts-editor-welcome" style="display: flex; justify-content: center; align-items: center; height: 100%; color: var(--text-color-secondary); font-size: 1.2rem; text-align: center;">
-                            <p>Chọn một bản nháp để xem, hoặc tạo một bản nháp mới.</p>
-                        </div>
-                        <div id="drafts-editor-content" style="display: none; height: 100%; display: flex; flex-direction: column;">
-                            <div class="draft-header">
-                                <input type="text" id="draft-title-input" placeholder="Nhập tiêu đề bản nháp...">
-                                <span id="draft-status"></span>
-                            </div>
-                            <div id="editor-container" style="height: 100%;"></div>
-                        </div>
-                    </div>
-                </div>
-            </section>
 
-            <section id="projects" class="content-section">
-                <h1>Quản lý Dự án</h1>
-                <div class="achievements-header">
-                    <p style="color: var(--text-color-secondary); margin-bottom: 0;">Quản lý các dự án của bạn và theo dõi tiến độ.</p>
-                    <button class="btn-submit" onclick="openProjectModal()">Thêm Dự án mới +</button>
+                <!-- Bộ lọc -->
+                <div class="task-filter-controls">
+                    <button class="filter-btn active" onclick="filterTodo('all')">Tất cả</button>
+                    <button class="filter-btn" onclick="filterTodo('incomplete')">Chưa xong</button>
+                    <button class="filter-btn" onclick="filterTodo('completed')">Đã xong</button>
                 </div>
-                <div id="project-list-container"></div>
-                <p class="empty-state" id="project-list-empty" style="display: none; text-align: center; padding: 2rem;">Chưa có dự án nào. Hãy nhấn "Thêm Dự án mới" để bắt đầu!</p>
-            </section>
 
-            <section id="focus-mode" class="content-section">
-                <div id="focus-mode-section">
-                    <h1>Chế độ tập trung</h1>
-                    <p style="font-size: 1.2rem; margin-bottom: 1rem;">Thời gian tập trung còn lại:</p>
-                    <div id="pomodoro-timer">25:00</div>
-                    <div class="focus-control-buttons">
-                        <button id="pomodoro-start-btn">Bắt đầu</button>
-                        <button id="pomodoro-pause-btn" style="display: none;">Tạm dừng</button>
-                        <button id="pomodoro-reset-btn">Đặt lại</button>
-                    </div>
-                    <div class="focus-mode-settings">
-                        <h3>Cài đặt thời gian</h3>
-                        <div class="form-grid">
-                            <div class="form-group"><label for="focus-duration">Thời gian làm việc (phút)</label><input type="number" id="focus-duration" value="25" min="1"></div>
-                            <div class="form-group"><label for="break-duration">Thời gian nghỉ (phút)</label><input type="number" id="break-duration" value="5" min="1"></div>
-                        </div>
-                    </div>
-                </div>
-            </section>
-
-            <section id="time-management" class="content-section">
-                <div id="calendar-section-container">
-                    <div class="calendar-header">
-                        <div class="calendar-header-controls">
-                            <button id="prev-btn" aria-label="Trước đó">&lt;</button>
-                            <h2 id="current-view-range"></h2>
-                            <button id="next-btn" aria-label="Tiếp theo">&gt;</button>
-                            <button id="today-btn" class="filter-btn" style="border-radius: 8px;">Hôm nay</button>
-                            <div class="calendar-view-toggle">
-                                <button id="view-week-btn" class="active">Tuần</button>
-                                <button id="view-month-btn">Tháng</button>
-                            </div>
-                        </div>
-                    </div>
-                    <div id="week-view-container" class="calendar-grid-container active-view">
-                        <table class="calendar-table">
-                            <thead><tr><th class="time-col">Giờ</th></tr></thead>
-                            <tbody id="calendar-body"></tbody>
-                        </table>
-                        <div id="current-time-indicator" class="current-time-indicator"></div>
-                    </div>
-                    <div id="month-view-container" class="calendar-grid-container" style="display: none;">
-                        <div id="month-calendar-grid"></div>
-                    </div>
-                </div>
-            </section>
-
-            <section id="digital-library" class="content-section">
-                <h1>Thư viện Số</h1>
-                <div class="library-toolbar">
-                    <input type="search" id="library-search" placeholder="Tìm kiếm tài liệu theo tên, thẻ...">
-                    <select id="library-sort">
-                        <option value="date-desc">Mới nhất</option>
-                        <option value="date-asc">Cũ nhất</option>
-                        <option value="title-asc">Theo tên A-Z</option>
-                    </select>
-                    <button class="btn-submit" onclick="openDocumentModal()">Thêm Tài liệu Mới +</button>
-                </div>
-                <div id="library-grid"></div>
-                <p class="empty-state" id="library-empty" style="display: none; text-align: center; padding: 2rem;">Thư viện của bạn chưa có tài liệu nào.</p>
-            </section>
-            
-            <section id="outline-composer" class="content-section">
-                <h1>Xây dựng Dàn ý</h1>
-                <div class="composer-toolbar">
-                    <input type="search" id="outline-search" placeholder="Tìm kiếm dàn ý...">
-                    <button class="btn-submit" onclick="openOutlineModal()">Tạo Dàn ý Mới +</button>
-                </div>
-                <div class="composer-main-container">
-                    <div id="outline-list-container" class="outline-list-column"></div>
-                    <div id="outline-editor-container" class="outline-editor-column">
-                        <div id="outline-editor-welcome"><p>Chọn một dàn ý từ danh sách bên trái để bắt đầu, hoặc tạo một dàn ý mới.</p></div>
-                        <div id="outline-editor-content" style="display: none;">
-                            <div class="outline-editor-header">
-                                <h2 id="editor-outline-title"></h2>
-                                <div><button class="btn-submit" onclick="addNodeToOutline()">Thêm mục chính</button></div>
-                            </div>
-                            <div id="outline-tree-container"></div>
-                        </div>
-                    </div>
-                </div>
-            </section>
-            
-            <section id="student-journey" class="content-section">
-                <h1>Hành trình Sinh viên 5 tốt</h1>
-                <div id="sv5t-board-container"></div>
-            </section>
-            
-            <section id="achievements" class="content-section">
-                <div class="achievements-header">
-                    <h1>Thành tích của tôi</h1>
-                    <button class="btn-submit" onclick="openAchievementModal()">Thêm Mới +</button>
-                </div>
-                <div id="achievements-grid"></div>
-            </section>
-
-            <section id="proofs-management" class="content-section">
-                <h1>Quản lý Minh chứng</h1>
-                <div id="proof-management-toolbar"><input type="search" id="proof-search" placeholder="Tìm kiếm theo tên minh chứng..."></div>
-                <div class="proof-table-container">
-                    <table class="proof-table">
-                        <thead><tr><th>Tên Minh chứng</th><th>Tiêu chí liên quan</th><th>Dung lượng</th><th>Hành động</th></tr></thead>
-                        <tbody id="proof-list-body"></tbody>
-                    </table>
-                </div>
-            </section>
-
-            <section id="statistics" class="content-section">
-                <h1>Thống kê & Báo cáo</h1>
-                <div id="statistics-overview">
-                    <div class="stat-card"><h3>Công việc hoàn thành</h3><p class="value" id="stat-tasks-completed">0</p></div>
-                    <div class="stat-card"><h3>Số sự kiện</h3><p class="value" id="stat-total-events">0</p></div>
-                </div>
-                <div class="chart-container">
-                    <h3>Tỷ lệ hoàn thành công việc</h3>
-                    <div class="progress-bar-stack" id="task-completion-chart"></div>
-                    <div class="progress-legend" id="task-completion-legend"></div>
-                </div>
-                <div class="chart-container">
-                    <h3>Phân bổ công việc theo loại</h3>
-                    <div class="category-chart-bars" id="task-category-chart"></div>
-                </div>
-            </section>
-            
-            <section id="settings" class="content-section">
-                <h1>Cài đặt Tùy chỉnh</h1>
-                <div class="settings-grid">
-                     <div class="settings-card" id="profile-picture-settings">
-                        <h3>Thông tin cá nhân & Ảnh đại diện</h3>
-                        <div class="profile-picture-controls">
-                            <img id="profile-pic-preview" class="profile-picture-preview" src="https://placehold.co/100x100/E9ECEF/6C757D?text=Avatar" alt="Xem trước ảnh">
-                            <div>
-                                <button class="btn-submit" onclick="document.getElementById('profile-pic-input').click()">Chọn ảnh mới</button>
-                                <button class="btn-submit" style="background-color: var(--danger-color);" onclick="removeAvatar()">Xóa ảnh</button>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="settings-card" id="color-settings">
-                        <h3>Tùy chỉnh màu sắc</h3>
-                        <div class="color-picker-group"><label for="primary-blue-color-picker">Màu chính (Xanh)</label><input type="color" id="primary-blue-color-picker" value="#005B96"></div>
-                        <div class="color-picker-group"><label for="primary-orange-color-picker">Màu nhấn (Cam)</label><input type="color" id="primary-orange-color-picker" value="#FF7A00"></div>
-                        <button class="btn-submit" onclick="resetColors()">Khôi phục mặc định</button>
-                    </div>
-                    <div class="settings-card" id="display-settings">
-                        <h3>Chế độ hiển thị</h3>
-                        <div style="display: flex; justify-content: space-between; align-items: center;">
-                            <label for="dark-mode-toggle" style="margin-bottom: 0;">Chế độ tối (Dark Mode)</label>
-                            <label class="toggle-switch"><input type="checkbox" id="dark-mode-toggle"><span class="slider"></span></label>
-                        </div>
-                        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 1.5rem;">
-                            <label for="notification-toggle" style="margin-bottom: 0;">Thông báo trình duyệt</label>
-                            <label class="toggle-switch"><input type="checkbox" id="notification-toggle"><span class="slider"></span></label>
-                        </div>
-                    </div>
-                    <div class="settings-card" id="categories-settings">
-                        <h3>Phân loại Công việc</h3>
-                        <div class="settings-input-group"><input type="text" id="new-category" placeholder="Tên loại mới..."><button class="btn-submit" onclick="addSettingItem('categories', 'new-category')">Thêm</button></div>
-                        <ul class="settings-list" id="categories-list"></ul>
-                    </div>
-                    <div class="settings-card" id="statuses-settings">
-                        <h3>Trạng thái Tiến độ</h3>
-                        <div class="settings-input-group"><input type="text" id="new-status" placeholder="Tên trạng thái mới..."><button class="btn-submit" onclick="addSettingItem('statuses', 'new-status')">Thêm</button></div>
-                        <ul class="settings-list" id="statuses-list"></ul>
-                    </div>
-                     <div class="settings-card" id="project-settings">
-                        <h3>Quản lý Dự án</h3>
-                        <div class="settings-input-group"><input type="text" id="new-project-name" placeholder="Tên dự án mới..."><button class="btn-submit" onclick="addProjectFromSettings()">Thêm</button></div>
-                        <ul class="settings-list" id="project-settings-list"></ul>
-                    </div>
-                    <div class="settings-card" id="backup-settings">
-                        <h3>Quản lý Dữ liệu</h3>
-                        <div class="backup-buttons">
-                            <button class="btn-submit" onclick="exportDataToFile()">Xuất File Sao Lưu</button>
-                            <button class="btn-submit" style="background-color: var(--success-color);" onclick="importDataFromFile()">Nhập Từ File</button>
-                        </div>
-                        <h4 style="margin-top: 1.5rem;">Thao tác Nguy hiểm</h4>
-                        <button class="btn-submit" style="background-color: var(--warning-color); color: var(--text-color);" id="deduplicate-btn">
-                            <div class="btn-spinner"></div>
-                            <span class="btn-text">Tìm & Xóa các mục trùng lặp</span>
-                        </button>
-                        <button class="btn-submit" style="background-color: var(--danger-color); margin-top: 0.5rem;" onclick="clearAllData()">Xóa Toàn Bộ Dữ Liệu</button>
-                    </div>
+                <!-- Danh sách hiển thị -->
+                <div id="todo-list-container" class="list-container">
+                    <!-- Item sẽ được JS vẽ vào đây -->
                 </div>
             </section>
         </main>
     </div>
-    
-    <!-- Modals -->
-    <div id="edit-modal" class="modal"><div class="modal-content"><div class="modal-header"><h2 class="modal-title" id="modal-title">Sửa</h2><button class="close-btn" onclick="closeModal()">&times;</button></div><div class="modal-body" id="modal-body"></div></div></div>
-    <div id="event-modal" class="modal"><div class="modal-content"><div class="modal-header"><h2 class="modal-title" id="event-modal-title">Tạo sự kiện</h2><button class="close-btn" onclick="closeEventModal()">&times;</button></div><div class="modal-body"><input type="hidden" id="event-id"><div class="form-group"><label for="event-title">Tiêu đề</label><input type="text" id="event-title"></div><div class="form-group"><label for="event-task-link">Liên kết công việc</label><select id="event-task-link"><option value="">Không có</option></select></div><div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem;"><div class="form-group"><label for="event-date">Ngày</label><input type="date" id="event-date"></div><div class="form-group"><label for="event-start-time">Bắt đầu</label><input type="time" id="event-start-time" step="1800"></div><div class="form-group"><label for="event-end-time">Kết thúc</label><input type="time" id="event-end-time" step="1800"></div></div><div style="display: flex; justify-content: flex-end; gap: 1rem; margin-top: 1rem;"><button id="delete-event-btn" class="btn-submit" style="background-color: var(--danger-color); display: none;" onclick="deleteCalendarEvent()">Xóa</button><button class="btn-submit" onclick="saveCalendarEvent()">Lưu</button></div></div></div></div>
-    <div id="achievement-modal" class="modal"><div class="modal-content"><div class="modal-header"><h2 class="modal-title" id="achievement-modal-title">Thêm thành tích</h2><button class="close-btn" onclick="closeAchievementModal()">&times;</button></div><div class="modal-body"><input type="hidden" id="achievement-id"><div class="form-group"><label for="achievement-title">Tên thành tích</label><input type="text" id="achievement-title"></div><div class="form-group"><label for="achievement-date">Ngày cấp</label><input type="date" id="achievement-date"></div><div class="form-group"><label for="achievement-description">Mô tả</label><textarea id="achievement-description"></textarea></div><div class="form-group"><label>Tệp đính kèm</label><button class="btn-submit" onclick="document.getElementById('achievement-file-input').click()">Chọn Tệp</button><p id="achievement-file-name"></p></div><div style="display: flex; justify-content: flex-end; gap: 1rem; margin-top: 1.5rem;"><button id="delete-achievement-btn" class="btn-submit" style="background-color: var(--danger-color); display: none;">Xóa</button><button class="btn-submit" onclick="saveAchievement()">Lưu</button></div></div></div></div>
-    <div id="project-modal" class="modal"><div class="modal-content"><div class="modal-header"><h2 class="modal-title" id="project-modal-title">Thêm dự án</h2><button class="close-btn" onclick="closeProjectModal()">&times;</button></div><div class="modal-body"><input type="hidden" id="project-id"><div class="form-group"><label for="project-name">Tên dự án</label><input type="text" id="project-name"></div><div class="form-group"><label for="project-description">Mô tả</label><textarea id="project-description"></textarea></div><div class="form-group"><label for="project-start-date">Ngày bắt đầu</label><input type="date" id="project-start-date"></div><div class="form-group"><label for="project-end-date">Ngày kết thúc</label><input type="date" id="project-end-date"></div><h3 style="margin-top: 1.5rem;">Công việc của dự án</h3><ul id="project-tasks-list" class="settings-list"></ul><div class="settings-input-group"><select id="add-task-to-project-select"></select><button class="btn-submit" id="add-project-task-btn">Thêm</button></div><div style="display: flex; justify-content: flex-end; gap: 1rem; margin-top: 1.5rem;"><button id="delete-project-btn" class="btn-submit" style="background-color: var(--danger-color); display: none;">Xóa</button><button class="btn-submit" onclick="saveProject()">Lưu</button></div></div></div></div>
-    <div id="confirm-modal" class="modal"><div class="modal-content" style="max-width: 450px;"><div class="modal-header"><h2 class="modal-title" id="confirm-modal-title">Xác nhận</h2><button class="close-btn" onclick="closeConfirmModal()">&times;</button></div><div class="modal-body"><p id="confirm-modal-text"></p><div style="display: flex; justify-content: flex-end; gap: 1rem; margin-top: 1.5rem;"><button class="btn-submit" style="background-color: var(--dark-gray);" onclick="closeConfirmModal()">Hủy</button><button class="btn-submit" style="background-color: var(--danger-color);" id="confirm-modal-btn">Xác nhận</button></div></div></div></div>
-    <div id="document-modal" class="modal"><div class="modal-content"><div class="modal-header"><h2 class="modal-title" id="document-modal-title">Thêm Tài liệu</h2><button class="close-btn" onclick="closeDocumentModal()">&times;</button></div><div class="modal-body"><input type="hidden" id="doc-id"><div class="form-group"><label for="doc-title">Tiêu đề</label><input type="text" id="doc-title"></div><div class="form-group"><label for="doc-type">Loại</label><select id="doc-type"><option value="article">Bài báo</option><option value="case">Án lệ</option><option value="law">Văn bản QPPL</option><option value="book">Sách</option><option value="other">Khác</option></select></div><div class="form-group"><label for="doc-source">Nguồn/Link</label><input type="url" id="doc-source"></div><div class="form-group"><label for="doc-tags">Thẻ</label><input type="text" id="doc-tags"></div><div class="form-group"><label>Tệp đính kèm</label><button class="btn-submit" onclick="document.getElementById('document-file-input').click()">Chọn Tệp</button><p id="document-file-name"></p></div><div class="form-group"><label for="doc-notes">Ghi chú</label><textarea id="doc-notes"></textarea></div><div style="display: flex; justify-content: flex-end; gap: 1rem; margin-top: 1.5rem;"><button id="delete-doc-btn" class="btn-submit" style="background-color: var(--danger-color); display: none;">Xóa</button><button class="btn-submit" onclick="saveDocument()">Lưu</button></div></div></div></div>
-    <div id="document-viewer-modal" class="modal"><div class="modal-content" style="max-width: 800px;"><div class="modal-header"><h2 class="modal-title" id="viewer-title"></h2><button class="close-btn" onclick="closeDocumentViewer()">&times;</button></div><div class="modal-body" id="viewer-body"></div></div></div>
-    <div id="outline-modal" class="modal"><div class="modal-content" style="max-width: 500px;"><div class="modal-header"><h2 class="modal-title" id="outline-modal-title">Tạo Dàn ý</h2><button class="close-btn" onclick="closeOutlineModal()">&times;</button></div><div class="modal-body"><input type="hidden" id="outline-id"><div class="form-group"><label for="outline-title">Tên Dàn ý</label><input type="text" id="outline-title"></div><div style="display: flex; justify-content: flex-end; gap: 1rem; margin-top: 1.5rem;"><button class="btn-submit" onclick="saveOutline()">Lưu</button></div></div></div></div>
 
-    <!-- MODALS MỚI CHO CÁC TÍNH NĂNG ĐƯỢC THÊM -->
-    <div id="import-options-modal" class="modal">
-        <div class="modal-content" style="max-width: 500px;">
-            <div class="modal-header">
-                <h2 class="modal-title">Tùy chọn Nhập Dữ liệu</h2>
-                <button class="close-btn" id="close-import-options-modal">&times;</button>
-            </div>
-            <div class="modal-body">
-                <p>Bạn muốn làm gì với dữ liệu từ tệp tin?</p>
-                <div style="background-color: var(--light-gray); padding: 1rem; border-radius: 8px; margin-top: 1rem;">
-                    <h4>Hợp nhất Dữ liệu</h4>
-                    <p style="font-size: 0.9rem; color: var(--text-color-secondary);">Thêm dữ liệu mới và cập nhật các mục đã tồn tại. Dữ liệu hiện tại không có trong tệp sẽ được giữ lại. (Khuyên dùng)</p>
-                    <button class="btn-submit" style="background-color: var(--success-color);" id="import-merge-btn">Hợp nhất</button>
-                </div>
-                <div style="background-color: #fff0f0; padding: 1rem; border-radius: 8px; margin-top: 1rem; border: 1px solid var(--danger-color);">
-                    <h4 style="color: var(--danger-color);">Ghi đè Toàn bộ</h4>
-                    <p style="font-size: 0.9rem; color: var(--danger-color);"><b>Cảnh báo:</b> Thao tác này sẽ xóa toàn bộ dữ liệu hiện tại của bạn và thay thế bằng dữ liệu từ tệp tin.</p>
-                    <button class="btn-submit" style="background-color: var(--danger-color);" id="import-overwrite-btn">Ghi đè</button>
-                </div>
-            </div>
-        </div>
+    <!-- LOADING SPINNER -->
+    <div id="loading" style="position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); color:white; display:none; justify-content:center; align-items:center; z-index:9999;">
+        Đang đồng bộ dữ liệu...
     </div>
 
-    <div id="duplicate-review-modal" class="modal">
-        <div class="modal-content" style="max-width: 800px;">
-            <div class="modal-header">
-                <h2 class="modal-title">Xem lại các mục trùng lặp</h2>
-                <button class="close-btn" id="close-duplicate-modal">&times;</button>
-            </div>
-            <div class="modal-body" id="duplicate-review-body">
-                <!-- Nội dung sẽ được tạo tự động bằng JavaScript -->
-            </div>
-            <div style="display: flex; justify-content: flex-end; gap: 1rem; margin-top: 1.5rem; padding-top: 1rem; border-top: 1px solid var(--border-color);">
-                 <button class="btn-submit" style="background-color: var(--dark-gray);" id="cancel-duplicate-modal">Hủy</button>
-                 <button class="btn-submit" style="background-color: var(--danger-color);" id="confirm-delete-duplicates-btn">Xóa các mục đã chọn</button>
-            </div>
-        </div>
-    </div>
-    
-    <!-- Side Panels -->
-    <div id="sv5t-panel-overlay" class="sv5t-panel-overlay"></div>
-    <div id="sv5t-side-panel" class="sv5t-side-panel"><div class="sv5t-panel-header"><h2 id="sv5t-panel-title"></h2><button id="sv5t-panel-close-btn">&times;</button></div><div class="sv5t-panel-body" id="sv5t-panel-body"></div></div>
-    <div id="outline-node-panel-overlay" class="sv5t-panel-overlay"></div>
-    <div id="outline-node-side-panel" class="sv5t-side-panel"><div class="sv5t-panel-header"><h2 id="outline-node-panel-title">Chi tiết Mục</h2><button id="outline-node-panel-close-btn">&times;</button></div><div class="sv5t-panel-body" id="outline-node-panel-body"></div></div>
+    <!-- QUAN TRỌNG: FILE JS MODULE -->
+    <script type="module" src="script.js"></script>
 
-    <!-- Hidden Inputs -->
-    <input type="file" id="import-file-input" accept=".json" style="display: none;">
-    <input type="file" id="profile-pic-input" accept="image/*" style="display: none;">
-    <input type="file" id="proof-upload-input" accept=".png,.jpg,.jpeg,.pdf,.doc,.docx,.xls,.xlsx" style="display: none;">
-    <input type="file" id="achievement-file-input" accept="image/*,.pdf" style="display: none;">
-    <input type="file" id="document-file-input" accept=".pdf,.doc,.docx,.png,.jpg,.jpeg" style="display: none;">
-
-    <div id="notification-container"></div>
-    
-    <!-- External Libraries -->
-    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.2/dist/confetti.browser.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/quill@2.0.0/dist/quill.min.js"></script>
-
-    <script src="script.js"></script>
 </body>
 </html>
