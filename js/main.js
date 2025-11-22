@@ -34,6 +34,10 @@ const DEFAULT_DATA = {
 let currentUserData = null;
 
 document.addEventListener('DOMContentLoaded', () => {
+    // Trong file js/main.js
+document.getElementById('btn-toggle-sidebar')?.addEventListener('click', () => {
+    document.getElementById('sidebar').classList.toggle('mobile-open');
+});
 
     // --- BẮT ĐẦU ĐỒNG HỒ THỜI GIAN THỰC ---
     startRealTimeClock();
