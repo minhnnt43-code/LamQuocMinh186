@@ -186,60 +186,95 @@ function startRealTimeClock() {
     setInterval(updateClock, 1000); // Cập nhật mỗi giây
 }
 
-// --- THÊM VÀO TRONG setupNavigation() ---
-
-    // [MỚI - MOBILE] Logic Hamburger Menu
-    const btnToggle = document.getElementById('btn-toggle-sidebar');
+// --- 3. HÀM ĐIỀU HƯỚNG (NAVIGATION) - FIXED MOBILE ---
+function setupNavigation() {
+    // 1. Xử lý chuyển Tab
+    const buttons = document.querySelectorAll('.nav-btn');
+    const sections = document.querySelectorAll('.content-section');
     const sidebar = document.getElementById('sidebar');
-    const mobileAvatar = document.getElementById('mobile-avatar');
-    
-    // Tạo Overlay đen mờ nếu chưa có
-    let overlay = document.getElementById('mobile-menu-overlay');
+    const overlay = document.getElementById('mobile-menu-overlay');
+
+    // Tạo Overlay nếu chưa có (Phòng trường hợp HTML thiếu)
     if (!overlay) {
-        overlay = document.createElement('div');
-        overlay.id = 'mobile-menu-overlay';
-        document.body.appendChild(overlay);
+        const newOverlay = document.createElement('div');
+        newOverlay.id = 'mobile-menu-overlay';
+        document.body.appendChild(newOverlay);
+    }
+    // Lấy lại biến overlay sau khi tạo
+    const finalOverlay = document.getElementById('mobile-menu-overlay');
+
+    // Hàm đóng menu mobile
+    const closeMobileMenu = () => {
+        if (window.innerWidth <= 768) {
+            sidebar.classList.remove('active');
+            finalOverlay.classList.remove('active');
+        }
+    };
+
+    buttons.forEach(btn => {
+        btn.addEventListener('click', () => {
+            const targetId = btn.getAttribute('data-target');
+            if (!targetId) return;
+
+            // Active nút
+            document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+
+            // Hiện section
+            sections.forEach(sec => sec.classList.remove('active'));
+            const targetSection = document.getElementById(targetId);
+            if (targetSection) targetSection.classList.add('active');
+
+            // ĐÓNG MENU MOBILE SAU KHI CHỌN
+            closeMobileMenu();
+        });
+    });
+
+    // 2. Toggle menu con (Accordion)
+    const groupToggles = document.querySelectorAll('.nav-group-toggle');
+    groupToggles.forEach(toggle => {
+        const newToggle = toggle.cloneNode(true);
+        toggle.parentNode.replaceChild(newToggle, toggle);
+
+        newToggle.addEventListener('click', (e) => {
+            e.preventDefault();
+            const parentGroup = newToggle.parentElement;
+            parentGroup.classList.toggle('open');
+        });
+    });
+
+    // 3. [MỚI] XỬ LÝ NÚT 3 GẠCH (HAMBURGER)
+    const btnToggle = document.getElementById('btn-toggle-sidebar');
+    if (btnToggle) {
+        // Xóa sự kiện cũ để tránh trùng lặp
+        const newBtnToggle = btnToggle.cloneNode(true);
+        btnToggle.parentNode.replaceChild(newBtnToggle, btnToggle);
+
+        newBtnToggle.addEventListener('click', (e) => {
+            e.stopPropagation(); // Không cho click lan ra ngoài
+            sidebar.classList.toggle('active');
+            finalOverlay.classList.toggle('active');
+        });
     }
 
-    // Đồng bộ avatar header với sidebar
+    // 4. Bấm vào vùng đen (Overlay) để đóng menu
+    if (finalOverlay) {
+        finalOverlay.addEventListener('click', closeMobileMenu);
+    }
+    
+    // 5. Đồng bộ Avatar Header Mobile
+    const mobileAvatar = document.getElementById('mobile-avatar');
     const mainAvatar = document.getElementById('sidebar-profile-pic');
     if(mobileAvatar && mainAvatar) {
-        // Quan sát thay đổi src của avatar chính để update avatar header
-        const observer = new MutationObserver((mutations) => {
-            mutations.forEach((mutation) => {
-                if (mutation.type === 'attributes' && mutation.attributeName === 'src') {
-                    mobileAvatar.src = mainAvatar.src;
-                }
-            });
+        // Copy ảnh từ sidebar lên header mobile
+        mobileAvatar.src = mainAvatar.src;
+        // Theo dõi nếu ảnh chính thay đổi thì cập nhật ảnh mobile
+        const observer = new MutationObserver(() => {
+            mobileAvatar.src = mainAvatar.src;
         });
-        observer.observe(mainAvatar, { attributes: true });
+        observer.observe(mainAvatar, { attributes: true, attributeFilter: ['src'] });
     }
-
-    // Sự kiện mở menu
-    if (btnToggle) {
-        btnToggle.addEventListener('click', (e) => {
-            e.stopPropagation();
-            sidebar.classList.toggle('active');
-            overlay.classList.toggle('active');
-        });
-    }
-
-    // Sự kiện đóng menu khi bấm ra ngoài (Overlay)
-    overlay.addEventListener('click', () => {
-        sidebar.classList.remove('active');
-        overlay.classList.remove('active');
-    });
-
-    // Tự động đóng menu khi chọn 1 mục (Trải nghiệm tốt hơn)
-    const navBtns = document.querySelectorAll('.nav-btn');
-    navBtns.forEach(btn => {
-        btn.addEventListener('click', () => {
-            if (window.innerWidth <= 768) {
-                sidebar.classList.remove('active');
-                overlay.classList.remove('active');
-            }
-        });
-    });
+}
 
 // --- 4. CÀI ĐẶT HỆ THỐNG (SETTINGS) ---
 function setupSettings(user) {
