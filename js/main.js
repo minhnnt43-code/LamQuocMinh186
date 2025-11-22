@@ -6,7 +6,7 @@ import {
 } from './firebase.js';
 
 import { 
-    toggleLoading, showNotification, setupModal 
+    toggleLoading, showNotification, setupModal, convertDriveLink 
 } from './common.js';
 
 import { initWorkModule } from './work.js';
@@ -45,19 +45,27 @@ document.addEventListener('DOMContentLoaded', () => {
             
             // Hiển thị thông tin User lên Sidebar
             document.getElementById('sidebar-user-name').textContent = user.displayName;
-            const photoURL = user.photoURL || "https://placehold.co/80x80/FFFFFF/005B96?text=User";
-            document.getElementById('sidebar-profile-pic').src = photoURL;
             
-            const settingsPreview = document.getElementById('settings-profile-preview');
-            if(settingsPreview) settingsPreview.src = photoURL;
-
+            // Lấy ảnh đại diện (Ưu tiên từ Firebase, nếu không có thì lấy từ Google)
+            let photoURL = user.photoURL;
+            
             // Tải dữ liệu từ Firebase
             try {
                 const data = await getUserData(user.uid);
                 currentUserData = data ? data : JSON.parse(JSON.stringify(DEFAULT_DATA));
 
+                // Nếu đã có ảnh custom thì dùng
+                if (currentUserData.settings && currentUserData.settings.customAvatarUrl) {
+                    photoURL = currentUserData.settings.customAvatarUrl;
+                }
+
+                document.getElementById('sidebar-profile-pic').src = photoURL || "https://placehold.co/80x80/FFFFFF/005B96?text=User";
+                
+                const settingsPreview = document.getElementById('settings-profile-preview');
+                if(settingsPreview) settingsPreview.src = photoURL;
+
                 // ============================================================
-                // 🔥 TỰ ĐỘNG ĐỒNG BỘ THÔNG TIN CÁ NHÂN (FIX LỖI ADMIN) 🔥
+                // 🔥 TỰ ĐỘNG ĐỒNG BỘ THÔNG TIN CÁ NHÂN 🔥
                 // ============================================================
                 if (!currentUserData.personalInfo) currentUserData.personalInfo = {};
                 
@@ -66,16 +74,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 currentUserData.personalInfo.email = user.email;
                 
                 if (!currentUserData.settings) currentUserData.settings = {};
-                // Nếu chưa có avatar custom thì lấy từ Google
-                if (!currentUserData.settings.customAvatarUrl) {
-                    currentUserData.settings.customAvatarUrl = user.photoURL;
-                }
-
-                // Lưu ngược lên Firebase để Admin dashboard đọc được
+                
+                // Lưu ngược lên Firebase
                 saveUserData(user.uid, { 
                     personalInfo: currentUserData.personalInfo,
                     settings: currentUserData.settings,
-                    email: user.email // Lưu email ở root để dễ query
+                    email: user.email 
                 });
                 // ============================================================
                 
@@ -85,12 +89,15 @@ document.addEventListener('DOMContentLoaded', () => {
                 // KHỞI CHẠY CÁC MODULE CON
                 initWorkModule(currentUserData, user);
                 initStudyModule(currentUserData, user);
-                initAdminModule(user); // Kích hoạt Admin nếu đúng email
+                initAdminModule(user); 
                 
                 // Khởi tạo điều hướng & Modal
                 setupNavigation();
                 setupAllModals();
                 setupSettings(user);
+                
+                // Load thông tin Profile vào form
+                loadProfileDataToForm();
                 
                 showNotification(`Chào mừng trở lại, ${user.displayName}!`);
             } catch (error) {
@@ -150,7 +157,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // --- 3. HÀM ĐIỀU HƯỚNG (NAVIGATION) ---
 function setupNavigation() {
-    // A. Click nút Tab
     const buttons = document.querySelectorAll('.nav-btn');
     const sections = document.querySelectorAll('.content-section');
     
@@ -168,10 +174,8 @@ function setupNavigation() {
         });
     });
 
-    // B. Click nhóm Menu (Accordion)
     const groupToggles = document.querySelectorAll('.nav-group-toggle');
     groupToggles.forEach(toggle => {
-        // Xóa event cũ để tránh duplicate nếu gọi lại
         const newToggle = toggle.cloneNode(true);
         toggle.parentNode.replaceChild(newToggle, toggle);
         
@@ -228,23 +232,27 @@ function setupSettings(user) {
         });
     }
 
-    // Upload Avatar
-    const fileInput = document.getElementById('profile-pic-input');
-    if(fileInput) {
-        fileInput.addEventListener('change', async (e) => {
-            const file = e.target.files[0];
-            if (file) {
-                showNotification('Đang cập nhật ảnh...', 'info');
-                try {
-                    const res = await uploadFileToStorage(file, `avatars/${user.uid}`);
-                    document.getElementById('sidebar-profile-pic').src = res.url;
-                    document.getElementById('settings-profile-preview').src = res.url;
-                    saveSettings({ customAvatarUrl: res.url }, user);
-                    showNotification('Cập nhật ảnh thành công!');
-                } catch (err) {
-                    showNotification('Lỗi: ' + err.message, 'error');
-                }
-            }
+    // --- [MỚI] XỬ LÝ AVATAR (LINK DRIVE) ---
+    const btnSaveAvatar = document.getElementById('btn-save-avatar');
+    if (btnSaveAvatar) {
+        btnSaveAvatar.addEventListener('click', async () => {
+            const linkInput = document.getElementById('profile-pic-link');
+            const rawLink = linkInput.value.trim();
+
+            if (!rawLink) return showNotification('Vui lòng dán link ảnh!', 'error');
+
+            // Convert link Drive sang link ảnh trực tiếp
+            const directLink = convertDriveLink(rawLink);
+
+            // Cập nhật giao diện ngay lập tức
+            document.getElementById('sidebar-profile-pic').src = directLink;
+            const preview = document.getElementById('settings-profile-preview');
+            if (preview) preview.src = directLink;
+
+            // Lưu vào Firebase
+            await saveSettings({ customAvatarUrl: directLink }, user);
+            showNotification('Đã cập nhật ảnh đại diện!');
+            linkInput.value = ''; 
         });
     }
 
@@ -279,7 +287,6 @@ function setupSettings(user) {
     if (btnImport && importInput) {
         btnImport.addEventListener('click', () => importInput.click());
         
-        // Xóa event cũ bằng cách clone node (tránh gán nhiều lần)
         const newImportInput = importInput.cloneNode(true);
         importInput.parentNode.replaceChild(newImportInput, importInput);
         
@@ -342,34 +349,29 @@ function setupAllModals() {
         document.querySelectorAll('.sv5t-panel-overlay').forEach(o => o.classList.remove('active'));
     };
 
-    // Thêm kiểm tra null để tránh lỗi nếu element chưa render
     document.getElementById('sv5t-panel-close-btn')?.addEventListener('click', closeSidePanels);
     document.getElementById('sv5t-panel-overlay')?.addEventListener('click', closeSidePanels);
     document.getElementById('outline-node-panel-close-btn')?.addEventListener('click', closeSidePanels);
     document.getElementById('outline-node-panel-overlay')?.addEventListener('click', closeSidePanels);
 }
-// --- LOGIC QUẢN LÝ HỒ SƠ (PROFILE) ---
 
-// 1. Hàm đổ dữ liệu từ Firebase vào ô input khi mới vào
+// --- LOGIC QUẢN LÝ HỒ SƠ (PROFILE) ---
 function loadProfileDataToForm() {
     if (!currentUserData || !currentUserData.personalInfo) return;
     
     const info = currentUserData.personalInfo;
     
-    // Thông tin cơ bản
     document.getElementById('pi-fullname').value = info.fullName || '';
     document.getElementById('pi-email').value = info.email || '';
     document.getElementById('pi-phone').value = info.phone || '';
     document.getElementById('pi-occupation').value = info.occupation || '';
 
-    // Thông tin Portfolio (Chip)
     document.getElementById('pf-school').value = info.school || '';
     document.getElementById('pf-award').value = info.award || '';
     document.getElementById('pf-role').value = info.role || '';
     document.getElementById('pf-location').value = info.location || '';
 }
 
-// --- LOGIC LƯU HỒ SƠ (DÁN VÀO CUỐI FILE, CHỈ 1 LẦN) ---
 const btnSaveProfile = document.getElementById('btn-save-profile');
 
 if (btnSaveProfile) {
@@ -393,17 +395,12 @@ if (btnSaveProfile) {
             if (!currentUserData.personalInfo) currentUserData.personalInfo = {};
             currentUserData.personalInfo = { ...currentUserData.personalInfo, ...updatedInfo };
 
-            // Kiểm tra biến firebase toàn cục hoặc import
-            // Giả sử bạn đã import saveUserData ở đầu file
             if (currentUserData) { 
-                // Lưu ý: Dòng này cần đảm bảo bạn đã import saveUserData và user đang login
-                // Nếu biến 'user' không có sẵn ở scope này, ta dùng logic tạm này:
                  import('./firebase.js').then(async (module) => {
                     const { getAuth } = await import("https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js");
                     const auth = getAuth();
                     if(auth.currentUser) {
                         await module.saveUserData(auth.currentUser.uid, { personalInfo: updatedInfo });
-                        // Gọi hàm thông báo từ common nếu có
                         alert("Đã cập nhật hồ sơ thành công!"); 
                     }
                 });
@@ -418,8 +415,3 @@ if (btnSaveProfile) {
         }
     });
 }
-
-
-// Gọi hàm load dữ liệu mỗi khi vào (Thêm dòng này vào chỗ subscribeToAuthChanges trong main.js nếu muốn chuẩn, hoặc để cuối file nó tự chạy nếu biến currentUserData đã có)
-// Tuy nhiên, cách tốt nhất là thêm dòng này vào bên trong subscribeToAuthChanges, ngay sau khi tải data xong:
-// loadProfileDataToForm();
