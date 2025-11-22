@@ -2,7 +2,7 @@
 
 import { 
     escapeHTML, formatDate, generateID, showNotification, 
-    openModal, closeModal 
+    openModal, closeModal, convertDriveLink 
 } from './common.js';
 
 import { saveUserData, uploadFileToStorage, deleteFileFromStorage } from './firebase.js';
@@ -73,7 +73,7 @@ export const initStudyModule = (data, user) => {
     // Nút Lưu Tài liệu
     document.getElementById('btn-save-doc').addEventListener('click', handleSaveDocument);
     
-    // Nút Xóa Tài liệu (Trong Modal) - SỬ DỤNG ARROW FUNCTION ĐỂ TRÁNH LỖI UNDEFINED
+    // Nút Xóa Tài liệu (Trong Modal)
     document.getElementById('btn-delete-doc').addEventListener('click', () => {
         handleDeleteDocumentInModal();
     });
@@ -86,7 +86,12 @@ export const initStudyModule = (data, user) => {
         document.getElementById('achievement-id').value = ''; 
         document.getElementById('achievement-title').value = '';
         document.getElementById('achievement-description').value = '';
-        document.getElementById('achievement-file-name').textContent = '';
+        
+        // Reset các trường mới
+        document.getElementById('achievement-category').value = 'other';
+        document.getElementById('achievement-drive-link').value = '';
+        document.getElementById('achievement-featured').checked = false; // Reset checkbox
+
         document.getElementById('btn-delete-achievement').style.display = 'none';
         openModal('achievement-modal');
     });
@@ -216,7 +221,6 @@ const renderCriterionCard = (level, type, name, icon) => {
     `;
 };
 
-// Gắn vào window để HTML string gọi được
 window.openSV5TPanel = (level, type, name) => {
     const panel = document.getElementById('sv5t-side-panel');
     const overlay = document.getElementById('sv5t-panel-overlay');
@@ -244,7 +248,6 @@ window.openSV5TPanel = (level, type, name) => {
         </div>
     `;
 
-    // Sự kiện checkbox
     const chk = document.getElementById(`chk-${key}`);
     chk.addEventListener('change', async (e) => {
         globalData.studentJourney[key] = e.target.checked;
@@ -258,7 +261,6 @@ window.openSV5TPanel = (level, type, name) => {
 
     renderProofs(key);
 
-    // Sự kiện upload
     const btnUpload = document.getElementById(`btn-upload-${key}`);
     btnUpload.addEventListener('click', () => {
         const fileInput = document.getElementById('proof-upload-input');
@@ -322,7 +324,6 @@ const handleProofUpload = async (event, criteriaKey) => {
     event.target.value = '';
 };
 
-// Gắn vào window để HTML string gọi được
 window.deleteProof = async (id) => {
     if(!confirm("Xóa minh chứng này?")) return;
     
@@ -378,9 +379,7 @@ const renderLibrary = () => {
             </div>
         `;
         
-        // Gán sự kiện sửa
         card.querySelector('.doc-card-header').onclick = () => openEditDocument(doc);
-        // Gán sự kiện xóa
         card.querySelector('.btn-delete-lib-item').onclick = (e) => {
             e.stopPropagation();
             window.deleteDoc(doc.id);
@@ -397,7 +396,7 @@ const openEditDocument = (doc) => {
     document.getElementById('doc-tags').value = doc.tags || '';
     document.getElementById('doc-notes').value = doc.notes || '';
     document.getElementById('document-file-name').textContent = doc.fullPath ? 'Đã có file đính kèm' : '';
-    document.getElementById('btn-delete-doc').style.display = 'inline-block'; // Hiện nút xóa
+    document.getElementById('btn-delete-doc').style.display = 'inline-block'; 
     openModal('document-modal');
 };
 
@@ -412,7 +411,6 @@ const handleSaveDocument = async () => {
     let fileUrl = link;
     let fullPath = null;
 
-    // Nếu có upload file mới
     if (fileInput.files.length > 0) {
         showNotification('Đang tải file...', 'info');
         const file = fileInput.files[0];
@@ -420,7 +418,6 @@ const handleSaveDocument = async () => {
         fileUrl = result.url;
         fullPath = result.fullPath;
     } else if (id) {
-        // Nếu đang sửa và không chọn file mới, giữ nguyên file cũ
         const oldDoc = globalData.documents.find(d => d.id === id);
         if (oldDoc) {
             if (!fileUrl) fileUrl = oldDoc.link;
@@ -454,7 +451,6 @@ const handleSaveDocument = async () => {
     showNotification('Lưu tài liệu thành công');
 };
 
-// Hàm này xử lý xóa KHI BẤM NÚT TRONG MODAL
 const handleDeleteDocumentInModal = () => {
     const id = document.getElementById('doc-id').value;
     if (id) {
@@ -463,7 +459,6 @@ const handleDeleteDocumentInModal = () => {
     }
 };
 
-// Hàm này xử lý xóa thực sự (gắn window để gọi từ bên ngoài nếu cần)
 window.deleteDoc = async (id) => {
     if(!confirm("Xóa tài liệu này?")) return;
     const index = globalData.documents.findIndex(d => d.id === id);
@@ -600,7 +595,6 @@ const renderAchievements = () => {
     achievements.forEach(ach => {
         const div = document.createElement('div');
         div.className = 'achievement-card';
-        // Sửa lỗi onclick gọi sai hàm
         div.onclick = () => openEditAchievement(ach);
 
         div.innerHTML = `
@@ -616,43 +610,47 @@ const renderAchievements = () => {
     });
 };
 
+// [ĐÃ SỬA] Thêm load trạng thái Checkbox
 const openEditAchievement = (ach) => {
     document.getElementById('achievement-id').value = ach.id;
     document.getElementById('achievement-title').value = ach.name;
     document.getElementById('achievement-date').value = ach.date;
     document.getElementById('achievement-description').value = ach.description || '';
-    document.getElementById('achievement-file-name').textContent = ach.imageUrl ? 'Đã có ảnh' : '';
+    
+    // Load loại
+    document.getElementById('achievement-category').value = ach.category || 'other';
+    // Load link Drive
+    document.getElementById('achievement-drive-link').value = ach.imageUrl || '';
+    // Load trạng thái Nổi bật (Checkbox)
+    document.getElementById('achievement-featured').checked = ach.isFeatured || false;
+
     document.getElementById('btn-delete-achievement').style.display = 'inline-block';
     openModal('achievement-modal');
 };
 
+// [ĐÃ SỬA] Thêm lưu trạng thái Checkbox
 const handleSaveAchievement = async () => {
     const id = document.getElementById('achievement-id').value;
     const title = document.getElementById('achievement-title').value;
     const date = document.getElementById('achievement-date').value;
+    const category = document.getElementById('achievement-category').value;
+    const rawLink = document.getElementById('achievement-drive-link').value;
+    
+    // Lấy trạng thái checkbox
+    const isFeatured = document.getElementById('achievement-featured').checked;
     
     if(!title) return showNotification('Nhập tên thành tích', 'error');
     
-    const fileInput = document.getElementById('achievement-file-input');
-    let imgUrl = '';
-    
-    // Xử lý upload ảnh nếu có
-    if (fileInput.files.length > 0) {
-        showNotification('Đang tải ảnh...', 'info');
-        const res = await uploadFileToStorage(fileInput.files[0], `achievements/${currentUser.uid}/${fileInput.files[0].name}`);
-        imgUrl = res.url;
-    } else if (id) {
-        // Nếu sửa và không chọn ảnh mới, giữ ảnh cũ
-        const oldAch = globalData.achievements.find(a => a.id === id);
-        if (oldAch) imgUrl = oldAch.imageUrl;
-    }
+    const finalImgUrl = convertDriveLink(rawLink);
 
     const achData = {
         id: id || generateID('ach'),
         name: title,
         date: date,
+        category: category,
         description: document.getElementById('achievement-description').value,
-        imageUrl: imgUrl
+        imageUrl: finalImgUrl,
+        isFeatured: isFeatured // Lưu vào database
     };
 
     if (id) {
