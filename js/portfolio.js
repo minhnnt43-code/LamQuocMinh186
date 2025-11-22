@@ -309,14 +309,14 @@ window.filterAchievements = (type) => {
 };
 
 // ============================================================
-// [MỚI] RENDER ALBUM (ALBUM SHELF)
+// [CẬP NHẬT] RENDER ALBUM (HIỆN ẢNH BÌA ĐẸP)
 // ============================================================
 async function renderAlbums() {
     const container = document.getElementById('pf-album-shelf');
     if (!container) return;
 
     try {
-        const q = query(collection(db, `users/${OWNER_UID}/timeline`), orderBy('order', 'asc'));
+        const q = query(collection(db, `users/${OWNER_UID}/albums`), orderBy('createdAt', 'desc'));
         const snapshot = await getDocs(q);
 
         container.innerHTML = '';
@@ -329,18 +329,55 @@ async function renderAlbums() {
             const album = docShot.data();
             const photos = album.photos || [];
             
+            // Nếu không có ảnh bìa thì dùng ảnh mặc định
+            const coverUrl = album.cover || 'https://placehold.co/600x400?text=Album';
+
             const div = document.createElement('div');
             div.className = 'album-card';
+            
+            // Style Card có ảnh bìa
+            div.style.cssText = `
+                background: #fff; 
+                border-radius: 12px; 
+                box-shadow: 0 4px 10px rgba(0,0,0,0.1); 
+                cursor: pointer; 
+                transition: 0.3s; 
+                overflow: hidden; /* Để bo tròn ảnh */
+                border: 1px solid #eee;
+                display: flex;
+                flex-direction: column;
+            `;
+
             div.innerHTML = `
-                <img src="${album.cover}" class="album-cover" alt="${album.title}">
-                <div class="album-info">
-                    <div class="album-title">${album.title}</div>
-                    <div class="album-meta">
-                        <span>${photos.length} ảnh</span>
+                <div style="height: 200px; overflow: hidden; background: #f0f0f0; position: relative;">
+                    <img src="${coverUrl}" 
+                         style="width: 100%; height: 100%; object-fit: cover; transition: transform 0.5s;"
+                         onerror="this.src='https://placehold.co/600x400?text=No+Image'" 
+                         alt="${album.title}">
+                </div>
+                <div style="padding: 15px;">
+                    <div style="font-weight: bold; color: #005B96; font-size: 1.1rem; margin-bottom: 5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                        ${album.title}
+                    </div>
+                    <div style="font-size: 0.85rem; color: #666; display: flex; justify-content: space-between;">
+                        <span>📸 ${photos.length} ảnh</span>
+                        <span style="color: #FF7A00;">Xem ngay ➜</span>
                     </div>
                 </div>
             `;
             
+            // Hiệu ứng Hover: Phóng to ảnh nhẹ
+            div.onmouseover = () => { 
+                div.style.transform = "translateY(-5px)"; 
+                div.style.boxShadow = "0 10px 20px rgba(0,0,0,0.15)";
+                div.querySelector('img').style.transform = "scale(1.1)";
+            };
+            div.onmouseout = () => { 
+                div.style.transform = "translateY(0)"; 
+                div.style.boxShadow = "0 4px 10px rgba(0,0,0,0.1)";
+                div.querySelector('img').style.transform = "scale(1)";
+            };
+
             // Click để mở Lightbox
             div.onclick = () => {
                 if (photos.length > 0) openLightbox(photos, 0);
