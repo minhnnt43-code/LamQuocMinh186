@@ -3122,47 +3122,48 @@
         .calendar-table { min-width: 600px; }
     }
 /* ============================================================
-   FIX FINAL: BẮT BUỘC HIỆN AVATAR (SỬ DỤNG ID ĐỂ GHI ĐÈ)
+   FIX FINAL: CHỈ ÁP DỤNG CHO MÁY TÍNH (MÀN HÌNH > 769PX)
    ============================================================ */
+@media screen and (min-width: 769px) {
+    /* 1. Ép hiện khung Avatar */
+    #sidebar .sidebar-header {
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: center !important;
+        justify-content: center !important;
+        width: 100% !important;
+        height: auto !important;
+        margin-bottom: 20px !important;
+        background: transparent !important;
+        opacity: 1 !important;
+        visibility: visible !important;
+    }
 
-/* 1. Ép hiện khung Avatar */
-#sidebar .sidebar-header {
-    display: flex !important;
-    flex-direction: column !important;
-    align-items: center !important;
-    justify-content: center !important;
-    width: 100% !important;
-    height: auto !important;
-    margin-bottom: 20px !important;
-    background: transparent !important;
-    opacity: 1 !important;
-    visibility: visible !important;
-}
+    /* 2. Ép hiện hình ảnh */
+    #sidebar .profile-picture {
+        display: block !important;
+        width: 80px !important;
+        height: 80px !important;
+        min-width: 80px !important;
+        min-height: 80px !important;
+        border-radius: 50% !important;
+        border: 3px solid white !important;
+        object-fit: cover !important;
+        margin: 0 auto 10px auto !important;
+    }
 
-/* 2. Ép hiện hình ảnh */
-#sidebar .profile-picture {
-    display: block !important;
-    width: 80px !important;
-    height: 80px !important;
-    min-width: 80px !important; /* Chống bị bóp méo */
-    min-height: 80px !important;
-    border-radius: 50% !important;
-    border: 3px solid white !important;
-    object-fit: cover !important;
-    margin: 0 auto 10px auto !important;
-}
+    /* 3. Ép hiện lời chào */
+    #sidebar .welcome-message {
+        display: block !important;
+        text-align: center !important;
+        color: white !important;
+        font-size: 1rem !important;
+    }
 
-/* 3. Ép hiện lời chào */
-#sidebar .welcome-message {
-    display: block !important;
-    text-align: center !important;
-    color: white !important;
-    font-size: 1rem !important;
-}
-
-/* 4. Chỉnh lại Sidebar để Avatar không bị lệch */
-#sidebar {
-    display: flex !important;
-    flex-direction: column !important;
-    align-items: stretch !important;
+    /* 4. Chỉnh lại Sidebar */
+    #sidebar {
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: stretch !important;
+    }
 }
