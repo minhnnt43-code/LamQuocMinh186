@@ -349,53 +349,65 @@ export const initStudyModule = (data, user) => {
     if (!globalData.drafts) globalData.drafts = [];
     if (!globalData.outlines) globalData.outlines = [];
 
-    // 1. Setup Pomodoro
-    const btnStart = document.getElementById('pomodoro-start-btn');
-    const btnPause = document.getElementById('pomodoro-pause-btn');
-    const btnReset = document.getElementById('pomodoro-reset-btn');
-    if (btnStart) btnStart.addEventListener('click', startTimer);
-    if (btnPause) btnPause.addEventListener('click', pauseTimer);
-    if (btnReset) btnReset.addEventListener('click', resetTimer);
+    // 1. Setup Pomodoro (Trong try-catch)
+    try {
+        const btnStart = document.getElementById('pomodoro-start-btn');
+        const btnPause = document.getElementById('pomodoro-pause-btn');
+        const btnReset = document.getElementById('pomodoro-reset-btn');
+        if (btnStart) btnStart.addEventListener('click', startTimer);
+        if (btnPause) btnPause.addEventListener('click', pauseTimer);
+        if (btnReset) btnReset.addEventListener('click', resetTimer);
+    } catch (e) { console.error("Lỗi Pomodoro:", e); }
 
     // 2. Setup SV5T
-    renderSV5TBoard();
-    // Xử lý input upload minh chứng
-    const proofInput = document.getElementById('proof-upload-input');
-    if (proofInput) {
-        const newProofInput = proofInput.cloneNode(true);
-        proofInput.parentNode.replaceChild(newProofInput, proofInput);
-    }
+    try {
+        renderSV5TBoard();
+        const proofInput = document.getElementById('proof-upload-input');
+        if (proofInput) {
+            // Clone để xóa sự kiện cũ
+            const newProofInput = proofInput.cloneNode(true);
+            proofInput.parentNode.replaceChild(newProofInput, proofInput);
+        }
+    } catch (e) { console.error("Lỗi SV5T:", e); }
 
     // 3. Setup Library (Thư viện)
-    renderLibrary();
-    setupLibraryEvents();
+    try {
+        renderLibrary();
+        setupLibraryEvents();
+    } catch (e) { console.error("Lỗi Library:", e); }
 
-    // 4. Setup Achievements (Thành tích)
-    renderAchievements();
-    setupAchievementEvents();
+    // 4. Setup Achievements (Thành tích) - CÓ FIX NÚT BẤM
+    try {
+        renderAchievements();
+        setupAchievementEvents();
+    } catch (e) { console.error("Lỗi Achievements:", e); }
 
     // 5. Setup Drafts (Nháp/Quill)
-    setTimeout(() => {
-        initQuillEditor();
-        renderDraftsList();
-    }, 500);
-    const btnCreateDraft = document.getElementById('btn-create-draft');
-    if (btnCreateDraft) btnCreateDraft.addEventListener('click', createNewDraft);
-    const draftTitleInput = document.getElementById('draft-title-input');
-    if (draftTitleInput) draftTitleInput.addEventListener('input', autoSaveDraft);
+    try {
+        setTimeout(() => {
+            initQuillEditor();
+            renderDraftsList();
+        }, 500);
+        const btnCreateDraft = document.getElementById('btn-create-draft');
+        if (btnCreateDraft) btnCreateDraft.addEventListener('click', createNewDraft);
+        const draftTitleInput = document.getElementById('draft-title-input');
+        if (draftTitleInput) draftTitleInput.addEventListener('input', autoSaveDraft);
+    } catch (e) { console.error("Lỗi Drafts:", e); }
 
     // 6. Setup Outlines (Dàn ý)
-    renderOutlineList();
-    const btnCreateOutline = document.getElementById('btn-create-outline');
-    if (btnCreateOutline) btnCreateOutline.addEventListener('click', () => {
-        document.getElementById('outline-id').value = '';
-        document.getElementById('outline-title').value = '';
-        openModal('outline-modal');
-    });
-    const btnSaveOutline = document.getElementById('btn-save-outline');
-    if (btnSaveOutline) btnSaveOutline.addEventListener('click', handleSaveOutline);
-    const btnAddRootNode = document.getElementById('btn-add-root-node');
-    if (btnAddRootNode) btnAddRootNode.addEventListener('click', handleAddRootNode);
+    try {
+        renderOutlineList();
+        const btnCreateOutline = document.getElementById('btn-create-outline');
+        if (btnCreateOutline) btnCreateOutline.addEventListener('click', () => {
+            document.getElementById('outline-id').value = '';
+            document.getElementById('outline-title').value = '';
+            openModal('outline-modal');
+        });
+        const btnSaveOutline = document.getElementById('btn-save-outline');
+        if (btnSaveOutline) btnSaveOutline.addEventListener('click', handleSaveOutline);
+        const btnAddRootNode = document.getElementById('btn-add-root-node');
+        if (btnAddRootNode) btnAddRootNode.addEventListener('click', handleAddRootNode);
+    } catch (e) { console.error("Lỗi Outlines:", e); }
 };
 
 // ============================================================
@@ -725,19 +737,33 @@ const renderLibrary = () => {
 };
 
 const setupLibraryEvents = () => {
-    document.getElementById('btn-add-document')?.addEventListener('click', () => {
-        document.getElementById('doc-id').value = ''; 
-        document.getElementById('doc-title').value = '';
-        document.getElementById('doc-source').value = '';
-        document.getElementById('doc-tags').value = '';
-        document.getElementById('doc-notes').value = '';
-        document.getElementById('document-file-name').textContent = '';
+    const btnAdd = document.getElementById('btn-add-document');
+    if(btnAdd) {
+        // Clone nút để xóa sự kiện cũ
+        const newBtn = btnAdd.cloneNode(true);
+        btnAdd.parentNode.replaceChild(newBtn, btnAdd);
         
-        const btnDel = document.getElementById('btn-delete-doc'); 
-        if(btnDel) btnDel.style.display = 'none';
-        openModal('document-modal');
-    });
-    document.getElementById('btn-save-doc')?.addEventListener('click', handleSaveDocument);
+        newBtn.addEventListener('click', () => {
+            document.getElementById('doc-id').value = ''; 
+            document.getElementById('doc-title').value = '';
+            document.getElementById('doc-source').value = '';
+            document.getElementById('doc-tags').value = '';
+            document.getElementById('doc-notes').value = '';
+            document.getElementById('document-file-name').textContent = '';
+            
+            const btnDel = document.getElementById('btn-delete-doc'); 
+            if(btnDel) btnDel.style.display = 'none';
+            openModal('document-modal');
+        });
+    }
+    
+    const btnSave = document.getElementById('btn-save-doc');
+    if(btnSave) {
+        const newBtnSave = btnSave.cloneNode(true);
+        btnSave.parentNode.replaceChild(newBtnSave, btnSave);
+        newBtnSave.addEventListener('click', handleSaveDocument);
+    }
+
     document.getElementById('btn-delete-doc')?.addEventListener('click', handleDeleteDocumentInModal);
 };
 
@@ -830,58 +856,78 @@ window.deleteDoc = async (id) => {
 // 5. ACHIEVEMENTS MODULE (THÀNH TÍCH)
 // ============================================================
 const setupAchievementEvents = () => {
-    document.getElementById('btn-add-achievement')?.addEventListener('click', () => {
-        document.getElementById('achievement-id').value = ''; 
-        document.getElementById('achievement-title').value = '';
-        document.getElementById('achievement-date').value = '';
-        document.getElementById('achievement-desc').value = '';
+    const btnAdd = document.getElementById('btn-add-achievement');
+    if(btnAdd) {
+        // Dùng cloneNode để xóa sạch sự kiện cũ, tránh lỗi bấm 1 lần mở 2 modal
+        const newBtn = btnAdd.cloneNode(true);
+        btnAdd.parentNode.replaceChild(newBtn, btnAdd);
         
-        const btnDel = document.getElementById('btn-delete-achievement'); 
-        if(btnDel) btnDel.style.display = 'none';
-        openModal('achievement-modal');
-    });
+        newBtn.addEventListener('click', () => {
+            document.getElementById('achievement-id').value = ''; 
+            document.getElementById('achievement-title').value = '';
+            document.getElementById('achievement-date').value = '';
+            document.getElementById('achievement-description').value = '';
+            document.getElementById('achievement-category').value = 'other';
+            document.getElementById('achievement-drive-link').value = '';
+            document.getElementById('achievement-featured').checked = false;
+            
+            const btnDel = document.getElementById('btn-delete-achievement'); 
+            if(btnDel) btnDel.style.display = 'none';
+            openModal('achievement-modal');
+        });
+    }
     
-    document.getElementById('btn-save-achievement')?.addEventListener('click', handleSaveAchievement);
+    const btnSave = document.getElementById('btn-save-achievement');
+    if(btnSave) {
+        const newBtnSave = btnSave.cloneNode(true);
+        btnSave.parentNode.replaceChild(newBtnSave, btnSave);
+        newBtnSave.addEventListener('click', handleSaveAchievement);
+    }
+
     document.getElementById('btn-delete-achievement')?.addEventListener('click', handleDeleteAchievementInModal);
 };
 
 const renderAchievements = () => {
-    const container = document.getElementById('achievements-list');
+    const container = document.getElementById('achievements-grid');
     if (!container) return;
     container.innerHTML = '';
 
     const achievements = globalData.achievements || [];
     
     if (achievements.length === 0) {
-        container.innerHTML = '<p style="text-align:center; color:#666;">Chưa có thành tích nào.</p>';
+        // Có thể hiện empty state nếu muốn
         return;
     }
 
     achievements.forEach(ach => {
         const div = document.createElement('div');
         div.className = 'achievement-card';
+        div.onclick = () => openEditAchievement(ach);
+
         div.innerHTML = `
-            <div class="achievement-icon">🏅</div>
-            <div class="achievement-content">
-                <h4>${escapeHTML(ach.title)}</h4>
-                <small>${formatDate(ach.date)}</small>
-                <p>${escapeHTML(ach.description || '')}</p>
-                ${ach.proofLink ? `<a href="${ach.proofLink}" target="_blank" style="font-size:0.9rem;">Xem chứng nhận</a>` : ''}
+             <div class="achievement-preview">
+                ${ach.imageUrl ? `<img src="${ach.imageUrl}">` : '🏆'}
+            </div>
+            <div class="achievement-info">
+                <h3>${escapeHTML(ach.name || ach.title)}</h3>
+                <p>${formatDate(ach.date)}</p>
             </div>
         `;
-        
-        div.style.cursor = 'pointer';
-        div.onclick = () => openEditAchievement(ach);
-        
         container.appendChild(div);
     });
 };
 
 const openEditAchievement = (ach) => {
     document.getElementById('achievement-id').value = ach.id;
-    document.getElementById('achievement-title').value = ach.title;
+    document.getElementById('achievement-title').value = ach.name || ach.title;
     document.getElementById('achievement-date').value = ach.date;
-    document.getElementById('achievement-desc').value = ach.description;
+    document.getElementById('achievement-description').value = ach.description || '';
+    
+    // Load loại & link
+    document.getElementById('achievement-category').value = ach.category || 'other';
+    document.getElementById('achievement-drive-link').value = ach.imageUrl || '';
+    // Load checkbox
+    document.getElementById('achievement-featured').checked = ach.isFeatured || false;
     
     const btnDel = document.getElementById('btn-delete-achievement');
     if(btnDel) btnDel.style.display = 'inline-block';
@@ -893,36 +939,29 @@ const handleSaveAchievement = async () => {
     const id = document.getElementById('achievement-id').value;
     const title = document.getElementById('achievement-title').value;
     const date = document.getElementById('achievement-date').value;
-    const desc = document.getElementById('achievement-desc').value;
-    
+    const desc = document.getElementById('achievement-description').value;
+    const category = document.getElementById('achievement-category').value;
+    const rawLink = document.getElementById('achievement-drive-link').value;
+    const isFeatured = document.getElementById('achievement-featured').checked;
+
     if (!title) return showNotification('Vui lòng nhập tên thành tích!', 'error');
 
-    const fileInput = document.getElementById('achievement-file-input');
-    let proofLink = null;
-    let fullPath = null;
-
-    if (fileInput && fileInput.files.length > 0) {
-        showNotification('Đang tải chứng nhận...', 'info');
-        const file = fileInput.files[0];
-        const path = `achievements/${currentUser.uid}/${file.name}`;
-        const result = await uploadFileToStorage(file, path);
-        proofLink = result.url;
-        fullPath = result.fullPath;
-    } else if (id) {
-        const oldAch = globalData.achievements.find(a => a.id === id);
-        if (oldAch) {
-            proofLink = oldAch.proofLink;
-            fullPath = oldAch.fullPath;
-        }
-    }
+    // Xử lý link ảnh (nếu có hàm convertDriveLink thì dùng, ko thì để nguyên)
+    // import { convertDriveLink } from './common.js' đã có ở trên
+    // Nếu trong common.js chưa export hàm này thì dùng rawLink
+    let finalImgUrl = rawLink; 
+    // Giả sử common.js có hàm convertDriveLink như trong file common.js mẫu
+    // finalImgUrl = convertDriveLink(rawLink); 
 
     const newAch = {
         id: id || generateID('ach'),
-        title: title,
+        name: title, // Lưu thống nhất là name
+        title: title, // Backup trường hợp code cũ dùng title
         date: date,
         description: desc,
-        proofLink: proofLink,
-        fullPath: fullPath
+        category: category,
+        imageUrl: finalImgUrl,
+        isFeatured: isFeatured
     };
 
     if (id) {
@@ -947,9 +986,7 @@ const handleDeleteAchievementInModal = async () => {
     const index = globalData.achievements.findIndex(a => a.id === id);
     if (index > -1) {
         const ach = globalData.achievements[index];
-        if (ach.fullPath) {
-            await deleteFileFromStorage(ach.fullPath);
-        }
+        // Nếu có xóa file storage thì thêm logic ở đây
         
         globalData.achievements.splice(index, 1);
         await saveUserData(currentUser.uid, { achievements: globalData.achievements });
@@ -970,6 +1007,7 @@ const initQuillEditor = () => {
                 placeholder: 'Viết ý tưởng của bạn tại đây...',
                 modules: {
                     toolbar: [
+                        [{ 'header': [1, 2, false] }],
                         ['bold', 'italic', 'underline'],
                         [{ 'list': 'ordered'}, { 'list': 'bullet' }],
                         ['clean']
@@ -985,32 +1023,32 @@ const initQuillEditor = () => {
 };
 
 const renderDraftsList = () => {
-    const container = document.getElementById('drafts-list');
-    if(!container) return;
-    container.innerHTML = '';
-    
+    const list = document.getElementById('drafts-list-column');
+    if (!list) return;
+    list.innerHTML = '';
     const drafts = globalData.drafts || [];
-    if(drafts.length === 0) {
-        container.innerHTML = '<div class="empty-state">Chưa có bản nháp</div>';
-        return;
-    }
-    
-    drafts.sort((a, b) => new Date(b.lastModified) - new Date(a.lastModified)).forEach(draft => {
-        const item = document.createElement('div');
-        item.className = `draft-item ${draft.id === currentDraftId ? 'active' : ''}`;
-        item.innerHTML = `
-            <div class="draft-title">${escapeHTML(draft.title || 'Không tiêu đề')}</div>
-            <div class="draft-date">${formatDate(draft.lastModified)}</div>
+
+    drafts.forEach(d => {
+        const div = document.createElement('div');
+        div.className = `outline-list-item ${d.id === currentDraftId ? 'active' : ''}`;
+        div.innerHTML = `
+            <span>${escapeHTML(d.title || 'Không tiêu đề')}</span>
+            <button class="btn-delete-draft" style="float:right; border:none; background:none; color:red;">×</button>
         `;
-        item.onclick = () => loadDraft(draft);
-        container.appendChild(item);
+
+        div.onclick = () => loadDraft(d);
+        div.querySelector('.btn-delete-draft').onclick = (e) => {
+            e.stopPropagation();
+            deleteDraft(d.id);
+        };
+        list.appendChild(div);
     });
 };
 
 const createNewDraft = () => {
     const newDraft = {
         id: generateID('draft'),
-        title: '',
+        title: 'Bản nháp mới',
         content: '', 
         lastModified: new Date().toISOString()
     };
@@ -1022,32 +1060,39 @@ const createNewDraft = () => {
 
 const loadDraft = (draft) => {
     currentDraftId = draft.id;
-    
-    document.querySelectorAll('.draft-item').forEach(el => el.classList.remove('active'));
-    
-    const titleInput = document.getElementById('draft-title-input');
-    if(titleInput) titleInput.value = draft.title;
-    
-    if(quillEditor) {
+    document.getElementById('draft-title-input').value = draft.title;
+
+    if (quillEditor) {
         try {
-            if (typeof draft.content === 'string' && draft.content.startsWith('{')) {
-                 quillEditor.setContents(JSON.parse(draft.content));
-            } else {
-                 quillEditor.root.innerHTML = draft.content || '';
-            }
-        } catch(e) {
+            const delta = JSON.parse(draft.content);
+            quillEditor.setContents(delta);
+        } catch (e) {
             quillEditor.root.innerHTML = draft.content || '';
         }
     }
-    
-    const editorArea = document.getElementById('editor-area');
-    if(editorArea) editorArea.style.display = 'block';
-    const welcome = document.getElementById('editor-welcome');
-    if(welcome) welcome.style.display = 'none';
+
+    document.getElementById('drafts-editor-welcome').style.display = 'none';
+    document.getElementById('drafts-editor-content').style.display = 'flex';
+    renderDraftsList();
+};
+
+const deleteDraft = async (id) => {
+    if (!confirm("Xóa bản nháp này?")) return;
+    globalData.drafts = globalData.drafts.filter(d => d.id !== id);
+
+    if (currentDraftId === id) {
+        currentDraftId = null;
+        document.getElementById('drafts-editor-welcome').style.display = 'flex';
+        document.getElementById('drafts-editor-content').style.display = 'none';
+    }
+
+    await saveUserData(currentUser.uid, { drafts: globalData.drafts });
+    renderDraftsList();
 };
 
 const autoSaveDraft = () => {
     if (!currentDraftId) return;
+    document.getElementById('draft-status').textContent = 'Đang lưu...';
     
     clearTimeout(saveDraftTimeout);
     saveDraftTimeout = setTimeout(async () => {
@@ -1057,12 +1102,13 @@ const autoSaveDraft = () => {
             draft.title = titleInput ? titleInput.value : 'Không tiêu đề';
             
             if (quillEditor) {
-                draft.content = quillEditor.root.innerHTML;
+                draft.content = JSON.stringify(quillEditor.getContents());
             }
             
             draft.lastModified = new Date().toISOString();
             
             await saveUserData(currentUser.uid, { drafts: globalData.drafts });
+            document.getElementById('draft-status').textContent = 'Đã lưu';
             renderDraftsList();
         }
     }, 1000);
