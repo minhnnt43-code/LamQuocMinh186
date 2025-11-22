@@ -1,6 +1,6 @@
 // --- FILE: js/firebase.js ---
 
-// 1. Import các thư viện cần thiết từ CDN
+// 1. IMPORT THƯ VIỆN TỪ CDN
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
 import { 
     getAuth, 
@@ -17,8 +17,8 @@ import {
     setDoc, 
     collection, 
     getDocs,
-    addDoc,    // <--- MỚI: Để thêm mẫu mới tự động sinh ID
-    deleteDoc  // <--- MỚI: Để xóa mẫu khỏi Database
+    addDoc,
+    deleteDoc
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
 import { 
@@ -29,7 +29,7 @@ import {
     deleteObject 
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-storage.js";
 
-// 2. Cấu hình Firebase
+// 2. CẤU HÌNH FIREBASE (CONFIG)
 const firebaseConfig = {
   apiKey: "AIzaSyBcmFqZahUIqeCcqszwRB641nBQySydF6c",
   authDomain: "websitecualqm.firebaseapp.com",
@@ -40,18 +40,19 @@ const firebaseConfig = {
   measurementId: "G-F34WEDPYW5"
 };
 
-// 3. Khởi tạo dịch vụ
+// 3. KHỞI TẠO APP & EXPORT CÔNG CỤ
+// (Đây là phần quan trọng nhất để các file khác kết nối được)
 const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const db = getFirestore(app);
-const storage = getStorage(app);
-const provider = new GoogleAuthProvider();
 
-// Thêm quyền truy cập Lịch Google
+export const auth = getAuth(app);
+export const db = getFirestore(app);
+export const storage = getStorage(app);
+
+const provider = new GoogleAuthProvider();
 provider.addScope('https://www.googleapis.com/auth/calendar.events.readonly');
 
 // ============================================================
-// A. XỬ LÝ XÁC THỰC (AUTHENTICATION)
+// A. CÁC HÀM XÁC THỰC (AUTH)
 // ============================================================
 
 export const loginWithGoogle = async () => {
@@ -79,30 +80,26 @@ export const subscribeToAuthChanges = (callback) => {
 };
 
 // ============================================================
-// B. XỬ LÝ DỮ LIỆU (FIRESTORE DATABASE)
+// B. CÁC HÀM DỮ LIỆU NGƯỜI DÙNG (FIRESTORE)
 // ============================================================
 
-// 1. Lấy dữ liệu của MỘT user
+// Lấy dữ liệu full của 1 user
 export const getUserData = async (uid) => {
     try {
         const docRef = doc(db, "users", uid);
         const docSnap = await getDoc(docRef);
-        
-        if (docSnap.exists()) {
-            return docSnap.data();
-        } else {
-            return null;
-        }
+        return docSnap.exists() ? docSnap.data() : null;
     } catch (error) {
-        console.error("Lỗi tải dữ liệu cá nhân:", error);
+        console.error("Lỗi tải dữ liệu:", error);
         throw error;
     }
 };
 
-// 2. Lưu dữ liệu của user
+// Lưu/Cập nhật dữ liệu user
 export const saveUserData = async (uid, data) => {
     try {
         const docRef = doc(db, "users", uid);
+        // merge: true giúp giữ lại các trường cũ không bị thay đổi
         await setDoc(docRef, { ...data, lastUpdated: new Date().toISOString() }, { merge: true });
     } catch (error) {
         console.error("Lỗi lưu dữ liệu:", error);
@@ -110,26 +107,24 @@ export const saveUserData = async (uid, data) => {
     }
 };
 
-// 3. [ADMIN] Lấy danh sách TOÀN BỘ user
+// Lấy danh sách tất cả User (Dùng cho Admin Dashboard)
 export const getAllUsers = async () => {
     try {
         const usersCollection = collection(db, "users");
         const snapshot = await getDocs(usersCollection);
         const usersList = [];
-        
         snapshot.forEach((doc) => {
             usersList.push({ id: doc.id, ...doc.data() });
         });
-        
         return usersList;
     } catch (error) {
-        console.error("Lỗi lấy danh sách Admin (Kiểm tra Rules):", error);
+        console.error("Lỗi lấy danh sách User:", error);
         throw error;
     }
 };
 
 // ============================================================
-// C. XỬ LÝ FILE (STORAGE)
+// C. CÁC HÀM XỬ LÝ FILE (STORAGE)
 // ============================================================
 
 export const uploadFileToStorage = async (file, path) => {
@@ -161,10 +156,9 @@ export const deleteFileFromStorage = async (path) => {
 };
 
 // ============================================================
-// D. TÍNH NĂNG ADMIN TEMPLATE (KHO MẪU)
+// D. CÁC HÀM KHO MẪU (TEMPLATES)
 // ============================================================
 
-// 1. Lấy danh sách mẫu
 export const getGlobalTemplates = async () => {
     try {
         const snapshot = await getDocs(collection(db, "global_templates"));
@@ -177,10 +171,8 @@ export const getGlobalTemplates = async () => {
     }
 };
 
-// 2. Tạo mẫu mới
 export const createGlobalTemplate = async (templateData) => {
     try {
-        // Dùng addDoc để Firestore tự sinh ID
         await addDoc(collection(db, "global_templates"), { 
             ...templateData, 
             createdAt: new Date().toISOString() 
@@ -191,10 +183,8 @@ export const createGlobalTemplate = async (templateData) => {
     }
 };
 
-// 3. Xóa mẫu
 export const deleteGlobalTemplate = async (id) => {
     try {
-        // Dùng deleteDoc (Firestore) chứ không phải deleteObject (Storage)
         await deleteDoc(doc(db, "global_templates", id));
     } catch (error) {
         console.error("Lỗi xóa mẫu:", error);
