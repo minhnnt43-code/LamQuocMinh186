@@ -1,25 +1,25 @@
 // --- FILE: js/admin.js ---
 
-// 1. IMPORT (Lấy db từ firebase.js chuẩn)
+// 1. IMPORT
 import { db } from './firebase.js';
 import { 
-    collection, getDocs, deleteDoc, doc, addDoc, query, orderBy, setDoc, getDoc, writeBatch 
+    collection, getDocs, deleteDoc, doc, addDoc, query, orderBy, setDoc, writeBatch 
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
 import { getAllUsers, createGlobalTemplate, getGlobalTemplates } from './firebase.js';
 import { showNotification, openModal, convertDriveLink } from './common.js';
 
 // 2. CẤU HÌNH
-const ADMIN_EMAIL = "lqm186005@gmail.com"; // <--- Đảm bảo đúng email này
+const ADMIN_EMAIL = "lqm186005@gmail.com"; // <--- Đảm bảo đúng email Admin
 let currentAdminUID = null;
 
 // Biến theo dõi trạng thái Sửa
 let editingAlbumId = null;
 let editingTimelineId = null;
 
-// 3. KHỞI TẠO MODULE
+// 3. KHỞI TẠO MODULE ADMIN
 export const initAdminModule = async (user) => {
-    // Kiểm tra quyền Admin
+    // Kiểm tra quyền Admin (Chỉ hiện nút nếu đúng email)
     if (!user || user.email !== ADMIN_EMAIL) return;
 
     currentAdminUID = user.uid;
@@ -28,7 +28,7 @@ export const initAdminModule = async (user) => {
     const sidebarMenu = document.querySelector('.nav-menu');
     if (!sidebarMenu) return;
 
-    // A. Thêm nút "Dashboard Admin" (Mở Modal Thống kê/User cũ)
+    // A. Thêm nút "Dashboard Admin" vào Sidebar (Mở Modal Thống kê/User)
     if (!document.querySelector('.nav-item-admin')) {
         const adminLi = document.createElement('li');
         adminLi.className = 'nav-item-admin';
@@ -37,58 +37,65 @@ export const initAdminModule = async (user) => {
         // Chèn lên đầu menu
         sidebarMenu.insertBefore(adminLi, sidebarMenu.firstChild);
 
-        // Click vào đây thì mở Modal Admin (chỉ còn Thống kê & User)
+        // Click vào đây thì mở Modal Admin (Thống kê & User list)
         adminLi.querySelector('button').addEventListener('click', () => {
             renderAnalytics();
             renderUserList();
-            renderTemplateManager();
-            renderMessageManager();
+            renderTemplateManager(); // Quản lý mẫu
+            renderMessageManager();  // Quản lý tin nhắn
             openModal('admin-modal');
         });
     }
 
-    // B. Gán sự kiện cho Menu "Quản trị Nội dung" (Album & Timeline)
-    // Các nút này đã có sẵn trong HTML mới (id="nav-btn-albums", id="nav-btn-timeline")
+    // B. Gán sự kiện cho nút Menu "Quản trị Nội dung" (Album & Timeline)
+    // Các nút này đã có sẵn trong HTML (id="nav-btn-albums", id="nav-btn-timeline")
     
     const btnAlbum = document.getElementById('nav-btn-albums');
     if (btnAlbum) {
         btnAlbum.addEventListener('click', () => {
-            // Chuyển tab giao diện (Logic này đã có trong main.js, ở đây chỉ load dữ liệu)
-            renderAlbumManager(); 
+            renderAlbumManager(); // Load dữ liệu Album khi bấm tab
         });
     }
 
     const btnTimeline = document.getElementById('nav-btn-timeline');
     if (btnTimeline) {
         btnTimeline.addEventListener('click', () => {
-            renderTimelineManager(); 
+            renderTimelineManager(); // Load dữ liệu Timeline khi bấm tab
         });
     }
 };
 
 // --- CÁC HÀM DASHBOARD (TRONG MODAL) ---
+
+// 1. Thống kê
 async function renderAnalytics() {
     try {
         const users = await getAllUsers();
         document.getElementById('admin-total-users').textContent = users.length;
+        
         let totalTasks = 0;
         let activeCount = 0;
         const now = new Date();
+        
         users.forEach(u => {
             if (u.tasks) totalTasks += u.tasks.length;
             if (u.lastUpdated) {
+                // User hoạt động trong 7 ngày qua
                 if (Math.ceil(Math.abs(now - new Date(u.lastUpdated)) / (1000 * 60 * 60 * 24)) <= 7) activeCount++;
             }
         });
+        
         document.getElementById('admin-total-tasks').textContent = totalTasks;
         document.getElementById('admin-active-users').textContent = activeCount;
     } catch (e) { console.error(e); }
 }
 
+// 2. Danh sách User
 async function renderUserList() {
     const tbody = document.getElementById('admin-user-list');
     if (!tbody) return;
     tbody.innerHTML = '<tr><td colspan="3">Đang tải...</td></tr>';
+    
     try {
         const users = await getAllUsers();
         tbody.innerHTML = '';
@@ -96,24 +103,37 @@ async function renderUserList() {
             const name = u.personalInfo?.fullName || 'Ẩn danh';
             const email = u.email || u.personalInfo?.email || 'No Email';
             const avatar = u.settings?.customAvatarUrl || 'https://placehold.co/30';
+            
             const tr = document.createElement('tr');
-            tr.innerHTML = `<td><div style="display:flex; align-items:center;"><img src="${avatar}" width="30" height="30" style="border-radius:50%; margin-right:10px; object-fit:cover;"><b>${name}</b></div></td><td>${email}</td><td><button class="btn-submit" style="padding:5px 10px; font-size:0.7rem; background:#666;" onclick="alert('ID: ${u.id}')">ID</button></td>`;
+            tr.innerHTML = `
+                <td><div style="display:flex; align-items:center;"><img src="${avatar}" width="30" height="30" style="border-radius:50%; margin-right:10px; object-fit:cover;"><b>${name}</b></div></td>
+                <td>${email}</td>
+                <td><button class="btn-submit" style="padding:5px 10px; font-size:0.7rem; background:#666;" onclick="alert('ID: ${u.id}')">ID</button></td>
+            `;
             tbody.appendChild(tr);
         });
     } catch (e) { tbody.innerHTML = '<tr><td colspan="3" style="color:red">Lỗi tải</td></tr>'; }
 }
 
+// 3. Quản lý Mẫu (Global Templates)
 async function renderTemplateManager() {
     const container = document.getElementById('template-list-container');
     if (!container) return;
+    
     const templates = await getGlobalTemplates();
     container.innerHTML = templates.length === 0 ? '<p style="color:#888">Trống.</p>' : '';
+    
     templates.forEach(tpl => {
-        container.innerHTML += `<div style="background:#f9f9f9; padding:8px; margin-bottom:5px; border:1px solid #eee; display:flex; justify-content:space-between;"><span>📄 <strong>${tpl.title}</strong></span><span style="color:#888; font-size:0.8rem">ID: ${tpl.id.substring(0, 5)}...</span></div>`;
+        container.innerHTML += `
+            <div style="background:#f9f9f9; padding:8px; margin-bottom:5px; border:1px solid #eee; display:flex; justify-content:space-between;">
+                <span>📄 <strong>${tpl.title}</strong></span>
+                <span style="color:#888; font-size:0.8rem">ID: ${tpl.id.substring(0, 5)}...</span>
+            </div>`;
     });
 
     const btn = document.getElementById('btn-create-template');
     if(!btn) return;
+    
     // Clone để xóa event cũ
     const newBtn = btn.cloneNode(true);
     btn.parentNode.replaceChild(newBtn, btn);
@@ -127,18 +147,30 @@ async function renderTemplateManager() {
     });
 }
 
+// 4. Quản lý Tin nhắn (Message Wall)
 async function renderMessageManager() {
     const container = document.getElementById('admin-msg-list');
     if (!container) return;
     container.innerHTML = '<p>Đang tải...</p>';
+    
     try {
         const q = query(collection(db, `users/${currentAdminUID}/public_messages`), orderBy('timestamp', 'desc'));
         const snapshot = await getDocs(q);
+        
         container.innerHTML = snapshot.empty ? '<p style="text-align:center; color:#999">Hộp thư trống.</p>' : '';
+        
         snapshot.forEach(docShot => {
             const msg = docShot.data();
             const div = document.createElement('div');
-            div.innerHTML = `<div style="flex:1"><b style="color:#005B96">${msg.sender || 'Ẩn danh'}</b> <span style="color:#999; font-size:0.8rem">(${msg.timestamp ? new Date(msg.timestamp).toLocaleString() : ''})</span>: <div style="color:#333;">${msg.content}</div></div><button class="btn-del-msg" style="color:red; border:none; background:none; cursor:pointer; font-weight:bold;">&times;</button>`;
+            div.innerHTML = `
+                <div style="flex:1">
+                    <b style="color:#005B96">${msg.sender || 'Ẩn danh'}</b> 
+                    <span style="color:#999; font-size:0.8rem">(${msg.timestamp ? new Date(msg.timestamp).toLocaleString() : ''})</span>: 
+                    <div style="color:#333;">${msg.content}</div>
+                </div>
+                <button class="btn-del-msg" style="color:red; border:none; background:none; cursor:pointer; font-weight:bold;">&times;</button>
+            `;
+            
             div.querySelector('.btn-del-msg').onclick = async () => {
                 if (confirm("Xóa tin nhắn này?")) {
                     await deleteDoc(doc(db, `users/${currentAdminUID}/public_messages`, docShot.id));
@@ -150,8 +182,9 @@ async function renderMessageManager() {
     } catch (e) { container.innerHTML = '<p style="color:red">Lỗi tải tin nhắn.</p>'; }
 }
 
+
 // ============================================================
-// PHẦN 5: QUẢN LÝ ALBUM (NGOÀI MÀN HÌNH CHÍNH)
+// PHẦN 5: QUẢN LÝ ALBUM (TAB RIÊNG)
 // ============================================================
 async function renderAlbumManager() {
     const container = document.getElementById('admin-album-list');
@@ -160,7 +193,7 @@ async function renderAlbumManager() {
 
     if (!container || !btnSave) return;
 
-    // 1. Thiết lập sự kiện nút (Reset trước khi gán để tránh duplicate)
+    // Hàm Reset form
     const resetAlbumForm = () => {
         editingAlbumId = null;
         document.getElementById('album-edit-id').value = '';
@@ -174,11 +207,12 @@ async function renderAlbumManager() {
         btnCancel.style.display = 'none';
     };
 
-    // Clone nút để xóa event listener cũ
+    // Gán sự kiện cho nút Hủy
     const newBtnCancel = btnCancel.cloneNode(true);
     btnCancel.parentNode.replaceChild(newBtnCancel, btnCancel);
     newBtnCancel.onclick = resetAlbumForm;
 
+    // Gán sự kiện cho nút Lưu
     const newBtnSave = btnSave.cloneNode(true);
     btnSave.parentNode.replaceChild(newBtnSave, btnSave);
 
@@ -194,6 +228,8 @@ async function renderAlbumManager() {
         newBtnSave.disabled = true;
 
         const cover = convertDriveLink(coverRaw) || coverRaw || 'https://placehold.co/600x400?text=Album';
+        
+        // Xử lý danh sách link ảnh (mỗi dòng 1 link)
         const photos = photosRaw.split('\n').map(link => {
             const url = link.trim();
             return url ? { url: convertDriveLink(url), caption: "" } : null;
@@ -203,7 +239,7 @@ async function renderAlbumManager() {
 
         try {
             if (editingAlbumId) {
-                // Cập nhật
+                // Cập nhật album cũ
                 await setDoc(doc(db, `users/${currentAdminUID}/albums`, editingAlbumId), data, { merge: true });
                 showNotification("Đã cập nhật Album!");
             } else {
@@ -217,12 +253,11 @@ async function renderAlbumManager() {
             alert("Lỗi: " + e.message); 
         } finally {
             newBtnSave.disabled = false;
-            // Khôi phục text nút nếu lỗi xảy ra mà chưa reset
             if(newBtnSave.innerText === "Đang lưu...") newBtnSave.innerText = editingAlbumId ? "Lưu Thay Đổi" : "Tạo Album Mới";
         }
     };
 
-    // 2. Load Danh sách
+    // Load Danh sách Album
     try {
         const snapshot = await getDocs(collection(db, `users/${currentAdminUID}/albums`));
         container.innerHTML = snapshot.empty ? '<p style="grid-column:1/-1; color:#999; text-align:center;">Chưa có album nào.</p>' : '';
@@ -231,7 +266,6 @@ async function renderAlbumManager() {
             const album = docShot.data();
             const div = document.createElement('div');
             
-            // Style trực tiếp để đảm bảo không vỡ
             div.style.cssText = "background:white; border:1px solid #ddd; border-radius:8px; overflow:hidden; box-shadow: 0 2px 5px rgba(0,0,0,0.1); display: flex; flex-direction: column;";
             
             div.innerHTML = `
@@ -249,7 +283,7 @@ async function renderAlbumManager() {
                 </div>
             `;
 
-            // Logic Sửa
+            // Nút Sửa
             div.querySelector('.btn-edit').onclick = () => {
                 editingAlbumId = docShot.id;
                 document.getElementById('album-edit-id').value = docShot.id;
@@ -262,10 +296,11 @@ async function renderAlbumManager() {
                 newBtnSave.style.backgroundColor = "#005B96";
                 newBtnCancel.style.display = 'inline-block';
                 
+                // Cuộn lên form nhập
                 document.querySelector('#manage-albums .form-container').scrollIntoView({ behavior: 'smooth' });
             };
 
-            // Logic Xóa
+            // Nút Xóa
             div.querySelector('.btn-del').onclick = async () => {
                 if (confirm(`Xóa album "${album.title}"?`)) {
                     await deleteDoc(doc(db, `users/${currentAdminUID}/albums`, docShot.id));
@@ -277,8 +312,9 @@ async function renderAlbumManager() {
     } catch(e) { console.error("Lỗi tải album:", e); }
 }
 
+
 // ============================================================
-// PHẦN 6: QUẢN LÝ TIMELINE (HỖ TRỢ KÉO THẢ)
+// PHẦN 6: QUẢN LÝ TIMELINE (TAB RIÊNG - CÓ KÉO THẢ)
 // ============================================================
 async function renderTimelineManager() {
     const container = document.getElementById('admin-timeline-list');
@@ -287,8 +323,9 @@ async function renderTimelineManager() {
 
     if (!container || !btnSave) return;
 
-    // 1. Load List (Sắp xếp theo 'order' để giữ vị trí cũ)
+    // 1. Load List (Sắp xếp theo 'order' để giữ vị trí)
     const snapshot = await getDocs(query(collection(db, `users/${currentAdminUID}/timeline`), orderBy('order', 'asc')));
+    
     container.innerHTML = snapshot.empty ? '<p style="color:#999; text-align:center;">Chưa có mốc lộ trình.</p>' : '';
 
     snapshot.forEach(docShot => {
@@ -299,16 +336,13 @@ async function renderTimelineManager() {
         if(item.type === 'activity') color = '#2ecc71';
 
         const div = document.createElement('div');
-        // Thêm class và data-id để xử lý kéo thả
         div.setAttribute('data-id', docShot.id);
         div.className = 'timeline-draggable-item'; 
         
-        // CSS trực tiếp: cursor: move để hiện bàn tay cầm nắm
         div.style.cssText = `border-left: 5px solid ${color}; background:white; padding:15px; margin-bottom:10px; border-radius:8px; box-shadow:0 2px 5px rgba(0,0,0,0.05); cursor: grab; user-select: none;`;
         
         div.innerHTML = `
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:5px;">
-                <!-- Biểu tượng kéo thả -->
                 <strong style="font-size:1.1rem; cursor:grab">☰ ${item.time}</strong> 
                 <span style="font-size:0.8rem; background:#eee; padding:3px 8px; border-radius:12px;">${item.type.toUpperCase()}</span>
             </div>
@@ -322,6 +356,7 @@ async function renderTimelineManager() {
         `;
 
         div.querySelector('.btn-edit-tl').onclick = () => loadTimelineToEdit(docShot.id, item);
+        
         div.querySelector('.btn-del-tl').onclick = async () => {
             if (confirm("Xóa mốc này?")) {
                 await deleteDoc(doc(db, `users/${currentAdminUID}/timeline`, docShot.id));
@@ -331,20 +366,20 @@ async function renderTimelineManager() {
         container.appendChild(div);
     });
 
-    // --- KÍCH HOẠT KÉO THẢ (SORTABLEJS) ---
+    // --- TÍCH HỢP KÉO THẢ (SortableJS) ---
     if (typeof Sortable !== 'undefined') {
         new Sortable(container, {
             animation: 150,
-            ghostClass: 'sortable-ghost', // Class khi đang kéo
+            ghostClass: 'sortable-ghost',
             onEnd: async function (evt) {
-                // Khi thả chuột ra -> Lưu thứ tự vào Firebase
+                // Lưu thứ tự mới vào Firebase
                 const items = container.querySelectorAll('.timeline-draggable-item');
-                const batch = writeBatch(db); // Dùng batch để lưu 1 lần cho nhanh
+                const batch = writeBatch(db);
                 
                 items.forEach((item, index) => {
                     const id = item.getAttribute('data-id');
                     const ref = doc(db, `users/${currentAdminUID}/timeline`, id);
-                    batch.update(ref, { order: index }); // Lưu số thứ tự: 0, 1, 2...
+                    batch.update(ref, { order: index }); 
                 });
 
                 try {
@@ -352,7 +387,6 @@ async function renderTimelineManager() {
                     showNotification("Đã cập nhật thứ tự!", "success");
                 } catch (e) {
                     console.error("Lỗi lưu thứ tự:", e);
-                    alert("Lỗi lưu thứ tự: " + e.message);
                 }
             }
         });
@@ -360,7 +394,7 @@ async function renderTimelineManager() {
         console.warn("Chưa tải được thư viện SortableJS");
     }
 
-    // 2. Logic Sửa/Tạo
+    // 2. Hàm Sửa/Reset
     const loadTimelineToEdit = (id, data) => {
         editingTimelineId = id;
         document.getElementById('tl-edit-id').value = id;
@@ -391,10 +425,12 @@ async function renderTimelineManager() {
         btnCancel.style.display = 'none';
     };
 
+    // Clone nút để xóa event cũ
     const newBtnSave = btnSave.cloneNode(true);
     btnSave.parentNode.replaceChild(newBtnSave, btnSave);
     const newBtnCancel = btnCancel.cloneNode(true);
     btnCancel.parentNode.replaceChild(newBtnCancel, btnCancel);
+    
     newBtnCancel.onclick = resetTimelineForm;
 
     newBtnSave.onclick = async () => {
@@ -414,15 +450,15 @@ async function renderTimelineManager() {
             time, title, role, type, description: desc, 
             logo: convertDriveLink(logo), 
             createdAt: new Date().toISOString()
-            // Không cần set 'order' ở đây, khi tạo mới nó sẽ nằm cuối, sau đó kéo thả để xếp lại
         };
 
         try {
             if (editingTimelineId) {
+                // Cập nhật
                 await setDoc(doc(db, `users/${currentAdminUID}/timeline`, editingTimelineId), data, { merge: true });
                 showNotification("Đã cập nhật Lộ trình!");
             } else {
-                // Mặc định cho order lớn để nó nằm cuối
+                // Tạo mới (cho order lớn để nằm cuối)
                 data.order = Date.now(); 
                 await addDoc(collection(db, `users/${currentAdminUID}/timeline`), data);
                 showNotification("Đã thêm Mốc mới!");
