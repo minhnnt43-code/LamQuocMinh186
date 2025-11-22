@@ -2880,291 +2880,134 @@ body.dark-mode .ach-show-more-btn:hover {
     from { opacity: 0; transform: translateY(20px); }
     to { opacity: 1; transform: translateY(0); }
 }
-/* ============================================================
-   MOBILE RESPONSIVE (DÁN VÀO CUỐI FILE STYLE.CSS)
+    /* ============================================================
+   MOBILE RESPONSIVE - HAMBURGER MENU STYLE
    ============================================================ */
-
 @media screen and (max-width: 768px) {
-
-    /* 1. CẤU TRÚC CHUNG */
-    #app-container {
-        flex-direction: column; /* Chuyển layout ngang sang dọc */
-        height: 100vh;
-        overflow: hidden;
-    }
-
-    /* 2. SIDEBAR (THANH MENU) */
-    .sidebar {
-        width: 100%;
-        height: auto;
-        max-height: 140px; /* Giới hạn chiều cao */
-        flex-direction: row;
-        align-items: center;
-        padding: 10px;
-        z-index: 100;
-        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-        flex-shrink: 0;
+    
+    /* 1. HEADER MOBILE (MỚI) */
+    .mobile-top-bar {
+        display: flex !important; /* Hiện lên */
         justify-content: space-between;
-        background-color: var(--primary-blue);
-    }
-
-    /* Ẩn Avatar to và lời chào để tiết kiệm diện tích */
-    .sidebar-header, 
-    .welcome-message {
-        display: none !important;
-    }
-
-    /* Widget Ngày/Giờ thu nhỏ lại */
-    .info-widget {
-        position: absolute;
-        top: 5px;
-        right: 5px;
-        background: rgba(0,0,0,0.2);
-        padding: 2px 8px;
-        border-radius: 12px;
-        font-size: 0.65rem !important;
-        display: flex;
-        gap: 5px;
-        z-index: 102;
-    }
-    
-    .info-widget div {
-        margin: 0 !important;
-        display: inline-block;
-    }
-
-    /* Menu chuyển thành thanh trượt ngang */
-    .nav-menu {
-        display: flex;
-        flex-direction: row;
-        overflow-x: auto;
-        white-space: nowrap;
-        width: 100%;
-        margin: 0;
-        padding-bottom: 5px;
-        padding-top: 20px; /* Chừa chỗ cho widget giờ */
-        -webkit-overflow-scrolling: touch;
-        gap: 10px;
-    }
-
-    /* Ẩn thanh cuộn của menu */
-    .nav-menu::-webkit-scrollbar {
-        height: 4px;
-    }
-    .nav-menu::-webkit-scrollbar-thumb {
-        background: rgba(255,255,255,0.3);
-        border-radius: 4px;
-    }
-
-    .nav-menu li {
-        margin-bottom: 0;
-        flex-shrink: 0;
-    }
-
-    .nav-btn, .nav-group-toggle {
-        padding: 8px 15px;
-        font-size: 0.85rem;
-        background: rgba(255,255,255,0.15);
-        border-radius: 20px;
-        border: 1px solid rgba(255,255,255,0.1);
-    }
-
-    /* Xử lý menu con (Dropdown) trên mobile */
-    .nav-group {
-        display: flex;
-        flex-direction: column;
-    }
-    
-    .nav-submenu {
-        position: fixed; /* Hiện popup giữa màn hình thay vì đẩy layout */
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        width: 80%;
-        background: var(--primary-blue);
-        border-radius: 12px;
-        box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        align-items: center;
+        padding: 10px 15px;
+        background: white;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        position: fixed;
+        top: 0; left: 0; width: 100%;
         z-index: 1000;
-        padding: 10px;
+        height: 60px;
+    }
+
+    #btn-toggle-sidebar {
+        background: none;
+        border: none;
+        font-size: 1.8rem;
+        color: var(--primary-blue);
+        cursor: pointer;
+    }
+
+    /* 2. SIDEBAR (MENU TRƯỢT) */
+    .sidebar {
+        position: fixed;
+        top: 0;
+        left: 0;
+        height: 100vh;
+        width: 280px; /* Chiều rộng menu */
+        background: var(--primary-blue);
+        z-index: 2000;
+        flex-direction: column;
+        align-items: stretch;
+        padding: 20px 10px;
+        transition: transform 0.3s ease-in-out;
+        transform: translateX(-100%); /* Ẩn sang trái mặc định */
+        box-shadow: 5px 0 15px rgba(0,0,0,0.2);
+        display: flex;
+    }
+
+    /* Class này được JS thêm vào để hiện menu */
+    .sidebar.active {
+        transform: translateX(0);
+    }
+
+    /* Hiển thị lại Header trong Sidebar để đẹp hơn */
+    .sidebar-header, .welcome-message {
+        display: block !important;
+        text-align: center;
+    }
+    
+    /* Widget Giờ giấc trong menu */
+    .info-widget {
+        position: static; /* Bỏ vị trí tuyệt đối */
+        background: rgba(255,255,255,0.1);
+        margin-bottom: 20px;
+        display: block;
+    }
+
+    /* Reset Menu về dạng dọc (không phải ngang nữa) */
+    .nav-menu {
+        flex-direction: column;
+        overflow-y: auto;
+        overflow-x: hidden;
+        padding: 0;
+    }
+
+    .nav-submenu {
+        position: static; /* Không popup nữa, nằm dọc xuống */
+        width: 100%;
+        background: rgba(0,0,0,0.2);
+        box-shadow: none;
+        opacity: 1;
         max-height: 0;
-        opacity: 0;
-        pointer-events: none;
-        transition: opacity 0.3s;
+        transform: none;
+        transition: max-height 0.3s ease;
     }
 
     .nav-group.open .nav-submenu {
-        max-height: none;
-        opacity: 1;
-        pointer-events: auto;
+        max-height: 500px;
     }
-    
-    /* Nút đóng submenu ảo (nếu cần) hoặc bấm ngoài để đóng */
-    .nav-group.open::before {
-        content: '';
+
+    /* 3. OVERLAY (LỚP MỜ ĐEN KHI MỞ MENU) */
+    #mobile-menu-overlay {
+        display: none;
         position: fixed;
         top: 0; left: 0; width: 100%; height: 100%;
         background: rgba(0,0,0,0.5);
-        z-index: 999;
+        z-index: 1500;
+        backdrop-filter: blur(2px);
+    }
+    
+    #mobile-menu-overlay.active {
+        display: block;
     }
 
-    /* Footer sidebar (Nút Đăng xuất) */
-    .sidebar-footer {
-        display: none; /* Ẩn bớt footer cho gọn */
-    }
-
-    /* 3. KHUNG NỘI DUNG CHÍNH */
+    /* 4. NỘI DUNG CHÍNH */
     .main-content {
         width: 100%;
-        height: calc(100vh - 140px); /* Trừ đi chiều cao header */
-        border-radius: 20px 20px 0 0; /* Bo tròn góc trên */
-        margin-top: -10px;
-        background: var(--background-color);
-        z-index: 90;
-        padding-bottom: 50px; /* Để không bị che nội dung cuối */
+        margin-top: 60px; /* Đẩy xuống tránh header */
+        height: calc(100vh - 60px);
+        border-radius: 0;
     }
 
-    .content-section {
-        padding: 1rem; /* Giảm padding */
+    /* 5. TỐI ƯU CÁC THÀNH PHẦN KHÁC CHO MOBILE */
+    .form-grid, #dashboard-grid, .settings-grid {
+        grid-template-columns: 1fr !important;
     }
-
-    h1 {
-        font-size: 1.5rem; /* Tiêu đề nhỏ lại */
-        margin-bottom: 1rem;
-    }
-
-    /* 4. CÁC FORM & GRID */
-    .form-grid, 
-    .settings-grid, 
-    #dashboard-grid, 
-    #statistics-overview,
-    .doc-viewer-meta-grid {
-        grid-template-columns: 1fr !important; /* Ép về 1 cột */
-        gap: 1rem;
-    }
-
-    /* Input & Select to hơn để dễ bấm */
-    input, select, textarea, button {
-        font-size: 16px !important; /* Tránh zoom trên iOS */
-        min-height: 44px;
-    }
-
-    /* 5. BẢNG & LỊCH */
-    .calendar-grid-container,
-    .proof-table-container {
-        overflow-x: auto;
-        -webkit-overflow-scrolling: touch;
-        border: 1px solid var(--border-color);
-        border-radius: 8px;
-    }
-
+    
     .calendar-table {
-        min-width: 600px; /* Buộc bảng phải rộng để cuộn ngang */
-    }
-
-    /* Lịch tháng: Các ô nhỏ lại */
-    #month-calendar-grid {
-        grid-template-columns: repeat(7, minmax(40px, 1fr));
-    }
-    .month-day-cell {
-        min-height: 60px;
-        font-size: 0.7rem;
-        padding: 2px;
-    }
-
-    /* 6. TASK ITEM (Công việc) */
-    .task-header {
-        flex-direction: column;
-        align-items: flex-start;
+        min-width: 600px; /* Để cuộn ngang lịch */
     }
     
-    .task-actions {
-        width: 100%;
-        justify-content: flex-end;
-        margin-top: 10px;
-        border-top: 1px dashed var(--border-color);
-        padding-top: 5px;
-    }
-
-    /* 7. MODAL (Cửa sổ bật lên) */
+    /* Modal full màn hình */
     .modal-content {
-        width: 95%;
-        max-height: 85vh;
-        padding: 1.5rem;
-        margin: 10px auto;
-    }
-
-    /* 8. LOGIN SCREEN */
-    .login-box {
-        width: 90%;
-        padding: 1.5rem;
-    }
-
-    /* 9. CÁC NÚT CHỨC NĂNG */
-    .btn-submit {
-        width: 100%; /* Nút full chiều ngang */
-        margin-bottom: 10px;
-    }
-
-    /* Thanh công cụ (Search, Filter) */
-    .task-controls, 
-    .library-toolbar, 
-    .composer-toolbar {
-        flex-direction: column;
-        align-items: stretch;
-    }
-
-    .task-search-sort {
-        flex-direction: column;
-    }
-
-    /* 10. SV5T & DÀN Ý */
-    .sv5t-board {
-        flex-direction: column; /* Xếp dọc các cột SV5T */
-        min-height: auto;
-    }
-    
-    .sv5t-column {
-        flex: none;
-        width: 100%;
-        margin-bottom: 20px;
-    }
-
-    .sv5t-side-panel,
-    .outline-editor-column {
-        width: 100%;
-        right: -100%;
-        max-width: 100%;
-    }
-    
-    .sv5t-side-panel.open {
-        right: 0;
-    }
-
-    .composer-main-container {
-        flex-direction: column;
-        height: auto;
-    }
-    
-    .outline-list-column {
-        max-height: 200px; /* Giới hạn chiều cao danh sách dàn ý */
-        margin-bottom: 1rem;
-    }
-
-    /* 11. ADMIN DASHBOARD TRÊN MOBILE */
-    #admin-modal .modal-content {
         width: 100%;
         height: 100%;
         border-radius: 0;
         max-height: 100vh;
     }
-    
-    .stat-card {
-        margin-bottom: 10px;
-    }
-    
-    /* Ẩn bớt cột trong bảng admin nếu quá chật */
-    #admin-user-list td:nth-child(2), 
-    #admin-user-list th:nth-child(2) {
-        display: none; /* Ẩn email, chỉ hiện Tên và Nút */
-    }
+}
+
+/* Ẩn header mobile trên máy tính */
+.mobile-top-bar {
+    display: none;
 }
