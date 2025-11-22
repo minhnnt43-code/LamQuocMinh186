@@ -44,12 +44,10 @@ document.addEventListener('DOMContentLoaded', () => {
             console.log("User đã đăng nhập:", user.email);
             toggleLoading(true);
 
-            // --- [FIX] CƠ CHẾ AN TOÀN: Tự tắt Loading sau 3 giây bất kể mạng chậm ---
+            // --- CƠ CHẾ AN TOÀN: Tự tắt Loading sau 3 giây ---
             const safetyTimer = setTimeout(() => {
                 toggleLoading(false);
-                console.warn("⚠️ Loading quá lâu, đã buộc tắt.");
             }, 3000); 
-            // ---------------------------------------------------------------------
 
             // Ẩn màn hình Login, Hiện màn hình App
             document.getElementById('login-container').style.display = 'none';
@@ -80,7 +78,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (!currentUserData.personalInfo) currentUserData.personalInfo = {};
                 currentUserData.email = user.email;
 
-                // Lưu lại thông tin cơ bản (chạy ngầm, không cần await để đợi)
+                // Lưu lại thông tin cơ bản
                 saveUserData(user.uid, {
                     email: user.email,
                     'personalInfo.email': user.email
@@ -90,13 +88,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 applyUserSettings(currentUserData.settings, user);
 
                 // --- KHỞI CHẠY CÁC MODULE CON ---
-                // Init các module này có thể chạy song song để nhanh hơn
                 initAdminModule(user);
                 initWorkModule(currentUserData, user);
                 initStudyModule(currentUserData, user);
 
                 // --- KHỞI TẠO UI CHUNG ---
-                setupNavigation();
+                setupNavigation(); // <--- HÀM NÀY ĐÃ ĐƯỢC ĐỊNH NGHĨA BÊN DƯỚI
                 setupAllModals();
                 setupSettings(user);
                 loadProfileDataToForm();
@@ -107,7 +104,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 console.error(error);
                 showNotification('Lỗi tải dữ liệu: ' + error.message, 'error');
             } finally {
-                // Xóa bộ đếm an toàn vì đã tải xong thành công
                 clearTimeout(safetyTimer);
                 toggleLoading(false);
             }
@@ -117,7 +113,7 @@ document.addEventListener('DOMContentLoaded', () => {
             document.getElementById('login-container').style.display = 'flex';
             document.getElementById('app-container').style.display = 'none';
             currentUserData = null;
-            toggleLoading(false); // Đảm bảo tắt loading nếu ở màn hình login
+            toggleLoading(false);
         }
     });
 
@@ -152,28 +148,24 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('btn-logout').addEventListener('click', async () => {
         if (confirm('Bạn muốn đăng xuất khỏi hệ thống?')) {
             await logoutUser();
-            location.reload(); // Tải lại trang cho sạch sẽ
+            location.reload();
         }
     });
 });
 
-// --- HÀM ĐỒNG HỒ (REAL-TIME CLOCK) ---
+// --- HÀM ĐỒNG HỒ ---
 function startRealTimeClock() {
     const timeEl = document.getElementById('current-time');
     const dateEl = document.getElementById('current-date');
     
     const updateClock = () => {
         const now = new Date();
-        
-        // Cập nhật Giờ:Phút:Giây
         if(timeEl) {
             const hours = String(now.getHours()).padStart(2, '0');
             const minutes = String(now.getMinutes()).padStart(2, '0');
             const seconds = String(now.getSeconds()).padStart(2, '0');
             timeEl.textContent = `${hours}:${minutes}:${seconds}`;
         }
-
-        // Cập nhật Ngày/Tháng/Năm
         if(dateEl) {
             const day = String(now.getDate()).padStart(2, '0');
             const month = String(now.getMonth() + 1).padStart(2, '0');
@@ -181,65 +173,78 @@ function startRealTimeClock() {
             dateEl.textContent = `${day}/${month}/${year}`;
         }
     };
-
-    updateClock(); // Chạy ngay lập tức
-    setInterval(updateClock, 1000); // Cập nhật mỗi giây
+    updateClock();
+    setInterval(updateClock, 1000);
 }
 
-// --- THÊM VÀO TRONG setupNavigation() ---
+// ============================================================
+// [FIX] HÀM setupNavigation ĐÃ ĐƯỢC BỔ SUNG VÀO ĐÂY
+// ============================================================
+function setupNavigation() {
+    const buttons = document.querySelectorAll('.nav-btn');
+    const sections = document.querySelectorAll('.content-section');
 
-    // [MỚI - MOBILE] Logic Hamburger Menu
-    const btnToggle = document.getElementById('btn-toggle-sidebar');
-    const sidebar = document.getElementById('sidebar');
-    const mobileAvatar = document.getElementById('mobile-avatar');
-    
-    // Tạo Overlay đen mờ nếu chưa có
-    let overlay = document.getElementById('mobile-menu-overlay');
-    if (!overlay) {
-        overlay = document.createElement('div');
-        overlay.id = 'mobile-menu-overlay';
-        document.body.appendChild(overlay);
-    }
+    // 1. Xử lý chuyển Tab
+    buttons.forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            // Nếu nút này là nút Admin (không có data-target) thì bỏ qua, admin.js sẽ xử lý
+            const targetId = btn.getAttribute('data-target');
+            if (!targetId) return;
 
-    // Đồng bộ avatar header với sidebar
-    const mainAvatar = document.getElementById('sidebar-profile-pic');
-    if(mobileAvatar && mainAvatar) {
-        // Quan sát thay đổi src của avatar chính để update avatar header
-        const observer = new MutationObserver((mutations) => {
-            mutations.forEach((mutation) => {
-                if (mutation.type === 'attributes' && mutation.attributeName === 'src') {
-                    mobileAvatar.src = mainAvatar.src;
-                }
-            });
-        });
-        observer.observe(mainAvatar, { attributes: true });
-    }
+            // Active button
+            document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
 
-    // Sự kiện mở menu
-    if (btnToggle) {
-        btnToggle.addEventListener('click', (e) => {
-            e.stopPropagation();
-            sidebar.classList.toggle('active');
-            overlay.classList.toggle('active');
-        });
-    }
+            // Show Section
+            sections.forEach(sec => sec.classList.remove('active'));
+            const targetSection = document.getElementById(targetId);
+            if (targetSection) targetSection.classList.add('active');
 
-    // Sự kiện đóng menu khi bấm ra ngoài (Overlay)
-    overlay.addEventListener('click', () => {
-        sidebar.classList.remove('active');
-        overlay.classList.remove('active');
-    });
-
-    // Tự động đóng menu khi chọn 1 mục (Trải nghiệm tốt hơn)
-    const navBtns = document.querySelectorAll('.nav-btn');
-    navBtns.forEach(btn => {
-        btn.addEventListener('click', () => {
+            // Tự động đóng menu mobile sau khi chọn
             if (window.innerWidth <= 768) {
-                sidebar.classList.remove('active');
-                overlay.classList.remove('active');
+                document.getElementById('sidebar').classList.remove('mobile-open');
             }
         });
     });
+
+    // 2. Xử lý Menu đa cấp (Accordion)
+    const groupToggles = document.querySelectorAll('.nav-group-toggle');
+    groupToggles.forEach(toggle => {
+        // Clone để xóa sự kiện cũ
+        const newToggle = toggle.cloneNode(true);
+        toggle.parentNode.replaceChild(newToggle, toggle);
+
+        newToggle.addEventListener('click', (e) => {
+            e.preventDefault();
+            const parentGroup = newToggle.parentElement;
+            parentGroup.classList.toggle('open');
+        });
+    });
+
+    // 3. Xử lý Hamburger Menu (Mobile)
+    const btnToggle = document.getElementById('btn-toggle-sidebar');
+    const sidebar = document.getElementById('sidebar');
+    
+    if (btnToggle && sidebar) {
+        // Clone nút để tránh gán sự kiện nhiều lần
+        const newBtnToggle = btnToggle.cloneNode(true);
+        btnToggle.parentNode.replaceChild(newBtnToggle, btnToggle);
+
+        newBtnToggle.addEventListener('click', (e) => {
+            e.stopPropagation();
+            sidebar.classList.toggle('mobile-open'); // Class này đã định nghĩa trong style.css
+        });
+
+        // Bấm ra ngoài thì đóng sidebar
+        document.addEventListener('click', (e) => {
+            if (sidebar.classList.contains('mobile-open') && 
+                !sidebar.contains(e.target) && 
+                e.target !== newBtnToggle) {
+                sidebar.classList.remove('mobile-open');
+            }
+        });
+    }
+}
 
 // --- 4. CÀI ĐẶT HỆ THỐNG (SETTINGS) ---
 function setupSettings(user) {
@@ -274,20 +279,14 @@ function setupSettings(user) {
         });
     }
 
-    // Khôi phục màu mặc định
     const btnReset = document.getElementById('btn-reset-colors');
     if (btnReset) {
         btnReset.addEventListener('click', () => {
-            const defBlue = '#005B96';
-            const defOrange = '#FF7A00';
-            
-            document.documentElement.style.setProperty('--custom-primary-blue', defBlue);
-            document.documentElement.style.setProperty('--custom-primary-orange', defOrange);
-            
-            if (bluePicker) bluePicker.value = defBlue;
-            if (orangePicker) orangePicker.value = defOrange;
-            
-            saveSettings({ primaryColor: defBlue, secondaryColor: defOrange }, user);
+            document.documentElement.style.setProperty('--custom-primary-blue', '#005B96');
+            document.documentElement.style.setProperty('--custom-primary-orange', '#FF7A00');
+            if(bluePicker) bluePicker.value = '#005B96';
+            if(orangePicker) orangePicker.value = '#FF7A00';
+            saveSettings({ primaryColor: '#005B96', secondaryColor: '#FF7A00' }, user);
             showNotification('Đã khôi phục màu mặc định');
         });
     }
@@ -298,9 +297,7 @@ function setupSettings(user) {
         btnSaveAvatar.addEventListener('click', async () => {
             const linkInput = document.getElementById('profile-pic-link');
             const rawLink = linkInput.value.trim();
-
             if (!rawLink) return showNotification('Vui lòng dán link ảnh!', 'error');
-
             const directLink = convertDriveLink(rawLink);
 
             document.getElementById('sidebar-profile-pic').src = directLink;
@@ -317,7 +314,7 @@ function setupSettings(user) {
     const btnClear = document.getElementById('btn-clear-data');
     if (btnClear) {
         btnClear.addEventListener('click', async () => {
-            if (confirm("CẢNH BÁO: Xóa sạch dữ liệu? Hành động này không thể hoàn tác.")) {
+            if (confirm("CẢNH BÁO: Xóa sạch dữ liệu?")) {
                 toggleLoading(true);
                 await saveUserData(user.uid, DEFAULT_DATA);
                 location.reload();
@@ -325,7 +322,7 @@ function setupSettings(user) {
         });
     }
 
-    // E. Export Data
+    // E. Export/Import
     const btnExport = document.getElementById('btn-export-data');
     if (btnExport) {
         btnExport.addEventListener('click', () => {
@@ -339,12 +336,10 @@ function setupSettings(user) {
         });
     }
 
-    // F. Import Data
     const importInput = document.getElementById('import-file-input');
     const btnImport = document.getElementById('btn-import-data');
     if (btnImport && importInput) {
         btnImport.addEventListener('click', () => importInput.click());
-
         const newImportInput = importInput.cloneNode(true);
         importInput.parentNode.replaceChild(newImportInput, importInput);
 
@@ -382,10 +377,8 @@ async function saveSettings(newSettings, user) {
 
 function applyUserSettings(settings, user) {
     if (!settings) return;
-    
     if (settings.darkMode) document.body.classList.add('dark-mode');
     else document.body.classList.remove('dark-mode');
-    
     if (settings.primaryColor) document.documentElement.style.setProperty('--custom-primary-blue', settings.primaryColor);
     if (settings.secondaryColor) document.documentElement.style.setProperty('--custom-primary-orange', settings.secondaryColor);
 }
@@ -412,7 +405,6 @@ function setupAllModals() {
 
     document.getElementById('sv5t-panel-close-btn')?.addEventListener('click', closeSidePanels);
     document.getElementById('sv5t-panel-overlay')?.addEventListener('click', closeSidePanels);
-    
     document.getElementById('outline-node-panel-close-btn')?.addEventListener('click', closeSidePanels);
     document.getElementById('outline-node-panel-overlay')?.addEventListener('click', closeSidePanels);
 }
@@ -420,18 +412,14 @@ function setupAllModals() {
 // --- 6. LOGIC HỒ SƠ CÁ NHÂN ---
 function loadProfileDataToForm() {
     if (!currentUserData || !currentUserData.personalInfo) return;
-
     const info = currentUserData.personalInfo;
-    const safeSet = (id, value) => {
-        const el = document.getElementById(id);
-        if (el) el.value = value || '';
-    };
+    
+    const safeSet = (id, value) => { const el = document.getElementById(id); if(el) el.value = value || ''; };
 
     safeSet('pi-fullname', info.fullName);
     safeSet('pi-email', info.email);
     safeSet('pi-phone', info.phone);
     safeSet('pi-occupation', info.occupation);
-
     safeSet('pf-school', info.school);
     safeSet('pf-award', info.award);
     safeSet('pf-role', info.role);
@@ -454,7 +442,6 @@ if (btnSaveProfile) {
                 email: document.getElementById('pi-email').value,
                 phone: document.getElementById('pi-phone').value,
                 occupation: document.getElementById('pi-occupation').value,
-                
                 school: document.getElementById('pf-school').value,
                 award: document.getElementById('pf-award').value,
                 role: document.getElementById('pf-role').value,
