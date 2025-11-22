@@ -3313,3 +3313,75 @@
     }
     .welcome-message { display: block !important; }
 }
+/* --- FILE: style.css (CẬP NHẬT LẠI PHẦN MOBILE) --- */
+
+/* 1. Header Mobile (Mặc định ẩn trên máy tính) */
+.mobile-top-bar {
+    display: none; /* Ẩn trên PC */
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 60px;
+    background-color: white;
+    border-bottom: 1px solid #eee;
+    z-index: 1000;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 15px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+}
+
+/* 2. Responsive cho Điện thoại */
+@media (max-width: 768px) {
+    /* Hiện Header Mobile */
+    .mobile-top-bar {
+        display: flex;
+    }
+
+    /* Sidebar: Mặc định ẩn đi, trượt ra khi active */
+    .sidebar {
+        position: fixed;
+        top: 60px; /* Nằm dưới header */
+        left: -100%; /* Ẩn sang trái */
+        width: 260px;
+        height: calc(100% - 60px);
+        transition: left 0.3s ease;
+        z-index: 999;
+        box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+    }
+
+    /* Class để hiện sidebar */
+    .sidebar.mobile-open {
+        left: 0;
+    }
+
+    /* Nội dung chính: Đẩy xuống dưới Header */
+    .main-content {
+        margin-left: 0;
+        width: 100%;
+        margin-top: 60px; /* Chừa chỗ cho header */
+        height: calc(100vh - 60px);
+    }
+
+    /* Ẩn avatar to trong sidebar vì đã có trên header */
+    .sidebar-header {
+        display: none;
+    }
+
+    /* Chỉnh lại menu con để không bị lỗi "đứng yên" */
+    .nav-submenu {
+        position: relative; /* Quan trọng: Đẩy nội dung xuống */
+        width: 100%;
+        background: rgba(0,0,0,0.15);
+        max-height: 0;
+        overflow: hidden;
+        transition: max-height 0.3s ease-out;
+        box-shadow: inset 0 3px 5px rgba(0,0,0,0.1);
+    }
+
+    .nav-group.open > .nav-submenu {
+        max-height: 1000px; /* Mở rộng thoải mái */
+        display: block;
+    }
+}
