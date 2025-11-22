@@ -1,4 +1,4 @@
-// --- FILE: js/portfolio.js (FULL FIXED VERSION) ---
+// --- FILE: js/portfolio.js (FULL UPDATED VERSION - FEATURED & LIMIT 5) ---
 
 // 1. IMPORT ĐẦY ĐỦ CÁC HÀM TỪ FIRESTORE
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
@@ -40,6 +40,12 @@ function getLocalDateString(date) {
     return `${year}-${month}-${day}`;
 }
 
+function formatDateVN(dateString) {
+    if (!dateString) return '';
+    const [y, m, d] = dateString.split('-');
+    return `${d}/${m}/${y}`;
+}
+
 // 4. HÀM TẢI DỮ LIỆU CHÍNH (MAIN LOAD)
 async function loadOwnerPortfolio() {
     try {
@@ -54,16 +60,13 @@ async function loadOwnerPortfolio() {
             renderProjects(data.projects || []);
             renderAchievements(data.achievements || []);
             
-            // QUAN TRỌNG: Render Lịch chi tiết
+            // Render Lịch chi tiết
             renderSchedule(data.tasks || [], data.calendarEvents || []);
         } else {
             document.querySelector('.hero-title').innerText = "Không tìm thấy dữ liệu.";
         }
     } catch (error) {
         console.error("Lỗi tải Portfolio:", error);
-        if (error.code === 'permission-denied') {
-            alert("Lỗi: Chưa mở quyền 'Public Read' trên Firebase Rules!");
-        }
     }
 }
 
@@ -73,37 +76,29 @@ function renderHeader(data) {
     const info = data.personalInfo || {};
     const settings = data.settings || {};
 
-    // 1. Tên & Nghề nghiệp
     document.getElementById('pf-name').textContent = info.fullName || "Người dùng";
     document.getElementById('pf-email').textContent = info.email || "Chưa cập nhật email";
     
-    // Mô tả nghề nghiệp
     if (info.occupation) {
         document.querySelector('.hero-subtitle').textContent = 
             `Chào mừng đến với không gian làm việc số của tôi. Hiện tôi đang là ${info.occupation}.`;
     }
 
-    // Avatar
     if (settings.customAvatarUrl) {
         document.getElementById('pf-avatar').src = settings.customAvatarUrl;
     }
 
-    // 2. RENDER CÁC THẺ CHIP (INFO CHIPS) TỪ DB
     const chipsContainer = document.querySelector('.info-chips');
     if (chipsContainer) {
         let chipsHTML = '';
-        
-        // Kiểm tra từng trường, có dữ liệu mới hiện
         if (info.school) chipsHTML += `<span class="chip-item">🎓 ${info.school}</span>`;
         if (info.award)  chipsHTML += `<span class="chip-item">⭐ ${info.award}</span>`;
         if (info.role)   chipsHTML += `<span class="chip-item">💼 ${info.role}</span>`;
         if (info.location) chipsHTML += `<span class="chip-item">📍 ${info.location}</span>`;
 
-        // Nếu không có gì thì hiện mặc định
         if (chipsHTML === '') {
             chipsHTML = `<span class="chip-item">🎓 Chưa cập nhật thông tin</span>`;
         }
-
         chipsContainer.innerHTML = chipsHTML;
     }
 }
@@ -135,33 +130,137 @@ function renderProjects(projects) {
     });
 }
 
+// ============================================================
+// [MỚI] LOGIC RENDER THÀNH TÍCH (SẮP XẾP NỔI BẬT + LIMIT 5)
+// ============================================================
+
+let allAchievementsData = []; 
+
 function renderAchievements(achievements) {
+    if (achievements) {
+        allAchievementsData = achievements;
+    }
+    filterAchievements('all');
+}
+
+window.filterAchievements = (type) => {
     const container = document.getElementById('pf-achievements');
+    if(!container) return;
     container.innerHTML = '';
 
-    if (!achievements || achievements.length === 0) {
-        container.innerHTML = '<p style="text-align:center; width:100%; color:#999">Chưa có thành tích.</p>';
+    // A. Active nút
+    document.querySelectorAll('.ach-filter-btn').forEach(btn => {
+        btn.classList.remove('active');
+        if(btn.getAttribute('onclick').includes(`'${type}'`)) {
+            btn.classList.add('active');
+        }
+    });
+
+    // B. Lọc dữ liệu
+    let filtered = [];
+    if (type === 'all') {
+        filtered = allAchievementsData;
+    } else {
+        filtered = allAchievementsData.filter(a => a.category === type);
+    }
+
+    if (!filtered || filtered.length === 0) {
+        container.innerHTML = '<p style="text-align:center; color:#999; width:100%; padding: 20px;">Chưa có mục nào.</p>';
         return;
     }
 
-    achievements.forEach(ach => {
-        const html = `
-            <div class="pf-card">
-                <div style="height: 180px; overflow:hidden; background: #f8f9fa; display:flex; align-items:center; justify-content:center;">
-                    ${ach.imageUrl ? `<img src="${ach.imageUrl}" style="width:100%; height:100%; object-fit:cover;">` : '<span style="font-size:3rem;">🏆</span>'}
-                </div>
-                <div class="pf-card-body" style="text-align:center;">
-                    <h3 style="font-size:1.1rem;">${ach.name || 'Thành tích'}</h3>
-                    <small style="color: #888;">${ach.date || ''}</small>
-                    <p style="font-size:0.9rem; margin-top:5px;">${ach.description || ''}</p>
-                </div>
-            </div>
-        `;
-        container.innerHTML += html;
+    // C. SẮP XẾP: Nổi bật (Featured) lên trước -> Sau đó mới đến Ngày tháng
+    filtered.sort((a, b) => {
+        // 1. So sánh Nổi bật (true > false)
+        if (a.isFeatured && !b.isFeatured) return -1;
+        if (!a.isFeatured && b.isFeatured) return 1;
+        
+        // 2. Nếu cùng trạng thái nổi bật thì so sánh Ngày (Mới > Cũ)
+        return new Date(b.date) - new Date(a.date);
     });
-}
 
-// --- HÀM RENDER LỊCH CHI TIẾT (HIỆN TÊN VIỆC) ---
+    // D. Gom nhóm theo NĂM
+    const groups = {};
+    filtered.forEach(ach => {
+        const year = ach.date ? ach.date.split('-')[0] : 'Khác';
+        if (!groups[year]) groups[year] = [];
+        groups[year].push(ach);
+    });
+
+    // E. Render ra HTML
+    const years = Object.keys(groups).sort((a, b) => b - a); 
+
+    years.forEach(year => {
+        // Tiêu đề Năm
+        const yearBlock = document.createElement('div');
+        yearBlock.innerHTML = `<div class="ach-year-label">Năm ${year}</div>`;
+        container.appendChild(yearBlock);
+
+        const items = groups[year];
+        const limitCount = 5; // GIỚI HẠN HIỂN THỊ 5 MỤC
+        const hiddenItems = [];
+
+        // Wrapper chứa danh sách
+        const listWrapper = document.createElement('div');
+        listWrapper.className = 'ach-year-list';
+
+        items.forEach((ach, index) => {
+            let tagLabel = 'Khác', tagClass = 'other';
+            if(ach.category === 'academic') { tagLabel = 'Học thuật'; tagClass = 'academic'; }
+            else if(ach.category === 'social') { tagLabel = 'Đoàn - Hội'; tagClass = 'social'; }
+            else if(ach.category === 'award') { tagLabel = 'Khen thưởng'; tagClass = 'award'; }
+
+            // Icon Ghim nếu là Nổi bật
+            const pinIcon = ach.isFeatured ? '<span style="margin-left:5px; font-size:0.9rem;" title="Nổi bật">📌</span>' : '';
+
+            const itemDiv = document.createElement('div');
+            itemDiv.className = 'ach-item';
+            itemDiv.innerHTML = `
+                <div class="ach-image">
+                    ${ach.imageUrl ? `<img src="${ach.imageUrl}" loading="lazy">` : '<span>🏆</span>'}
+                </div>
+                <div class="ach-info">
+                    <div class="ach-meta">
+                        <span class="ach-tag ${tagClass}">${tagLabel}</span>
+                        <span class="ach-date">${formatDateVN(ach.date)}</span>
+                        ${pinIcon}
+                    </div>
+                    <h3 class="ach-name">${ach.name}</h3>
+                    <p class="ach-desc">${ach.description || ''}</p>
+                </div>
+            `;
+
+            // LOGIC ẨN NẾU VƯỢT QUÁ GIỚI HẠN
+            if (index >= limitCount) {
+                itemDiv.style.display = 'none'; // Ẩn đi
+                hiddenItems.push(itemDiv);
+            }
+            
+            listWrapper.appendChild(itemDiv);
+        });
+
+        container.appendChild(listWrapper);
+
+        // NÚT XEM THÊM (Chỉ hiện nếu có item bị ẩn)
+        if (hiddenItems.length > 0) {
+            const moreBtn = document.createElement('button');
+            moreBtn.className = 'ach-show-more-btn';
+            moreBtn.innerHTML = `Xem thêm ${hiddenItems.length} hoạt động khác trong năm ${year} ↓`;
+            
+            moreBtn.onclick = () => {
+                hiddenItems.forEach(el => {
+                    el.style.display = 'flex'; // Hiện lại (flex vì css ach-item là flex)
+                    el.style.animation = 'fadeIn 0.5s';
+                });
+                moreBtn.style.display = 'none'; // Ẩn nút sau khi bấm
+            };
+            container.appendChild(moreBtn);
+        }
+    });
+};
+
+// ============================================================
+
 function renderSchedule(tasks, events) {
     const container = document.getElementById('pf-calendar');
     container.innerHTML = '';
@@ -174,30 +273,24 @@ function renderSchedule(tasks, events) {
         date.setDate(startOfWeek.getDate() + i);
         const dateStr = getLocalDateString(date); 
         
-        // Lọc Task & Event
         const dayTasks = tasks.filter(t => t.dueDate === dateStr && t.status !== 'Hoàn thành');
         const dayEvents = events.filter(e => e.date === dateStr);
         const hasItems = dayTasks.length > 0 || dayEvents.length > 0;
         
-        // Tạo nội dung HTML
         let detailsHTML = '';
         if (hasItems) {
             detailsHTML += `<div style="text-align: left; font-size: 0.85rem; margin-top: 10px; max-height: 150px; overflow-y: auto;">`;
-            
             dayEvents.forEach(e => {
                 detailsHTML += `<div style="margin-bottom: 6px; color: #005B96; font-weight: 600; border-bottom: 1px dashed #eee; padding-bottom: 2px;">• ${e.title} <span style="font-size: 0.75rem;">(${e.startTime})</span></div>`;
             });
-
             dayTasks.forEach(t => {
                 detailsHTML += `<div style="margin-bottom: 4px; color: #333;">- ${t.name}</div>`;
             });
-            
             detailsHTML += `</div>`;
         } else {
             detailsHTML = `<div style="color: #999; font-size: 0.8rem; margin-top: 20px; font-style: italic;">(Trống)</div>`;
         }
 
-        // Style ô lịch
         const bg = hasItems ? '#fff' : '#f8f9fa';
         const border = hasItems ? '2px solid #FF7A00' : '1px solid #e0e0e0';
         const isToday = dateStr === getLocalDateString(new Date());
@@ -218,11 +311,9 @@ function renderSchedule(tasks, events) {
 
 // --- TÍNH NĂNG MỚI: GALLERY & MESSAGES ---
 
-// 1. Render Gallery (Ảnh hoạt động)
 async function renderGalleryLogic() {
     const container = document.getElementById('pf-gallery');
     try {
-        // Lấy dữ liệu từ collection 'gallery' (nếu có)
         const q = query(collection(db, `users/${OWNER_UID}/gallery`), limit(6));
         const snapshot = await getDocs(q);
         
@@ -239,17 +330,14 @@ async function renderGalleryLogic() {
             });
         }
     } catch (e) {
-        // Nếu lỗi (do chưa có collection) thì giữ nguyên ảnh mẫu trong HTML
         console.log("Chưa có gallery data, dùng ảnh mẫu.");
     }
 }
 
-// 2. Render Messages (Góc nhắn gửi - Realtime)
 function initMessageBoard() {
     const container = document.getElementById('message-wall');
     const btnSend = document.getElementById('btn-send-msg');
 
-    // Lắng nghe tin nhắn mới
     const q = query(collection(db, `users/${OWNER_UID}/public_messages`), orderBy('timestamp', 'desc'), limit(10));
     
     onSnapshot(q, (snapshot) => {
@@ -276,7 +364,6 @@ function initMessageBoard() {
         });
     });
 
-    // Xử lý nút Gửi tin nhắn
     btnSend.addEventListener('click', async () => {
         const nameInput = document.getElementById('guest-name');
         const msgInput = document.getElementById('guest-msg');
@@ -300,7 +387,7 @@ function initMessageBoard() {
             });
             
             alert("Đã gửi lời nhắn thành công!");
-            msgInput.value = ''; // Xóa ô nhập
+            msgInput.value = ''; 
         } catch (error) {
             console.error("Lỗi gửi tin:", error);
             alert("Lỗi: Không gửi được tin. (Kiểm tra Firebase Rules)");
@@ -310,7 +397,7 @@ function initMessageBoard() {
         }
     });
 }
-// --- CHỨC NĂNG BẬT/TẮT QR CODE ---
+
 window.toggleQR = (show) => {
     const overlay = document.getElementById('qr-overlay');
     overlay.style.display = show ? 'flex' : 'none';
@@ -320,3 +407,21 @@ window.toggleQR = (show) => {
 loadOwnerPortfolio();
 renderGalleryLogic();
 initMessageBoard();
+// --- [TÍNH NĂNG 2: LOGIC NÚT SCROLL TO TOP] ---
+const scrollBtn = document.getElementById('btn-scroll-top');
+
+if (scrollBtn) {
+    // Hiện nút khi cuộn xuống quá 300px
+    window.addEventListener('scroll', () => {
+        if (document.body.scrollTop > 300 || document.documentElement.scrollTop > 300) {
+            scrollBtn.classList.add('visible');
+        } else {
+            scrollBtn.classList.remove('visible');
+        }
+    });
+
+    // Bấm là bay lên đầu
+    scrollBtn.addEventListener('click', () => {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
+}
