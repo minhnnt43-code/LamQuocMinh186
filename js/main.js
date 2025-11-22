@@ -179,11 +179,12 @@ function startRealTimeClock() {
     setInterval(updateClock, 1000); // Cập nhật mỗi giây
 }
 
-// --- 3. HÀM ĐIỀU HƯỚNG (NAVIGATION) ---
+// --- 3. HÀM ĐIỀU HƯỚNG (NAVIGATION) - ĐÃ SỬA LỖI MOBILE ---
 function setupNavigation() {
     const buttons = document.querySelectorAll('.nav-btn');
     const sections = document.querySelectorAll('.content-section');
 
+    // 1. Xử lý chuyển tab
     buttons.forEach(btn => {
         btn.addEventListener('click', () => {
             const targetId = btn.getAttribute('data-target');
@@ -197,10 +198,13 @@ function setupNavigation() {
             sections.forEach(sec => sec.classList.remove('active'));
             const targetSection = document.getElementById(targetId);
             if (targetSection) targetSection.classList.add('active');
+
+            // [MỚI] Tự động đóng menu con sau khi chọn xong (cho Mobile)
+            document.querySelectorAll('.nav-group').forEach(g => g.classList.remove('open'));
         });
     });
 
-    // Toggle menu con (Accordion)
+    // 2. Toggle menu con (Accordion)
     const groupToggles = document.querySelectorAll('.nav-group-toggle');
     groupToggles.forEach(toggle => {
         const newToggle = toggle.cloneNode(true);
@@ -208,9 +212,27 @@ function setupNavigation() {
 
         newToggle.addEventListener('click', (e) => {
             e.preventDefault();
+            e.stopPropagation(); // Ngăn không cho sự kiện lan ra ngoài (quan trọng)
+            
             const parentGroup = newToggle.parentElement;
+            
+            // Đóng các menu khác đang mở để đỡ rối
+            document.querySelectorAll('.nav-group').forEach(g => {
+                if (g !== parentGroup) g.classList.remove('open');
+            });
+
             parentGroup.classList.toggle('open');
         });
+    });
+
+    // [MỚI] 3. Bấm ra ngoài để đóng menu (FIX LỖI KẸT CỨNG)
+    document.addEventListener('click', (e) => {
+        // Nếu cái được click KHÔNG PHẢI là menu con VÀ KHÔNG PHẢI nút mở menu
+        if (!e.target.closest('.nav-submenu') && !e.target.closest('.nav-group-toggle')) {
+            document.querySelectorAll('.nav-group').forEach(group => {
+                group.classList.remove('open');
+            });
+        }
     });
 }
 
