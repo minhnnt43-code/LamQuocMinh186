@@ -44,6 +44,13 @@ document.addEventListener('DOMContentLoaded', () => {
             console.log("User đã đăng nhập:", user.email);
             toggleLoading(true);
 
+            // --- [FIX] CƠ CHẾ AN TOÀN: Tự tắt Loading sau 3 giây bất kể mạng chậm ---
+            const safetyTimer = setTimeout(() => {
+                toggleLoading(false);
+                console.warn("⚠️ Loading quá lâu, đã buộc tắt.");
+            }, 3000); 
+            // ---------------------------------------------------------------------
+
             // Ẩn màn hình Login, Hiện màn hình App
             document.getElementById('login-container').style.display = 'none';
             document.getElementById('app-container').style.display = 'flex';
@@ -59,9 +66,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 currentUserData = data ? data : JSON.parse(JSON.stringify(DEFAULT_DATA));
 
                 // --- XỬ LÝ AVATAR ---
-                let photoURL = user.photoURL; // Mặc định lấy từ Google
+                let photoURL = user.photoURL;
                 if (currentUserData.settings && currentUserData.settings.customAvatarUrl) {
-                    photoURL = currentUserData.settings.customAvatarUrl; // Nếu có custom thì lấy custom
+                    photoURL = currentUserData.settings.customAvatarUrl;
                 }
                 const sidebarPic = document.getElementById('sidebar-profile-pic');
                 if(sidebarPic) sidebarPic.src = photoURL;
@@ -71,38 +78,37 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 // --- ĐỒNG BỘ THÔNG TIN CƠ BẢN ---
                 if (!currentUserData.personalInfo) currentUserData.personalInfo = {};
-                currentUserData.email = user.email; // Luôn cập nhật email mới nhất
+                currentUserData.email = user.email;
 
-                // Lưu lại thông tin cơ bản
+                // Lưu lại thông tin cơ bản (chạy ngầm, không cần await để đợi)
                 saveUserData(user.uid, {
                     email: user.email,
                     'personalInfo.email': user.email
                 });
 
-                // Áp dụng cài đặt giao diện (Dark Mode, Màu sắc)
+                // Áp dụng cài đặt giao diện
                 applyUserSettings(currentUserData.settings, user);
 
                 // --- KHỞI CHẠY CÁC MODULE CON ---
-                // 1. Module Admin (Chỉ chạy nếu email khớp trong admin.js)
+                // Init các module này có thể chạy song song để nhanh hơn
                 initAdminModule(user);
-                
-                // 2. Module Work (Công việc, Todo, Dự án)
                 initWorkModule(currentUserData, user);
-                
-                // 3. Module Study (Học tập, SV5T, Thư viện)
                 initStudyModule(currentUserData, user);
 
                 // --- KHỞI TẠO UI CHUNG ---
                 setupNavigation();
                 setupAllModals();
                 setupSettings(user);
-                loadProfileDataToForm(); // Load dữ liệu vào form Hồ sơ
+                loadProfileDataToForm();
 
                 showNotification(`Chào mừng trở lại, ${user.displayName}!`);
+                
             } catch (error) {
                 console.error(error);
                 showNotification('Lỗi tải dữ liệu: ' + error.message, 'error');
             } finally {
+                // Xóa bộ đếm an toàn vì đã tải xong thành công
+                clearTimeout(safetyTimer);
                 toggleLoading(false);
             }
 
@@ -111,6 +117,7 @@ document.addEventListener('DOMContentLoaded', () => {
             document.getElementById('login-container').style.display = 'flex';
             document.getElementById('app-container').style.display = 'none';
             currentUserData = null;
+            toggleLoading(false); // Đảm bảo tắt loading nếu ở màn hình login
         }
     });
 
