@@ -114,32 +114,74 @@ function renderHeader(data) {
     }
 }
 
-// --- RENDER PROJECTS ---
+// --- FILE: js/portfolio.js (Thay thế hàm renderProjects cũ) ---
+
 function renderProjects(projects) {
     const container = document.getElementById('pf-projects');
     if (!container) return;
+
+    // [QUAN TRỌNG] Reset style của container để tránh xung đột với HTML cũ
+    container.style.display = 'block'; 
     container.innerHTML = '';
 
+    console.log("Dữ liệu dự án tải về:", projects); // Xem log (F12) để chắc chắn có dữ liệu
+
     if (!projects || projects.length === 0) {
-        container.innerHTML = '<p style="text-align:center; width:100%; color:#999">Chưa có dự án công khai.</p>';
+        container.innerHTML = '<div style="text-align:center; padding:40px; color:#999; background:#f9f9f9; border-radius:12px;">Chưa có dự án nào được hiển thị.</div>';
         return;
     }
 
+    // 1. Gom nhóm theo NĂM (Có xử lý chống lỗi nếu thiếu ngày)
+    const groups = {};
     projects.forEach(p => {
-        const html = `
-            <div class="pf-card">
-                <div class="pf-card-body">
-                    <h3 style="color: #005B96;">${p.name}</h3>
-                    <p style="color: #555; font-size: 0.9rem; margin: 10px 0;">${p.description || '...'}</p>
-                    <div style="margin-top:15px">
-                        <span class="pf-tag" style="background:#e3f2fd; color:#005B96">
-                            📅 ${p.endDate ? 'Kết thúc: ' + formatDateVN(p.endDate) : 'Đang thực hiện'}
-                        </span>
-                    </div>
+        let year = 'Đang thực hiện';
+        
+        // Kiểm tra kỹ xem có ngày không rồi mới cắt chuỗi
+        if (p.endDate && typeof p.endDate === 'string' && p.endDate.includes('-')) {
+            year = `Năm ${p.endDate.split('-')[0]}`;
+        } else if (p.startDate && typeof p.startDate === 'string' && p.startDate.includes('-')) {
+            year = `Năm ${p.startDate.split('-')[0]}`;
+        }
+
+        if (!groups[year]) groups[year] = [];
+        groups[year].push(p);
+    });
+
+    // 2. Sắp xếp năm giảm dần (Mới nhất lên đầu)
+    const sortedYears = Object.keys(groups).sort().reverse();
+
+    // 3. Render ra màn hình
+    sortedYears.forEach(year => {
+        // A. Tạo tiêu đề Năm
+        const yearHeader = document.createElement('h3');
+        yearHeader.className = 'pf-year-label'; // Class này đã có trong CSS style.css
+        yearHeader.style.cssText = "color:#005B96; border-bottom: 2px dashed #FF7A00; padding-bottom:10px; margin: 40px 0 20px 0; font-size:1.5rem; font-weight:800;";
+        yearHeader.textContent = year;
+        container.appendChild(yearHeader);
+
+        // B. Tạo lưới chứa Card
+        const grid = document.createElement('div');
+        grid.style.cssText = "display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 25px;";
+
+        groups[year].forEach(p => {
+            const div = document.createElement('div');
+            // Style trực tiếp cho Card (để chắc chắn có viền)
+            div.className = 'pf-card';
+            div.innerHTML = `
+                <h3 style="margin-top:0; color:#333;">${p.name}</h3>
+                <p style="color:#666; font-size:0.9rem; line-height:1.5; flex-grow:1;">
+                    ${p.description || 'Chưa có mô tả.'}
+                </p>
+                <div class="pf-card-footer" style="margin-top:15px; padding-top:10px; border-top:1px dashed #eee; display:flex; justify-content:space-between; align-items:center;">
+                    <span style="font-size:0.8rem; background:#e3f2fd; color:#005B96; padding:4px 10px; border-radius:12px;">
+                        ${p.endDate ? '🏁 Hoàn thành: ' + formatDateVN(p.endDate) : '🔥 Đang thực hiện'}
+                    </span>
                 </div>
-            </div>
-        `;
-        container.innerHTML += html;
+            `;
+            grid.appendChild(div);
+        });
+
+        container.appendChild(grid);
     });
 }
 
