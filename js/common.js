@@ -1,13 +1,11 @@
 // --- FILE: js/common.js ---
 
-// 1. CÁC HÀM XỬ LÝ DỮ LIỆU (Format, ID, Security)
-
-// Tạo ID ngẫu nhiên
+// 1. TẠO ID NGẪU NHIÊN
 export const generateID = (prefix = 'id') => {
     return `${prefix}_${Date.now()}_${Math.floor(Math.random() * 1000)}`;
 };
 
-// Chống lỗi bảo mật XSS
+// 2. CHỐNG LỖI BẢO MẬT XSS (Khi hiển thị text người dùng nhập)
 export const escapeHTML = (str) => {
     if (typeof str !== 'string') return str;
     return str.replace(/[&<>'"]/g, 
@@ -20,25 +18,24 @@ export const escapeHTML = (str) => {
         }[tag]));
 };
 
-// Format ngày hiển thị (DD/MM/YYYY)
+// 3. FORMAT NGÀY THÁNG
 export const formatDate = (dateString) => {
     if (!dateString) return "";
     const date = new Date(dateString);
     if (isNaN(date)) return dateString;
-    return date.toLocaleDateString('vi-VN');
+    return date.toLocaleDateString('vi-VN'); // DD/MM/YYYY
 };
 
-// Format ngày input (YYYY-MM-DD)
 export const toLocalISOString = (date) => {
     if (!date) return "";
     const d = new Date(date);
     const year = d.getFullYear();
     const month = String(d.getMonth() + 1).padStart(2, '0');
     const day = String(d.getDate()).padStart(2, '0');
-    return `${year}-${month}-${day}`;
+    return `${year}-${month}-${day}`; // YYYY-MM-DD
 };
 
-// Format dung lượng file
+// 4. FORMAT DUNG LƯỢNG FILE
 export const formatBytes = (bytes, decimals = 2) => {
     if (!+bytes) return '0 Bytes';
     const k = 1024;
@@ -48,40 +45,35 @@ export const formatBytes = (bytes, decimals = 2) => {
     return `${parseFloat((bytes / Math.pow(k, i)).toFixed(dm))} ${sizes[i]}`;
 };
 
-// --- [MỚI] HÀM CHUYỂN ĐỔI LINK GOOGLE DRIVE ---
+// 5. CHUYỂN LINK GOOGLE DRIVE -> LINK ẢNH TRỰC TIẾP
 export const convertDriveLink = (url) => {
     if (!url) return '';
-    // Nếu không phải link google drive thì trả về nguyên gốc
-    if (!url.includes('drive.google.com')) return url;
+    if (!url.includes('drive.google.com') && !url.includes('googleusercontent.com')) return url;
     
     try {
-        // Tìm ID của file
         let id = '';
         const parts = url.split('/');
-        // Trường hợp 1: .../d/ID_FILE/...
+        // Dạng: .../d/ID_FILE/...
         const dIndex = parts.indexOf('d');
         if (dIndex !== -1 && parts[dIndex + 1]) {
             id = parts[dIndex + 1];
         } 
-        // Trường hợp 2: ...id=ID_FILE...
+        // Dạng: ...id=ID_FILE...
         else if (url.includes('id=')) {
             const match = url.match(/id=([^&]+)/);
             if (match) id = match[1];
         }
 
         if (id) {
-            // Trả về link xem trực tiếp (Direct Link)
             return `https://lh3.googleusercontent.com/d/${id}`;
         }
         return url;
     } catch (e) {
-        return url; // Nếu lỗi thì trả về link gốc
+        return url;
     }
 };
 
-// 2. CÁC HÀM GIAO DIỆN (UI)
-
-// Hiển thị thông báo
+// 6. UI HELPERS
 export const showNotification = (message, type = 'success') => {
     const container = document.getElementById("notification-container");
     if (!container) return;
@@ -98,14 +90,12 @@ export const showNotification = (message, type = 'success') => {
     }, 3000);
 };
 
-// Loading spinner
 export const toggleLoading = (show) => {
     const spinner = document.getElementById('loading-spinner');
     if (spinner) spinner.style.display = show ? 'flex' : 'none';
 };
 
-// 3. QUẢN LÝ MODAL
-
+// 7. MODAL HELPERS
 export const setupModal = (modalId, closeBtnId) => {
     const modal = document.getElementById(modalId);
     const closeBtn = document.getElementById(closeBtnId);
