@@ -1,19 +1,19 @@
-// --- FILE: js/main.js (FINAL FIXED VERSION) ---
+// --- FILE: js/main.js ---
 
-import { 
-    loginWithGoogle, logoutUser, subscribeToAuthChanges, 
-    getUserData, saveUserData, uploadFileToStorage 
+import {
+    loginWithGoogle, logoutUser, subscribeToAuthChanges,
+    getUserData, saveUserData
 } from './firebase.js';
 
-import { 
-    toggleLoading, showNotification, setupModal, convertDriveLink 
+import {
+    toggleLoading, showNotification, setupModal, convertDriveLink
 } from './common.js';
 
 import { initWorkModule } from './work.js';
 import { initStudyModule } from './study.js';
 import { initAdminModule } from './admin.js';
 
-// Dữ liệu mặc định cho tài khoản mới tinh
+// Dữ liệu mặc định cho tài khoản mới tinh (tránh lỗi null)
 const DEFAULT_DATA = {
     tasks: [],
     todos: [],
@@ -22,72 +22,77 @@ const DEFAULT_DATA = {
     achievements: [],
     studentJourney: {},
     drafts: [],
-    settings: { 
-        darkMode: false, 
-        primaryColor: '#005B96', 
-        secondaryColor: '#FF7A00' 
+    personalInfo: {},
+    settings: {
+        darkMode: false,
+        primaryColor: '#005B96',
+        secondaryColor: '#FF7A00',
+        customAvatarUrl: ''
     }
 };
 
 let currentUserData = null;
 
 document.addEventListener('DOMContentLoaded', () => {
-    
+
     // 1. LẮNG NGHE TRẠNG THÁI ĐĂNG NHẬP
     subscribeToAuthChanges(async (user) => {
         if (user) {
             console.log("User đã đăng nhập:", user.email);
             toggleLoading(true);
-            
+
             // Ẩn màn hình Login, Hiện màn hình App
             document.getElementById('login-container').style.display = 'none';
             document.getElementById('app-container').style.display = 'flex';
-            
-            // Hiển thị thông tin User lên Sidebar
+
+            // Hiển thị tên User lên Sidebar
             document.getElementById('sidebar-user-name').textContent = user.displayName;
-            
-            let photoURL = user.photoURL;
-            
+
             // Tải dữ liệu từ Firebase
             try {
                 const data = await getUserData(user.uid);
+                
+                // Nếu chưa có dữ liệu (user mới), dùng Default Data
                 currentUserData = data ? data : JSON.parse(JSON.stringify(DEFAULT_DATA));
 
-                // Nếu đã có ảnh custom thì dùng
+                // --- XỬ LÝ AVATAR ---
+                let photoURL = user.photoURL; // Mặc định lấy từ Google
                 if (currentUserData.settings && currentUserData.settings.customAvatarUrl) {
-                    photoURL = currentUserData.settings.customAvatarUrl;
+                    photoURL = currentUserData.settings.customAvatarUrl; // Nếu có custom thì lấy custom
                 }
-
-                document.getElementById('sidebar-profile-pic').src = photoURL || "https://placehold.co/80x80/FFFFFF/005B96?text=User";
-                
+                document.getElementById('sidebar-profile-pic').src = photoURL;
                 const settingsPreview = document.getElementById('settings-profile-preview');
-                if(settingsPreview) settingsPreview.src = photoURL;
+                if (settingsPreview) settingsPreview.src = photoURL;
 
-                // Tự động đồng bộ thông tin cá nhân
+                // --- ĐỒNG BỘ THÔNG TIN CƠ BẢN ---
                 if (!currentUserData.personalInfo) currentUserData.personalInfo = {};
-                currentUserData.personalInfo.fullName = user.displayName;
-                currentUserData.personalInfo.email = user.email;
-                
-                if (!currentUserData.settings) currentUserData.settings = {};
-                
-                saveUserData(user.uid, { 
-                    personalInfo: currentUserData.personalInfo,
-                    settings: currentUserData.settings,
-                    email: user.email 
-                });
-                
-                applyUserSettings(currentUserData.settings);
+                currentUserData.email = user.email; // Luôn cập nhật email mới nhất
 
-                // Khởi chạy các module
-                initWorkModule(currentUserData, user);
-                initStudyModule(currentUserData, user);
-                initAdminModule(user); 
+                // Lưu lại thông tin cơ bản (để Admin có thể thấy email/tên trong danh sách user)
+                saveUserData(user.uid, {
+                    email: user.email,
+                    'personalInfo.email': user.email
+                });
+
+                // Áp dụng cài đặt giao diện (Dark Mode, Màu sắc)
+                applyUserSettings(currentUserData.settings, user);
+
+                // --- KHỞI CHẠY CÁC MODULE CON ---
+                // 1. Module Admin (Chỉ chạy nếu email khớp trong admin.js)
+                initAdminModule(user);
                 
+                // 2. Module Work (Công việc, Todo, Dự án)
+                initWorkModule(currentUserData, user);
+                
+                // 3. Module Study (Học tập, SV5T, Thư viện)
+                initStudyModule(currentUserData, user);
+
+                // --- KHỞI TẠO UI CHUNG ---
                 setupNavigation();
                 setupAllModals();
                 setupSettings(user);
-                loadProfileDataToForm();
-                
+                loadProfileDataToForm(); // Load dữ liệu vào form Hồ sơ
+
                 showNotification(`Chào mừng trở lại, ${user.displayName}!`);
             } catch (error) {
                 console.error(error);
@@ -116,56 +121,26 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
     }
-    
-    const btnLoginSubmit = document.querySelector('.btn-login-submit');
-    if (btnLoginSubmit) {
-        btnLoginSubmit.addEventListener('click', () => {
-            alert("Vui lòng sử dụng nút Đăng nhập bằng Google ở dưới.");
-        });
-    }
 
-    // 3. SỰ KIỆN NÚT GOOGLE LOGIN (ĐÃ SỬA LỖI BẤM NHIỀU LẦN)
-    const btnGoogle = document.getElementById('btn-login-google');
-    if (btnGoogle) {
-        btnGoogle.addEventListener('click', async () => {
-            // Khóa nút lại ngay lập tức
-            btnGoogle.disabled = true;
-            btnGoogle.style.opacity = "0.6";
-            btnGoogle.style.cursor = "not-allowed";
-            
-            // Lưu text cũ để khôi phục nếu lỗi
-            const originalText = btnGoogle.innerHTML;
-            
-            try {
-                await loginWithGoogle();
-                // Nếu thành công, trang sẽ tự chuyển, không cần mở lại nút
-            } catch (error) {
-                const errEl = document.getElementById('login-error');
-                
-                // Xử lý thông báo lỗi thân thiện hơn
-                if (error.code === 'auth/cancelled-popup-request' || error.message.includes('cancelled')) {
-                    errEl.textContent = "Đăng nhập bị hủy. Vui lòng thử lại.";
-                } else if (error.code === 'auth/popup-closed-by-user') {
-                    errEl.textContent = "Bạn đã đóng cửa sổ đăng nhập.";
-                } else {
-                    errEl.textContent = "Lỗi: " + error.message;
-                }
+    // 3. SỰ KIỆN NÚT GOOGLE LOGIN
+    document.getElementById('btn-login-google').addEventListener('click', async () => {
+        try {
+            await loginWithGoogle();
+        } catch (error) {
+            const errEl = document.getElementById('login-error');
+            if(errEl) {
+                errEl.textContent = "Đăng nhập thất bại: " + error.message;
                 errEl.style.display = 'block';
-
-                // Mở lại nút để bấm lại
-                btnGoogle.disabled = false;
-                btnGoogle.style.opacity = "1";
-                btnGoogle.style.cursor = "pointer";
-                btnGoogle.innerHTML = originalText;
             }
-        });
-    }
+            alert("Lỗi đăng nhập: " + error.message);
+        }
+    });
 
     // 4. SỰ KIỆN ĐĂNG XUẤT
     document.getElementById('btn-logout').addEventListener('click', async () => {
         if (confirm('Bạn muốn đăng xuất khỏi hệ thống?')) {
             await logoutUser();
-            location.reload(); 
+            location.reload(); // Tải lại trang cho sạch sẽ
         }
     });
 });
@@ -174,26 +149,30 @@ document.addEventListener('DOMContentLoaded', () => {
 function setupNavigation() {
     const buttons = document.querySelectorAll('.nav-btn');
     const sections = document.querySelectorAll('.content-section');
-    
+
     buttons.forEach(btn => {
         btn.addEventListener('click', () => {
             const targetId = btn.getAttribute('data-target');
-            if (!targetId) return; 
+            if (!targetId) return;
 
+            // Active nút menu
             document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
-            
+
+            // Hiện section tương ứng
             sections.forEach(sec => sec.classList.remove('active'));
             const targetSection = document.getElementById(targetId);
             if (targetSection) targetSection.classList.add('active');
         });
     });
 
+    // Toggle menu con (Accordion)
     const groupToggles = document.querySelectorAll('.nav-group-toggle');
     groupToggles.forEach(toggle => {
+        // Clone node để tránh gán sự kiện nhiều lần nếu gọi hàm này nhiều lần
         const newToggle = toggle.cloneNode(true);
         toggle.parentNode.replaceChild(newToggle, toggle);
-        
+
         newToggle.addEventListener('click', (e) => {
             e.preventDefault();
             const parentGroup = newToggle.parentElement;
@@ -204,9 +183,9 @@ function setupNavigation() {
 
 // --- 4. CÀI ĐẶT HỆ THỐNG (SETTINGS) ---
 function setupSettings(user) {
-    // Dark Mode
+    // A. Dark Mode
     const darkModeToggle = document.getElementById('toggle-dark-mode');
-    if(darkModeToggle) {
+    if (darkModeToggle) {
         darkModeToggle.checked = currentUserData.settings?.darkMode || false;
         darkModeToggle.addEventListener('change', (e) => {
             const isDark = e.target.checked;
@@ -215,11 +194,11 @@ function setupSettings(user) {
         });
     }
 
-    // Colors
+    // B. Màu sắc
     const bluePicker = document.getElementById('color-picker-blue');
     const orangePicker = document.getElementById('color-picker-orange');
 
-    if(bluePicker) {
+    if (bluePicker) {
         bluePicker.value = currentUserData.settings?.primaryColor || '#005B96';
         bluePicker.addEventListener('change', (e) => {
             document.documentElement.style.setProperty('--custom-primary-blue', e.target.value);
@@ -227,7 +206,7 @@ function setupSettings(user) {
         });
     }
 
-    if(orangePicker) {
+    if (orangePicker) {
         orangePicker.value = currentUserData.settings?.secondaryColor || '#FF7A00';
         orangePicker.addEventListener('change', (e) => {
             document.documentElement.style.setProperty('--custom-primary-orange', e.target.value);
@@ -235,19 +214,25 @@ function setupSettings(user) {
         });
     }
 
+    // Khôi phục màu mặc định
     const btnReset = document.getElementById('btn-reset-colors');
-    if(btnReset) {
+    if (btnReset) {
         btnReset.addEventListener('click', () => {
-            document.documentElement.style.setProperty('--custom-primary-blue', '#005B96');
-            document.documentElement.style.setProperty('--custom-primary-orange', '#FF7A00');
-            if(bluePicker) bluePicker.value = '#005B96';
-            if(orangePicker) orangePicker.value = '#FF7A00';
-            saveSettings({ primaryColor: '#005B96', secondaryColor: '#FF7A00' }, user);
+            const defBlue = '#005B96';
+            const defOrange = '#FF7A00';
+            
+            document.documentElement.style.setProperty('--custom-primary-blue', defBlue);
+            document.documentElement.style.setProperty('--custom-primary-orange', defOrange);
+            
+            if (bluePicker) bluePicker.value = defBlue;
+            if (orangePicker) orangePicker.value = defOrange;
+            
+            saveSettings({ primaryColor: defBlue, secondaryColor: defOrange }, user);
             showNotification('Đã khôi phục màu mặc định');
         });
     }
 
-    // --- XỬ LÝ AVATAR (LINK DRIVE) ---
+    // C. Avatar (Link Drive)
     const btnSaveAvatar = document.getElementById('btn-save-avatar');
     if (btnSaveAvatar) {
         btnSaveAvatar.addEventListener('click', async () => {
@@ -267,24 +252,25 @@ function setupSettings(user) {
             // Lưu vào Firebase
             await saveSettings({ customAvatarUrl: directLink }, user);
             showNotification('Đã cập nhật ảnh đại diện!');
-            linkInput.value = ''; 
+            linkInput.value = '';
         });
     }
 
-    // Xóa dữ liệu
+    // D. Xóa dữ liệu
     const btnClear = document.getElementById('btn-clear-data');
-    if(btnClear) {
+    if (btnClear) {
         btnClear.addEventListener('click', async () => {
-            if(confirm("CẢNH BÁO: Xóa sạch dữ liệu?")) {
+            if (confirm("CẢNH BÁO: Xóa sạch dữ liệu? Hành động này không thể hoàn tác.")) {
+                toggleLoading(true);
                 await saveUserData(user.uid, DEFAULT_DATA);
                 location.reload();
             }
         });
     }
 
-    // Export Data
+    // E. Export Data (JSON)
     const btnExport = document.getElementById('btn-export-data');
-    if(btnExport) {
+    if (btnExport) {
         btnExport.addEventListener('click', () => {
             const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(currentUserData));
             const downloadAnchorNode = document.createElement('a');
@@ -296,15 +282,16 @@ function setupSettings(user) {
         });
     }
 
-    // Import Data
+    // F. Import Data (JSON)
     const importInput = document.getElementById('import-file-input');
     const btnImport = document.getElementById('btn-import-data');
     if (btnImport && importInput) {
         btnImport.addEventListener('click', () => importInput.click());
-        
+
+        // Reset input để có thể chọn lại cùng 1 file
         const newImportInput = importInput.cloneNode(true);
         importInput.parentNode.replaceChild(newImportInput, importInput);
-        
+
         newImportInput.addEventListener('change', (e) => {
             const file = e.target.files[0];
             if (!file) return;
@@ -312,11 +299,13 @@ function setupSettings(user) {
             reader.onload = async (e) => {
                 try {
                     const data = JSON.parse(e.target.result);
-                    if (confirm("Dữ liệu từ file sẽ được GỘP vào dữ liệu hiện tại. Tiếp tục?")) {
+                    if (confirm("Dữ liệu từ file sẽ GHI ĐÈ lên dữ liệu hiện tại. Tiếp tục?")) {
                         toggleLoading(true);
-                        await saveUserData(user.uid, data);
+                        // Merge dữ liệu cũ và mới để tránh mất cấu trúc
+                        const mergedData = { ...currentUserData, ...data };
+                        await saveUserData(user.uid, mergedData);
                         showNotification("Nhập dữ liệu thành công! Đang tải lại...");
-                        setTimeout(() => location.reload(), 1500);
+                        setTimeout(() => location.reload(), 1000);
                     }
                 } catch (err) {
                     showNotification("File lỗi hoặc sai định dạng!", "error");
@@ -336,29 +325,35 @@ async function saveSettings(newSettings, user) {
     await saveUserData(user.uid, { settings: currentUserData.settings });
 }
 
-function applyUserSettings(settings) {
+function applyUserSettings(settings, user) {
     if (!settings) return;
+    
+    // Dark mode
     if (settings.darkMode) document.body.classList.add('dark-mode');
     else document.body.classList.remove('dark-mode');
+    
+    // Colors
     if (settings.primaryColor) document.documentElement.style.setProperty('--custom-primary-blue', settings.primaryColor);
     if (settings.secondaryColor) document.documentElement.style.setProperty('--custom-primary-orange', settings.secondaryColor);
 }
 
 // --- 5. QUẢN LÝ MODAL ---
 function setupAllModals() {
+    // Danh sách modal ID và nút đóng ID tương ứng trong index.html
     const modals = [
-        'edit-modal', 'event-modal', 'achievement-modal', 'project-modal', 
-        'document-modal', 'document-viewer-modal', 'outline-modal', 
+        'edit-modal', 'event-modal', 'achievement-modal', 'project-modal',
+        'document-modal', 'document-viewer-modal', 'outline-modal',
         'confirm-modal', 'duplicate-review-modal', 'admin-modal'
     ];
     const closes = [
-        'close-edit-modal', 'close-event-modal', 'close-achievement-modal', 'close-project-modal', 
-        'close-document-modal', 'close-viewer-modal', 'close-outline-modal', 
+        'close-edit-modal', 'close-event-modal', 'close-achievement-modal', 'close-project-modal',
+        'close-document-modal', 'close-viewer-modal', 'close-outline-modal',
         'btn-cancel-confirm', 'close-duplicate-modal', 'close-admin-modal'
     ];
-    
+
     modals.forEach((id, i) => setupModal(id, closes[i]));
-    
+
+    // Xử lý đóng Side Panel (Panel trượt)
     const closeSidePanels = () => {
         document.querySelectorAll('.sv5t-side-panel').forEach(p => p.classList.remove('open'));
         document.querySelectorAll('.sv5t-panel-overlay').forEach(o => o.classList.remove('active'));
@@ -366,67 +361,80 @@ function setupAllModals() {
 
     document.getElementById('sv5t-panel-close-btn')?.addEventListener('click', closeSidePanels);
     document.getElementById('sv5t-panel-overlay')?.addEventListener('click', closeSidePanels);
+    
     document.getElementById('outline-node-panel-close-btn')?.addEventListener('click', closeSidePanels);
     document.getElementById('outline-node-panel-overlay')?.addEventListener('click', closeSidePanels);
 }
 
-// --- LOGIC QUẢN LÝ HỒ SƠ (PROFILE) ---
+// --- 6. LOGIC HỒ SƠ CÁ NHÂN (PROFILE & PORTFOLIO) ---
 function loadProfileDataToForm() {
     if (!currentUserData || !currentUserData.personalInfo) return;
-    
-    const info = currentUserData.personalInfo;
-    
-    document.getElementById('pi-fullname').value = info.fullName || '';
-    document.getElementById('pi-email').value = info.email || '';
-    document.getElementById('pi-phone').value = info.phone || '';
-    document.getElementById('pi-occupation').value = info.occupation || '';
 
-    document.getElementById('pf-school').value = info.school || '';
-    document.getElementById('pf-award').value = info.award || '';
-    document.getElementById('pf-role').value = info.role || '';
-    document.getElementById('pf-location').value = info.location || '';
+    const info = currentUserData.personalInfo;
+
+    // Hàm hỗ trợ: Chỉ gán giá trị nếu tìm thấy thẻ HTML (Tránh lỗi null)
+    const safeSet = (id, value) => {
+        const el = document.getElementById(id);
+        if (el) {
+            el.value = value || '';
+        }
+    };
+
+    // Thông tin cơ bản
+    safeSet('pi-fullname', info.fullName);
+    safeSet('pi-email', info.email);
+    safeSet('pi-phone', info.phone);
+    safeSet('pi-occupation', info.occupation);
+
+    // Thông tin Portfolio (Chips)
+    safeSet('pf-school', info.school);
+    safeSet('pf-award', info.award);
+    safeSet('pf-role', info.role);
+    safeSet('pf-location', info.location);
 }
 
+// Nút lưu Profile
 const btnSaveProfile = document.getElementById('btn-save-profile');
-
 if (btnSaveProfile) {
     btnSaveProfile.addEventListener('click', async () => {
-        const originalText = btnSaveProfile.innerText;
-        btnSaveProfile.innerText = "Đang lưu...";
-        btnSaveProfile.disabled = true;
-        
-        try {
-            const updatedInfo = {
-                fullName: document.getElementById('pi-fullname').value,
-                email: document.getElementById('pi-email').value,
-                phone: document.getElementById('pi-phone').value,
-                occupation: document.getElementById('pi-occupation').value,
-                school: document.getElementById('pf-school').value,
-                award: document.getElementById('pf-award').value,
-                role: document.getElementById('pf-role').value,
-                location: document.getElementById('pf-location').value
-            };
+        // Import lại auth từ firebase để lấy uid hiện tại chắc chắn
+        import('./firebase.js').then(async (module) => {
+            const user = module.auth.currentUser;
+            if (!user) return;
 
-            if (!currentUserData.personalInfo) currentUserData.personalInfo = {};
-            currentUserData.personalInfo = { ...currentUserData.personalInfo, ...updatedInfo };
+            const originalText = btnSaveProfile.innerText;
+            btnSaveProfile.innerText = "Đang lưu...";
+            btnSaveProfile.disabled = true;
 
-            if (currentUserData) { 
-                 import('./firebase.js').then(async (module) => {
-                    const { getAuth } = await import("https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js");
-                    const auth = getAuth();
-                    if(auth.currentUser) {
-                        await module.saveUserData(auth.currentUser.uid, { personalInfo: updatedInfo });
-                        alert("Đã cập nhật hồ sơ thành công!"); 
-                    }
-                });
+            try {
+                const updatedInfo = {
+                    fullName: document.getElementById('pi-fullname').value,
+                    email: document.getElementById('pi-email').value,
+                    phone: document.getElementById('pi-phone').value,
+                    occupation: document.getElementById('pi-occupation').value,
+                    
+                    // Thông tin Portfolio
+                    school: document.getElementById('pf-school').value,
+                    award: document.getElementById('pf-award').value,
+                    role: document.getElementById('pf-role').value,
+                    location: document.getElementById('pf-location').value
+                };
+
+                // Cập nhật local data
+                if (!currentUserData.personalInfo) currentUserData.personalInfo = {};
+                currentUserData.personalInfo = { ...currentUserData.personalInfo, ...updatedInfo };
+
+                // Lưu lên Firebase
+                await saveUserData(user.uid, { personalInfo: updatedInfo });
+                
+                showNotification("Đã cập nhật hồ sơ & Portfolio!");
+            } catch (error) {
+                console.error(error);
+                alert("Lỗi: " + error.message);
+            } finally {
+                btnSaveProfile.innerText = originalText;
+                btnSaveProfile.disabled = false;
             }
-
-        } catch (error) {
-            console.error(error);
-            alert("Lỗi: " + error.message);
-        } finally {
-            btnSaveProfile.innerText = originalText;
-            btnSaveProfile.disabled = false;
-        }
+        });
     });
 }
