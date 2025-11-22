@@ -1854,7 +1854,7 @@ input:checked + .slider:before {
     margin-top: 1rem;
 }
 
-/* === CSS MỚI CHO TÍNH NĂNG XÓA TRÙNG LẶP === */
+/* === CSS CHO TÍNH NĂNG XÓA TRÙNG LẶP === */
 .duplicate-group {
     background: var(--light-gray);
     padding: 1rem;
@@ -1876,6 +1876,135 @@ input:checked + .slider:before {
     color: var(--primary-blue);
 }
 
+/* ============================================================
+   BẮT BUỘC HIỂN THỊ AVATAR (DEFAULT DESKTOP)
+   ============================================================ */
+/* Đặt rules này RA NGOÀI media query để nó luôn chạy mặc định */
+.sidebar-header {
+    display: flex !important;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.profile-picture {
+    display: block !important;
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    border: 3px solid white;
+    object-fit: cover;
+    margin-bottom: 10px;
+}
+
+.welcome-message {
+    display: block !important;
+    text-align: center;
+    color: white;
+}
+
+/* Ẩn header mobile trên máy tính */
+.mobile-top-bar {
+    display: none !important;
+}
+
+/* ============================================================
+   GIAO DIỆN MOBILE (MÀN HÌNH < 768PX)
+   ============================================================ */
+@media screen and (max-width: 768px) {
+    
+    /* 1. Hiện Header Mobile */
+    .mobile-top-bar {
+        display: flex !important;
+        justify-content: space-between;
+        align-items: center;
+        padding: 10px 15px;
+        background: white;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        position: fixed;
+        top: 0; left: 0; width: 100%;
+        z-index: 1000;
+        height: 60px;
+    }
+
+    #btn-toggle-sidebar {
+        background: none;
+        border: none;
+        font-size: 1.8rem;
+        color: var(--primary-blue);
+        cursor: pointer;
+    }
+
+    /* 2. Sidebar dạng trượt */
+    .sidebar {
+        position: fixed;
+        top: 0; left: 0;
+        height: 100vh;
+        width: 280px;
+        background: var(--primary-blue);
+        z-index: 2000;
+        flex-direction: column;
+        align-items: stretch;
+        padding: 20px 10px;
+        transition: transform 0.3s ease-in-out;
+        transform: translateX(-100%); /* Mặc định ẩn sang trái */
+        box-shadow: 5px 0 15px rgba(0,0,0,0.2);
+        display: flex;
+    }
+
+    /* Khi mở menu */
+    .sidebar.active {
+        transform: translateX(0);
+    }
+
+    /* Trong menu mobile, vẫn hiện avatar to cho đẹp */
+    .sidebar-header, .welcome-message {
+        display: flex !important; 
+    }
+
+    /* 3. Ẩn/Hiện các thành phần khác */
+    .info-widget {
+        margin-bottom: 20px;
+    }
+
+    .sidebar-footer {
+        display: block; /* Hiện nút đăng xuất */
+        margin-top: auto;
+    }
+
+    /* 4. Overlay đen mờ */
+    #mobile-menu-overlay {
+        display: none;
+        position: fixed;
+        top: 0; left: 0; width: 100%; height: 100%;
+        background: rgba(0,0,0,0.5);
+        z-index: 1500;
+        backdrop-filter: blur(2px);
+    }
+    
+    #mobile-menu-overlay.active {
+        display: block;
+    }
+
+    /* 5. Đẩy nội dung chính xuống */
+    .main-content {
+        width: 100%;
+        margin-top: 60px;
+        height: calc(100vh - 60px);
+        border-radius: 0;
+        margin-left: 0;
+    }
+
+    /* 6. Fix các bảng biểu */
+    .form-grid, #dashboard-grid, .settings-grid {
+        grid-template-columns: 1fr !important;
+    }
+    
+    .calendar-table {
+        min-width: 600px;
+    }
+}
 
 @media (max-width: 768px) {
     .sidebar{width:100%;height:auto;position:relative;flex-direction:row;align-items:center;padding:.5rem;flex-wrap:wrap;z-index:200}
@@ -2880,14 +3009,56 @@ body.dark-mode .ach-show-more-btn:hover {
     from { opacity: 0; transform: translateY(20px); }
     to { opacity: 1; transform: translateY(0); }
 }
-    /* ============================================================
-   MOBILE RESPONSIVE - HAMBURGER MENU STYLE
+/* ============================================================
+   1. CẤU HÌNH CHUNG & MÁY TÍNH (DEFAULT)
+   ============================================================ */
+
+/* Bắt buộc hiện Avatar và Header Sidebar trên máy tính */
+.sidebar-header, 
+.welcome-message {
+    display: block !important;
+    text-align: center;
+    margin-bottom: 1rem;
+}
+
+.profile-picture {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    border: 3px solid white;
+    object-fit: cover;
+    display: inline-block !important;
+    margin-bottom: 10px;
+}
+
+/* Ẩn thanh header của mobile trên máy tính */
+.mobile-top-bar {
+    display: none !important;
+}
+
+/* Overlay (Lớp đen mờ) mặc định ẩn để không chắn chuột */
+#mobile-menu-overlay {
+    display: none;
+    position: fixed;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0,0,0,0.5);
+    z-index: 1500;
+    backdrop-filter: blur(2px);
+}
+
+/* Chỉ hiện Overlay khi có class active */
+#mobile-menu-overlay.active {
+    display: block !important;
+}
+
+/* ============================================================
+   2. CẤU HÌNH MOBILE (MÀN HÌNH < 768PX)
    ============================================================ */
 @media screen and (max-width: 768px) {
     
-    /* 1. HEADER MOBILE (MỚI) */
+    /* Hiện thanh Header Mobile */
     .mobile-top-bar {
-        display: flex !important; /* Hiện lên */
+        display: flex !important;
         justify-content: space-between;
         align-items: center;
         padding: 10px 15px;
@@ -2895,119 +3066,58 @@ body.dark-mode .ach-show-more-btn:hover {
         box-shadow: 0 2px 10px rgba(0,0,0,0.05);
         position: fixed;
         top: 0; left: 0; width: 100%;
-        z-index: 1000;
         height: 60px;
+        z-index: 1000;
     }
 
     #btn-toggle-sidebar {
-        background: none;
-        border: none;
-        font-size: 1.8rem;
-        color: var(--primary-blue);
-        cursor: pointer;
+        background: none; border: none;
+        font-size: 1.8rem; color: var(--primary-blue);
+        cursor: pointer; padding: 5px;
     }
 
-    /* 2. SIDEBAR (MENU TRƯỢT) */
+    /* Sidebar: Trượt từ trái sang */
     .sidebar {
         position: fixed;
-        top: 0;
-        left: 0;
+        top: 0; left: 0;
         height: 100vh;
-        width: 280px; /* Chiều rộng menu */
+        width: 280px;
         background: var(--primary-blue);
-        z-index: 2000;
+        z-index: 2000; /* Cao hơn mọi thứ */
         flex-direction: column;
-        align-items: stretch;
         padding: 20px 10px;
         transition: transform 0.3s ease-in-out;
-        transform: translateX(-100%); /* Ẩn sang trái mặc định */
+        transform: translateX(-100%); /* Đẩy hẳn ra ngoài màn hình */
         box-shadow: 5px 0 15px rgba(0,0,0,0.2);
         display: flex;
     }
 
-    /* Class này được JS thêm vào để hiện menu */
+    /* Khi mở menu thì trượt vào */
     .sidebar.active {
         transform: translateX(0);
     }
 
-    /* Hiển thị lại Header trong Sidebar để đẹp hơn */
+    /* Trong Mobile Menu vẫn hiện Avatar cho đẹp */
     .sidebar-header, .welcome-message {
         display: block !important;
-        text-align: center;
-    }
-    
-    /* Widget Giờ giấc trong menu */
-    .info-widget {
-        position: static; /* Bỏ vị trí tuyệt đối */
-        background: rgba(255,255,255,0.1);
-        margin-bottom: 20px;
-        display: block;
     }
 
-    /* Reset Menu về dạng dọc (không phải ngang nữa) */
-    .nav-menu {
-        flex-direction: column;
-        overflow-y: auto;
-        overflow-x: hidden;
-        padding: 0;
-    }
+    .info-widget { margin-bottom: 20px; }
+    .sidebar-footer { display: block; margin-top: auto; }
 
-    .nav-submenu {
-        position: static; /* Không popup nữa, nằm dọc xuống */
-        width: 100%;
-        background: rgba(0,0,0,0.2);
-        box-shadow: none;
-        opacity: 1;
-        max-height: 0;
-        transform: none;
-        transition: max-height 0.3s ease;
-    }
-
-    .nav-group.open .nav-submenu {
-        max-height: 500px;
-    }
-
-    /* 3. OVERLAY (LỚP MỜ ĐEN KHI MỞ MENU) */
-    #mobile-menu-overlay {
-        display: none;
-        position: fixed;
-        top: 0; left: 0; width: 100%; height: 100%;
-        background: rgba(0,0,0,0.5);
-        z-index: 1500;
-        backdrop-filter: blur(2px);
-    }
-    
-    #mobile-menu-overlay.active {
-        display: block;
-    }
-
-    /* 4. NỘI DUNG CHÍNH */
+    /* Nội dung chính: Đẩy xuống dưới Header */
     .main-content {
         width: 100%;
-        margin-top: 60px; /* Đẩy xuống tránh header */
+        margin-top: 60px; /* Tránh bị Header che */
         height: calc(100vh - 60px);
         border-radius: 0;
+        margin-left: 0;
+        padding-bottom: 80px; /* Để cuộn hết trang */
     }
 
-    /* 5. TỐI ƯU CÁC THÀNH PHẦN KHÁC CHO MOBILE */
+    /* Fix bảng biểu và lưới */
     .form-grid, #dashboard-grid, .settings-grid {
         grid-template-columns: 1fr !important;
     }
-    
-    .calendar-table {
-        min-width: 600px; /* Để cuộn ngang lịch */
-    }
-    
-    /* Modal full màn hình */
-    .modal-content {
-        width: 100%;
-        height: 100%;
-        border-radius: 0;
-        max-height: 100vh;
-    }
-}
-
-/* Ẩn header mobile trên máy tính */
-.mobile-top-bar {
-    display: none;
+    .calendar-table { min-width: 600px; }
 }
