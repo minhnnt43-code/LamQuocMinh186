@@ -5,6 +5,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Lâm Quốc Minh - Portfolio</title>
     
+    <!-- [MỚI] SEO & Open Graph (Hiển thị đẹp khi share Facebook/Zalo) -->
+    <meta name="description" content="Hồ sơ năng lực, thành tích và hoạt động của Lâm Quốc Minh - Sinh viên Luật & Cán bộ Đoàn.">
+    <meta property="og:title" content="Lâm Quốc Minh - Portfolio Cá Nhân">
+    <meta property="og:description" content="Chào mừng đến với không gian làm việc số của tôi.">
+    <!-- Bạn hãy thay link ảnh dưới đây bằng link ảnh đại diện đẹp nhất của bạn để khi share link nó hiện ra -->
+    <meta property="og:image" content="https://placehold.co/600x400?text=Lam+Quoc+Minh"> 
+    <meta property="og:url" content="https://lamquocminh.id.vn/">
+    <meta property="og:type" content="website">
+    
     <!-- Font & Icon -->
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700;900&family=UTM+Avo&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
@@ -220,10 +229,20 @@
         <div class="portfolio-grid" id="pf-projects"></div>
     </section>
 
-    <!-- 4. THÀNH TÍCH -->
+    <!-- 4. THÀNH TÍCH (ĐÃ CẬP NHẬT FILTER + TIMELINE) -->
     <section class="section-container">
         <h2 class="section-title">🏆 Thành Tích & Chứng Nhận</h2>
-        <div class="portfolio-grid" id="pf-achievements"></div>
+        
+        <!-- THANH BỘ LỌC (MỚI) -->
+        <div class="ach-filter-bar">
+            <button class="ach-filter-btn active" onclick="filterAchievements('all')">Tất cả</button>
+            <button class="ach-filter-btn" onclick="filterAchievements('academic')">📘 Học tập & NCKH</button>
+            <button class="ach-filter-btn" onclick="filterAchievements('social')">🚩 Đoàn - Hội</button>
+            <button class="ach-filter-btn" onclick="filterAchievements('award')">🏆 Khen thưởng</button>
+        </div>
+
+        <!-- Nơi hiển thị danh sách -->
+        <div id="pf-achievements" class="ach-timeline-container"></div>
     </section>
 
     <!-- 5. DẤU ẤN PHONG TRÀO (GALLERY) -->
@@ -257,10 +276,11 @@
         <p style="color: #999; font-size: 0.9rem;">&copy; Bản quyền của Lâm Quốc Minh</p>
     </footer>
 
+    <!-- [MỚI] Nút Lên đầu trang -->
+    <button id="btn-scroll-top" title="Lên đầu trang">⬆️</button>
+
     <!-- Script -->
     <script type="module" src="js/portfolio.js"></script>
 </body>
 
 </html>
-
-
