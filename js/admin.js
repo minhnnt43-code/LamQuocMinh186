@@ -224,7 +224,7 @@ async function renderAlbumManager() {
 
     // 2. Load Danh sách
     try {
-        const snapshot = await getDocs(query(collection(db, `users/${currentAdminUID}/albums`), orderBy('createdAt', 'desc')));
+        const snapshot = await getDocs(collection(db, `users/${currentAdminUID}/albums`));
         container.innerHTML = snapshot.empty ? '<p style="grid-column:1/-1; color:#999; text-align:center;">Chưa có album nào.</p>' : '';
 
         snapshot.forEach(docShot => {
