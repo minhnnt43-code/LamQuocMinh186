@@ -179,62 +179,60 @@ function startRealTimeClock() {
     setInterval(updateClock, 1000); // Cập nhật mỗi giây
 }
 
-// --- 3. HÀM ĐIỀU HƯỚNG (NAVIGATION) - ĐÃ SỬA LỖI MOBILE ---
-function setupNavigation() {
-    const buttons = document.querySelectorAll('.nav-btn');
-    const sections = document.querySelectorAll('.content-section');
+// --- THÊM VÀO TRONG setupNavigation() ---
 
-    // 1. Xử lý chuyển tab
-    buttons.forEach(btn => {
+    // [MỚI - MOBILE] Logic Hamburger Menu
+    const btnToggle = document.getElementById('btn-toggle-sidebar');
+    const sidebar = document.getElementById('sidebar');
+    const mobileAvatar = document.getElementById('mobile-avatar');
+    
+    // Tạo Overlay đen mờ nếu chưa có
+    let overlay = document.getElementById('mobile-menu-overlay');
+    if (!overlay) {
+        overlay = document.createElement('div');
+        overlay.id = 'mobile-menu-overlay';
+        document.body.appendChild(overlay);
+    }
+
+    // Đồng bộ avatar header với sidebar
+    const mainAvatar = document.getElementById('sidebar-profile-pic');
+    if(mobileAvatar && mainAvatar) {
+        // Quan sát thay đổi src của avatar chính để update avatar header
+        const observer = new MutationObserver((mutations) => {
+            mutations.forEach((mutation) => {
+                if (mutation.type === 'attributes' && mutation.attributeName === 'src') {
+                    mobileAvatar.src = mainAvatar.src;
+                }
+            });
+        });
+        observer.observe(mainAvatar, { attributes: true });
+    }
+
+    // Sự kiện mở menu
+    if (btnToggle) {
+        btnToggle.addEventListener('click', (e) => {
+            e.stopPropagation();
+            sidebar.classList.toggle('active');
+            overlay.classList.toggle('active');
+        });
+    }
+
+    // Sự kiện đóng menu khi bấm ra ngoài (Overlay)
+    overlay.addEventListener('click', () => {
+        sidebar.classList.remove('active');
+        overlay.classList.remove('active');
+    });
+
+    // Tự động đóng menu khi chọn 1 mục (Trải nghiệm tốt hơn)
+    const navBtns = document.querySelectorAll('.nav-btn');
+    navBtns.forEach(btn => {
         btn.addEventListener('click', () => {
-            const targetId = btn.getAttribute('data-target');
-            if (!targetId) return;
-
-            // Active nút menu
-            document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
-
-            // Hiện section tương ứng
-            sections.forEach(sec => sec.classList.remove('active'));
-            const targetSection = document.getElementById(targetId);
-            if (targetSection) targetSection.classList.add('active');
-
-            // [MỚI] Tự động đóng menu con sau khi chọn xong (cho Mobile)
-            document.querySelectorAll('.nav-group').forEach(g => g.classList.remove('open'));
+            if (window.innerWidth <= 768) {
+                sidebar.classList.remove('active');
+                overlay.classList.remove('active');
+            }
         });
     });
-
-    // 2. Toggle menu con (Accordion)
-    const groupToggles = document.querySelectorAll('.nav-group-toggle');
-    groupToggles.forEach(toggle => {
-        const newToggle = toggle.cloneNode(true);
-        toggle.parentNode.replaceChild(newToggle, toggle);
-
-        newToggle.addEventListener('click', (e) => {
-            e.preventDefault();
-            e.stopPropagation(); // Ngăn không cho sự kiện lan ra ngoài (quan trọng)
-            
-            const parentGroup = newToggle.parentElement;
-            
-            // Đóng các menu khác đang mở để đỡ rối
-            document.querySelectorAll('.nav-group').forEach(g => {
-                if (g !== parentGroup) g.classList.remove('open');
-            });
-
-            parentGroup.classList.toggle('open');
-        });
-    });
-
-    // [MỚI] 3. Bấm ra ngoài để đóng menu (FIX LỖI KẸT CỨNG)
-    document.addEventListener('click', (e) => {
-        // Nếu cái được click KHÔNG PHẢI là menu con VÀ KHÔNG PHẢI nút mở menu
-        if (!e.target.closest('.nav-submenu') && !e.target.closest('.nav-group-toggle')) {
-            document.querySelectorAll('.nav-group').forEach(group => {
-                group.classList.remove('open');
-            });
-        }
-    });
-}
 
 // --- 4. CÀI ĐẶT HỆ THỐNG (SETTINGS) ---
 function setupSettings(user) {
