@@ -2,7 +2,7 @@
 
 import {
     loginWithGoogle, logoutUser, subscribeToAuthChanges,
-    getUserData, saveUserData
+    getUserData, saveUserData, auth
 } from './firebase.js';
 
 import {
@@ -35,6 +35,9 @@ let currentUserData = null;
 
 document.addEventListener('DOMContentLoaded', () => {
 
+    // --- BẮT ĐẦU ĐỒNG HỒ THỜI GIAN THỰC ---
+    startRealTimeClock();
+
     // 1. LẮNG NGHE TRẠNG THÁI ĐĂNG NHẬP
     subscribeToAuthChanges(async (user) => {
         if (user) {
@@ -60,7 +63,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (currentUserData.settings && currentUserData.settings.customAvatarUrl) {
                     photoURL = currentUserData.settings.customAvatarUrl; // Nếu có custom thì lấy custom
                 }
-                document.getElementById('sidebar-profile-pic').src = photoURL;
+                const sidebarPic = document.getElementById('sidebar-profile-pic');
+                if(sidebarPic) sidebarPic.src = photoURL;
+                
                 const settingsPreview = document.getElementById('settings-profile-preview');
                 if (settingsPreview) settingsPreview.src = photoURL;
 
@@ -68,7 +73,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (!currentUserData.personalInfo) currentUserData.personalInfo = {};
                 currentUserData.email = user.email; // Luôn cập nhật email mới nhất
 
-                // Lưu lại thông tin cơ bản (để Admin có thể thấy email/tên trong danh sách user)
+                // Lưu lại thông tin cơ bản
                 saveUserData(user.uid, {
                     email: user.email,
                     'personalInfo.email': user.email
@@ -145,6 +150,35 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 });
 
+// --- HÀM ĐỒNG HỒ (REAL-TIME CLOCK) ---
+function startRealTimeClock() {
+    const timeEl = document.getElementById('current-time');
+    const dateEl = document.getElementById('current-date');
+    
+    const updateClock = () => {
+        const now = new Date();
+        
+        // Cập nhật Giờ:Phút:Giây
+        if(timeEl) {
+            const hours = String(now.getHours()).padStart(2, '0');
+            const minutes = String(now.getMinutes()).padStart(2, '0');
+            const seconds = String(now.getSeconds()).padStart(2, '0');
+            timeEl.textContent = `${hours}:${minutes}:${seconds}`;
+        }
+
+        // Cập nhật Ngày/Tháng/Năm
+        if(dateEl) {
+            const day = String(now.getDate()).padStart(2, '0');
+            const month = String(now.getMonth() + 1).padStart(2, '0');
+            const year = now.getFullYear();
+            dateEl.textContent = `${day}/${month}/${year}`;
+        }
+    };
+
+    updateClock(); // Chạy ngay lập tức
+    setInterval(updateClock, 1000); // Cập nhật mỗi giây
+}
+
 // --- 3. HÀM ĐIỀU HƯỚNG (NAVIGATION) ---
 function setupNavigation() {
     const buttons = document.querySelectorAll('.nav-btn');
@@ -169,7 +203,6 @@ function setupNavigation() {
     // Toggle menu con (Accordion)
     const groupToggles = document.querySelectorAll('.nav-group-toggle');
     groupToggles.forEach(toggle => {
-        // Clone node để tránh gán sự kiện nhiều lần nếu gọi hàm này nhiều lần
         const newToggle = toggle.cloneNode(true);
         toggle.parentNode.replaceChild(newToggle, toggle);
 
@@ -241,15 +274,12 @@ function setupSettings(user) {
 
             if (!rawLink) return showNotification('Vui lòng dán link ảnh!', 'error');
 
-            // Convert link Drive sang link ảnh trực tiếp
             const directLink = convertDriveLink(rawLink);
 
-            // Cập nhật giao diện ngay lập tức
             document.getElementById('sidebar-profile-pic').src = directLink;
             const preview = document.getElementById('settings-profile-preview');
             if (preview) preview.src = directLink;
 
-            // Lưu vào Firebase
             await saveSettings({ customAvatarUrl: directLink }, user);
             showNotification('Đã cập nhật ảnh đại diện!');
             linkInput.value = '';
@@ -268,7 +298,7 @@ function setupSettings(user) {
         });
     }
 
-    // E. Export Data (JSON)
+    // E. Export Data
     const btnExport = document.getElementById('btn-export-data');
     if (btnExport) {
         btnExport.addEventListener('click', () => {
@@ -282,13 +312,12 @@ function setupSettings(user) {
         });
     }
 
-    // F. Import Data (JSON)
+    // F. Import Data
     const importInput = document.getElementById('import-file-input');
     const btnImport = document.getElementById('btn-import-data');
     if (btnImport && importInput) {
         btnImport.addEventListener('click', () => importInput.click());
 
-        // Reset input để có thể chọn lại cùng 1 file
         const newImportInput = importInput.cloneNode(true);
         importInput.parentNode.replaceChild(newImportInput, importInput);
 
@@ -301,7 +330,6 @@ function setupSettings(user) {
                     const data = JSON.parse(e.target.result);
                     if (confirm("Dữ liệu từ file sẽ GHI ĐÈ lên dữ liệu hiện tại. Tiếp tục?")) {
                         toggleLoading(true);
-                        // Merge dữ liệu cũ và mới để tránh mất cấu trúc
                         const mergedData = { ...currentUserData, ...data };
                         await saveUserData(user.uid, mergedData);
                         showNotification("Nhập dữ liệu thành công! Đang tải lại...");
@@ -328,18 +356,15 @@ async function saveSettings(newSettings, user) {
 function applyUserSettings(settings, user) {
     if (!settings) return;
     
-    // Dark mode
     if (settings.darkMode) document.body.classList.add('dark-mode');
     else document.body.classList.remove('dark-mode');
     
-    // Colors
     if (settings.primaryColor) document.documentElement.style.setProperty('--custom-primary-blue', settings.primaryColor);
     if (settings.secondaryColor) document.documentElement.style.setProperty('--custom-primary-orange', settings.secondaryColor);
 }
 
 // --- 5. QUẢN LÝ MODAL ---
 function setupAllModals() {
-    // Danh sách modal ID và nút đóng ID tương ứng trong index.html
     const modals = [
         'edit-modal', 'event-modal', 'achievement-modal', 'project-modal',
         'document-modal', 'document-viewer-modal', 'outline-modal',
@@ -353,7 +378,6 @@ function setupAllModals() {
 
     modals.forEach((id, i) => setupModal(id, closes[i]));
 
-    // Xử lý đóng Side Panel (Panel trượt)
     const closeSidePanels = () => {
         document.querySelectorAll('.sv5t-side-panel').forEach(p => p.classList.remove('open'));
         document.querySelectorAll('.sv5t-panel-overlay').forEach(o => o.classList.remove('active'));
@@ -366,75 +390,61 @@ function setupAllModals() {
     document.getElementById('outline-node-panel-overlay')?.addEventListener('click', closeSidePanels);
 }
 
-// --- 6. LOGIC HỒ SƠ CÁ NHÂN (PROFILE & PORTFOLIO) ---
+// --- 6. LOGIC HỒ SƠ CÁ NHÂN ---
 function loadProfileDataToForm() {
     if (!currentUserData || !currentUserData.personalInfo) return;
 
     const info = currentUserData.personalInfo;
-
-    // Hàm hỗ trợ: Chỉ gán giá trị nếu tìm thấy thẻ HTML (Tránh lỗi null)
     const safeSet = (id, value) => {
         const el = document.getElementById(id);
-        if (el) {
-            el.value = value || '';
-        }
+        if (el) el.value = value || '';
     };
 
-    // Thông tin cơ bản
     safeSet('pi-fullname', info.fullName);
     safeSet('pi-email', info.email);
     safeSet('pi-phone', info.phone);
     safeSet('pi-occupation', info.occupation);
 
-    // Thông tin Portfolio (Chips)
     safeSet('pf-school', info.school);
     safeSet('pf-award', info.award);
     safeSet('pf-role', info.role);
     safeSet('pf-location', info.location);
 }
 
-// Nút lưu Profile
 const btnSaveProfile = document.getElementById('btn-save-profile');
 if (btnSaveProfile) {
     btnSaveProfile.addEventListener('click', async () => {
-        // Import lại auth từ firebase để lấy uid hiện tại chắc chắn
-        import('./firebase.js').then(async (module) => {
-            const user = module.auth.currentUser;
-            if (!user) return;
+        const user = auth.currentUser;
+        if (!user) return;
 
-            const originalText = btnSaveProfile.innerText;
-            btnSaveProfile.innerText = "Đang lưu...";
-            btnSaveProfile.disabled = true;
+        const originalText = btnSaveProfile.innerText;
+        btnSaveProfile.innerText = "Đang lưu...";
+        btnSaveProfile.disabled = true;
 
-            try {
-                const updatedInfo = {
-                    fullName: document.getElementById('pi-fullname').value,
-                    email: document.getElementById('pi-email').value,
-                    phone: document.getElementById('pi-phone').value,
-                    occupation: document.getElementById('pi-occupation').value,
-                    
-                    // Thông tin Portfolio
-                    school: document.getElementById('pf-school').value,
-                    award: document.getElementById('pf-award').value,
-                    role: document.getElementById('pf-role').value,
-                    location: document.getElementById('pf-location').value
-                };
-
-                // Cập nhật local data
-                if (!currentUserData.personalInfo) currentUserData.personalInfo = {};
-                currentUserData.personalInfo = { ...currentUserData.personalInfo, ...updatedInfo };
-
-                // Lưu lên Firebase
-                await saveUserData(user.uid, { personalInfo: updatedInfo });
+        try {
+            const updatedInfo = {
+                fullName: document.getElementById('pi-fullname').value,
+                email: document.getElementById('pi-email').value,
+                phone: document.getElementById('pi-phone').value,
+                occupation: document.getElementById('pi-occupation').value,
                 
-                showNotification("Đã cập nhật hồ sơ & Portfolio!");
-            } catch (error) {
-                console.error(error);
-                alert("Lỗi: " + error.message);
-            } finally {
-                btnSaveProfile.innerText = originalText;
-                btnSaveProfile.disabled = false;
-            }
-        });
+                school: document.getElementById('pf-school').value,
+                award: document.getElementById('pf-award').value,
+                role: document.getElementById('pf-role').value,
+                location: document.getElementById('pf-location').value
+            };
+
+            if (!currentUserData.personalInfo) currentUserData.personalInfo = {};
+            currentUserData.personalInfo = { ...currentUserData.personalInfo, ...updatedInfo };
+
+            await saveUserData(user.uid, { personalInfo: updatedInfo });
+            showNotification("Đã cập nhật hồ sơ & Portfolio!");
+        } catch (error) {
+            console.error(error);
+            alert("Lỗi: " + error.message);
+        } finally {
+            btnSaveProfile.innerText = originalText;
+            btnSaveProfile.disabled = false;
+        }
     });
 }
