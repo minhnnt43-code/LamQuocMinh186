@@ -1,4 +1,4 @@
-// --- FILE: js/main.js ---
+// --- FILE: js/main.js (FINAL FIXED VERSION) ---
 
 import { 
     loginWithGoogle, logoutUser, subscribeToAuthChanges, 
@@ -46,7 +46,6 @@ document.addEventListener('DOMContentLoaded', () => {
             // Hiển thị thông tin User lên Sidebar
             document.getElementById('sidebar-user-name').textContent = user.displayName;
             
-            // Lấy ảnh đại diện (Ưu tiên từ Firebase, nếu không có thì lấy từ Google)
             let photoURL = user.photoURL;
             
             // Tải dữ liệu từ Firebase
@@ -64,39 +63,29 @@ document.addEventListener('DOMContentLoaded', () => {
                 const settingsPreview = document.getElementById('settings-profile-preview');
                 if(settingsPreview) settingsPreview.src = photoURL;
 
-                // ============================================================
-                // 🔥 TỰ ĐỘNG ĐỒNG BỘ THÔNG TIN CÁ NHÂN 🔥
-                // ============================================================
+                // Tự động đồng bộ thông tin cá nhân
                 if (!currentUserData.personalInfo) currentUserData.personalInfo = {};
-                
-                // Luôn lấy thông tin mới nhất từ Google
                 currentUserData.personalInfo.fullName = user.displayName;
                 currentUserData.personalInfo.email = user.email;
                 
                 if (!currentUserData.settings) currentUserData.settings = {};
                 
-                // Lưu ngược lên Firebase
                 saveUserData(user.uid, { 
                     personalInfo: currentUserData.personalInfo,
                     settings: currentUserData.settings,
                     email: user.email 
                 });
-                // ============================================================
                 
-                // Áp dụng cài đặt giao diện
                 applyUserSettings(currentUserData.settings);
 
-                // KHỞI CHẠY CÁC MODULE CON
+                // Khởi chạy các module
                 initWorkModule(currentUserData, user);
                 initStudyModule(currentUserData, user);
                 initAdminModule(user); 
                 
-                // Khởi tạo điều hướng & Modal
                 setupNavigation();
                 setupAllModals();
                 setupSettings(user);
-                
-                // Load thông tin Profile vào form
                 loadProfileDataToForm();
                 
                 showNotification(`Chào mừng trở lại, ${user.displayName}!`);
@@ -135,16 +124,42 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // 3. SỰ KIỆN NÚT GOOGLE LOGIN
-    document.getElementById('btn-login-google').addEventListener('click', async () => {
-        try {
-            await loginWithGoogle();
-        } catch (error) {
-            const errEl = document.getElementById('login-error');
-            errEl.textContent = "Đăng nhập thất bại: " + error.message;
-            errEl.style.display = 'block';
-        }
-    });
+    // 3. SỰ KIỆN NÚT GOOGLE LOGIN (ĐÃ SỬA LỖI BẤM NHIỀU LẦN)
+    const btnGoogle = document.getElementById('btn-login-google');
+    if (btnGoogle) {
+        btnGoogle.addEventListener('click', async () => {
+            // Khóa nút lại ngay lập tức
+            btnGoogle.disabled = true;
+            btnGoogle.style.opacity = "0.6";
+            btnGoogle.style.cursor = "not-allowed";
+            
+            // Lưu text cũ để khôi phục nếu lỗi
+            const originalText = btnGoogle.innerHTML;
+            
+            try {
+                await loginWithGoogle();
+                // Nếu thành công, trang sẽ tự chuyển, không cần mở lại nút
+            } catch (error) {
+                const errEl = document.getElementById('login-error');
+                
+                // Xử lý thông báo lỗi thân thiện hơn
+                if (error.code === 'auth/cancelled-popup-request' || error.message.includes('cancelled')) {
+                    errEl.textContent = "Đăng nhập bị hủy. Vui lòng thử lại.";
+                } else if (error.code === 'auth/popup-closed-by-user') {
+                    errEl.textContent = "Bạn đã đóng cửa sổ đăng nhập.";
+                } else {
+                    errEl.textContent = "Lỗi: " + error.message;
+                }
+                errEl.style.display = 'block';
+
+                // Mở lại nút để bấm lại
+                btnGoogle.disabled = false;
+                btnGoogle.style.opacity = "1";
+                btnGoogle.style.cursor = "pointer";
+                btnGoogle.innerHTML = originalText;
+            }
+        });
+    }
 
     // 4. SỰ KIỆN ĐĂNG XUẤT
     document.getElementById('btn-logout').addEventListener('click', async () => {
@@ -232,7 +247,7 @@ function setupSettings(user) {
         });
     }
 
-    // --- [MỚI] XỬ LÝ AVATAR (LINK DRIVE) ---
+    // --- XỬ LÝ AVATAR (LINK DRIVE) ---
     const btnSaveAvatar = document.getElementById('btn-save-avatar');
     if (btnSaveAvatar) {
         btnSaveAvatar.addEventListener('click', async () => {
