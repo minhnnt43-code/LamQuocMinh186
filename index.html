@@ -3,11 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Quản Lý Công Việc & Thời Gian - Cá Nhân Hóa</title>
+    <title>Lâm Quốc Minh - Portfolio & Quản Lý</title>
     
-    <!-- SEO Meta Tags -->
-    <meta name="description" content="Ứng dụng quản lý công việc, thời gian và mục tiêu cá nhân hiệu quả. Tích hợp Firebase.">
-    <meta name="author" content="Lâm Quốc Minh">
+    <!-- [MỚI] SEO & Open Graph (Hiển thị đẹp khi share Facebook/Zalo) -->
+    <meta name="description" content="Hồ sơ năng lực, thành tích và hoạt động của Lâm Quốc Minh - Sinh viên Luật & Cán bộ Đoàn.">
+    <meta property="og:title" content="Lâm Quốc Minh - Portfolio Cá Nhân">
+    <meta property="og:description" content="Chào mừng đến với không gian làm việc số của tôi.">
+    <meta property="og:image" content="https://placehold.co/600x400?text=Lâm+Quốc+Minh"> 
+    <meta property="og:url" content="https://lamquocminh.id.vn/">
+    <meta property="og:type" content="website">
     
     <!-- Favicon -->
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzIiIGhlaWdodD0iMzIiIHZpZXdCb3g9IjAgMCAzMiAzMiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjMyIiBoZWlnaHQ9IjMyIiBmaWxsPSIjMDA1Qjk2Ii8+Cjx0ZXh0IHg9IjE2IiB5PSIyMCIgZm9udC1mYW1pbHk9IkFyaWFsIiBmb250LXNpemU9IjE4IiBmb250LWdlaWdodD0iYm9sZCIgZmlsbD0id2hpdGUiIHRleHQtYW5jaGyPSJtaWRkbGUiPkM8L3RleHQ+Cjwvc3ZnPg==">
@@ -91,7 +95,9 @@
             <!-- Menu Navigation -->
             <ul class="nav-menu" role="navigation">
                 <!-- Nút Admin Panel sẽ được JS chèn vào đầu danh sách này nếu là Admin -->
-                <li><button class="nav-btn active" data-target="dashboard">Tổng quan</button></li>
+                <li>
+                    <button class="nav-btn active" data-target="dashboard">Tổng quan</button>
+                </li>
                 
                 <li class="nav-group">
                     <button class="nav-group-toggle">Không gian làm việc</button>
@@ -171,7 +177,7 @@
                 </div>
             </section>
 
-<!-- SECTION: PERSONAL INFO (ĐÃ NÂNG CẤP ĐỂ CHỈNH PORTFOLIO) -->
+            <!-- SECTION: PERSONAL INFO (ĐÃ NÂNG CẤP ĐỂ CHỈNH PORTFOLIO) -->
             <section id="personal-info" class="content-section">
                 <h1>Hồ sơ cá nhân & Portfolio</h1>
                 
@@ -441,20 +447,25 @@
                 </div>
             </section>
             
-            <!-- SECTION: SETTINGS -->
+            <!-- SECTION: SETTINGS (CÀI ĐẶT - ĐÃ SỬA LỖI) -->
             <section id="settings" class="content-section">
                 <h1>Cài đặt</h1>
                 <div class="settings-grid">
+                     <!-- Phần Avatar (Dùng Link Drive) -->
                      <div class="settings-card" id="profile-picture-settings">
                         <h3>Ảnh đại diện</h3>
                         <div class="profile-picture-controls">
                             <img id="settings-profile-preview" class="profile-picture-preview" src="" alt="Preview">
-                            <div>
-                                <!-- Input file ẩn -->
-                                <button class="btn-submit" onclick="document.getElementById('profile-pic-input').click()">Chọn ảnh</button>
+                            <div style="flex-grow: 1;">
+                                <div class="settings-input-group">
+                                    <input type="text" id="profile-pic-link" placeholder="Dán link ảnh Google Drive (Public)..." style="width: 100%;">
+                                    <button class="btn-submit" id="btn-save-avatar">Lưu</button>
+                                </div>
+                                <p style="font-size: 0.8rem; color: #666; margin-top: 5px;">*Dán link ảnh để tiết kiệm dung lượng & hiển thị tốt nhất.</p>
                             </div>
                         </div>
                     </div>
+
                     <div class="settings-card">
                         <h3>Màu sắc chủ đạo</h3>
                         <div class="color-picker-group"><label>Màu chính (Xanh)</label><input type="color" id="color-picker-blue" value="#005B96"></div>
@@ -481,7 +492,7 @@
     
     <!-- ================= MODALS (CỬA SỔ BẬT LÊN) ================= -->
     
-    <!-- Modal Sửa/Thông tin (Dùng chung cho Task, Info) -->
+    <!-- Modal Sửa/Thông tin -->
     <div id="edit-modal" class="modal">
         <div class="modal-content">
             <div class="modal-header"><h2 class="modal-title" id="modal-title">Tiêu đề</h2><button class="close-btn" id="close-edit-modal">&times;</button></div>
@@ -489,7 +500,7 @@
         </div>
     </div>
 
-    <!-- Modal Sự kiện Lịch -->
+    <!-- Modal Sự kiện -->
     <div id="event-modal" class="modal">
         <div class="modal-content">
             <div class="modal-header"><h2 class="modal-title" id="event-modal-title">Sự kiện</h2><button class="close-btn" id="close-event-modal">&times;</button></div>
@@ -510,20 +521,57 @@
         </div>
     </div>
 
-    <!-- Modal Thành tích -->
+    <!-- Modal Thành tích (ĐÃ CẬP NHẬT CHECKBOX) -->
     <div id="achievement-modal" class="modal">
         <div class="modal-content">
             <div class="modal-header"><h2 class="modal-title" id="achievement-modal-title">Thành tích</h2><button class="close-btn" id="close-achievement-modal">&times;</button></div>
             <div class="modal-body">
                 <input type="hidden" id="achievement-id">
-                <div class="form-group"><label>Tên</label><input type="text" id="achievement-title"></div>
-                <div class="form-group"><label>Ngày</label><input type="date" id="achievement-date"></div>
-                <div class="form-group"><label>Mô tả</label><textarea id="achievement-description"></textarea></div>
+                
+                <!-- Tên -->
                 <div class="form-group">
-                    <label>Ảnh minh chứng</label>
-                    <button class="btn-submit" onclick="document.getElementById('achievement-file-input').click()">Chọn Tệp</button>
-                    <p id="achievement-file-name"></p>
+                    <label>Tên thành tích</label>
+                    <input type="text" id="achievement-title" placeholder="VD: Giải Nhất NCKH...">
                 </div>
+
+                <!-- Category -->
+                <div class="form-group">
+                    <label>Phân loại</label>
+                    <select id="achievement-category">
+                        <option value="academic">📘 Học tập & NCKH</option>
+                        <option value="social">🚩 Đoàn - Hội - Phong trào</option>
+                        <option value="award">🏆 Khen thưởng - Giải thưởng</option>
+                        <option value="other">✨ Khác</option>
+                    </select>
+                </div>
+
+                <!-- Ngày -->
+                <div class="form-group">
+                    <label>Ngày nhận</label>
+                    <input type="date" id="achievement-date">
+                </div>
+
+                <!-- Mô tả -->
+                <div class="form-group">
+                    <label>Mô tả chi tiết</label>
+                    <textarea id="achievement-description" placeholder="Chi tiết về giải thưởng..."></textarea>
+                </div>
+
+                <!-- Link Drive -->
+                <div class="form-group">
+                    <label>Ảnh minh chứng (Link Google Drive)</label>
+                    <input type="text" id="achievement-drive-link" placeholder="Dán link chia sẻ (Public)...">
+                    <p style="font-size:0.8rem; color:#666; margin-top:5px;">*Lưu ý: Hãy bật chế độ "Public" cho file trên Drive trước khi dán.</p>
+                </div>
+
+                <!-- Checkbox Đánh dấu Nổi bật -->
+                <div class="form-group">
+                    <div style="display: flex; align-items: center; gap: 10px; padding: 10px; background: #fff3e0; border-radius: 8px; border: 1px dashed var(--primary-orange);">
+                        <input type="checkbox" id="achievement-featured" style="width: 20px; height: 20px; cursor: pointer;">
+                        <label for="achievement-featured" style="margin: 0; color: var(--primary-orange); font-weight: bold; cursor: pointer;">📌 Đánh dấu Nổi bật (Ghim lên đầu)</label>
+                    </div>
+                </div>
+
                 <div style="display: flex; justify-content: flex-end; gap: 1rem; margin-top: 1.5rem;">
                     <button id="btn-delete-achievement" class="btn-submit" style="background-color: var(--danger-color); display: none;">Xóa</button>
                     <button id="btn-save-achievement" class="btn-submit">Lưu</button>
@@ -604,7 +652,7 @@
         </div>
     </div>
 
-    <!-- Modal Xác nhận (Confirm) -->
+    <!-- Modal Xác nhận -->
     <div id="confirm-modal" class="modal">
         <div class="modal-content" style="max-width: 450px;">
             <div class="modal-header"><h2 class="modal-title">Xác nhận</h2><button class="close-btn" id="close-confirm-modal">&times;</button></div>
@@ -618,7 +666,7 @@
         </div>
     </div>
     
-    <!-- Modal Trùng lặp (Deduplicate) -->
+    <!-- Modal Trùng lặp -->
     <div id="duplicate-review-modal" class="modal">
         <div class="modal-content" style="max-width: 800px;">
             <div class="modal-header"><h2 class="modal-title">Xử lý Trùng lặp</h2><button class="close-btn" id="close-duplicate-modal">&times;</button></div>
@@ -630,7 +678,7 @@
         </div>
     </div>
     
-    <!-- SIDE PANELS (THANH TRƯỢT BÊN PHẢI) -->
+    <!-- SIDE PANELS -->
     
     <!-- Panel Chi tiết SV5T -->
     <div id="sv5t-panel-overlay" class="sv5t-panel-overlay"></div>
@@ -648,14 +696,14 @@
         <div class="sv5t-panel-body" id="outline-node-panel-body"></div>
     </div>
 
-    <!-- CÁC INPUT FILE ẨN (Để JS gọi click()) -->
+    <!-- CÁC INPUT FILE ẨN -->
     <input type="file" id="import-file-input" accept=".json" style="display: none;">
     <input type="file" id="profile-pic-input" accept="image/*" style="display: none;">
     <input type="file" id="proof-upload-input" accept=".png,.jpg,.jpeg,.pdf,.doc,.docx" style="display: none;">
     <input type="file" id="achievement-file-input" accept="image/*,.pdf" style="display: none;">
     <input type="file" id="document-file-input" accept=".pdf,.doc,.docx,.png,.jpg" style="display: none;">
 
-    <!-- MODAL ADMIN (DÁN CÁI NÀY VÀO ĐỂ CÓ BẢNG ADMIN) -->
+    <!-- MODAL ADMIN -->
         <div id="admin-modal" class="modal">
             <div class="modal-content" style="max-width: 900px; max-height: 90vh; overflow-y: auto;">
                 <div class="modal-header">
@@ -703,17 +751,15 @@
                 </div>
             </div>
         </div>
-    <!-- Container Thông báo góc màn hình -->
+    
+    <!-- Container Thông báo -->
     <div id="notification-container"></div>
     
     <!-- THƯ VIỆN JS -->
-    <!-- Hiệu ứng pháo giấy -->
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.2/dist/confetti.browser.min.js"></script>
-    <!-- Quill Editor -->
     <script src="https://cdn.jsdelivr.net/npm/quill@2.0.0/dist/quill.min.js"></script>
 
     <!-- SCRIPT CHÍNH (MODULE) -->
-    <!-- Đây là nơi kết nối 5 file JS chúng ta sẽ tạo -->
     <script type="module" src="js/main.js"></script>
 
 </body>
