@@ -3261,3 +3261,47 @@
     }
     .welcome-message { display: block !important; }
 }
+/* =========================================
+   [BỔ SUNG] APPOINTMENT MODAL
+   ========================================= */
+
+.appt-modal-overlay {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: rgba(0, 0, 0, 0.6);
+    z-index: 2000;
+    display: none; /* JS sẽ bật thành flex */
+    justify-content: center;
+    align-items: center;
+    backdrop-filter: blur(3px);
+}
+
+.appt-modal {
+    background: #fff;
+    width: 90%;
+    max-width: 500px;
+    padding: 30px;
+    border-radius: 16px;
+    box-shadow: 0 15px 40px rgba(0,0,0,0.2);
+    position: relative;
+    animation: popIn 0.3s ease;
+}
+
+@keyframes popIn {
+    from { transform: scale(0.9); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
+}
+
+.appt-close {
+    position: absolute;
+    top: 15px; right: 20px;
+    font-size: 2rem;
+    color: #999;
+    background: none;
+    border: none;
+    cursor: pointer;
+    line-height: 1;
+}
+
+.appt-close:hover { color: var(--danger-color); }

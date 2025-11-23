@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Lâm Quốc Minh - Portfolio & Quản Lý</title>
+    <title>Lâm Quốc Minh - Hệ Thống Quản Lý</title>
 
     <!-- SEO & Open Graph -->
     <meta name="description" content="Hệ thống quản lý cá nhân & Portfolio của Lâm Quốc Minh.">
@@ -12,7 +12,7 @@
     <meta property="og:image" content="https://placehold.co/600x400?text=LQM+System">
 
     <!-- Favicon -->
-    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzIiIGhlaWdodD0iMzIiIHZpZXdCb3g9IjAgMCAzMiAzMiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjMyIiBoZWlnaHQ9IjMyIiBmaWxsPSIjMDA1Qjk2Ii8+Cjx0ZXh0IHg9IjE2IiB5PSIyMCIgZm9udC1mYW1pbHk9IkFyaWFsIiBmb250LXNpemU9IjE4IiBmb250LWdlaWdodD0iYm9sZCIgZmlsbD0id2hpdGUiIHRleHQtYW5jaGyPSJtaWRkbGUiPkM8L3RleHQ+Cjwvc3ZnPg==">
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzIiIGhlaWdodD0iMzIiIHZpZXdCb3g9IjAgMCAzMiAzMiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjMyIiBoZWlnaHQ9IjMyIiBmaWxsPSIjMDA1Qjk2Ii8+Cjx0ZXh0IHg9IjE2IiB5PSIyMCIgZm9udC1mYW1pbHk9IkFyaWFsIiBmb250LXNpemU9IjE4IiBmb250LXNpemU9IjE4IiBmb250LXNpemU9IjE4IiBmb250LXNpemU9IjE4IiBmb250LXNpemU9IjE4IiBmaWxsPSJ3aGl0ZSIgdGV4dC1hbmNob3I9Im1pZGRsZSI+QzwvdGV4dD4KPC9zdmc+">
 
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -72,6 +72,7 @@
             <span style="font-weight:bold; color:var(--primary-blue);">Lâm Quốc Minh</span>
             <img id="mobile-avatar" src="https://placehold.co/40" style="width:35px; height:35px; border-radius:50%;">
         </div>
+        <div id="mobile-menu-overlay"></div>
 
         <!-- SIDEBAR -->
         <aside class="sidebar" id="sidebar">
@@ -86,9 +87,16 @@
             </div>
 
             <ul class="nav-menu">
-                <!-- Nút Admin Dashboard (Thống kê) sẽ được JS chèn vào đầu -->
-                
+                <!-- Nút Dashboard -->
                 <li><button class="nav-btn active" data-target="dashboard">📊 Tổng quan</button></li>
+                
+                <!-- MỤC MỚI: YÊU CẦU HẸN -->
+                <li>
+                    <button class="nav-btn" data-target="appointment-requests">
+                        🗓️ Yêu cầu hẹn 
+                        <span id="appt-badge" class="badge-count" style="background:red; color:white; padding:2px 6px; border-radius:10px; font-size:0.7rem; margin-left:5px; display:none;">0</span>
+                    </button>
+                </li>
 
                 <li class="nav-group">
                     <button class="nav-group-toggle">📂 Không gian làm việc</button>
@@ -101,7 +109,6 @@
                     </ul>
                 </li>
 
-                <!-- MENU QUẢN TRỊ NỘI DUNG (MỚI) -->
                 <li class="nav-group">
                     <button class="nav-group-toggle">✨ Quản trị Nội dung</button>
                     <ul class="nav-submenu">
@@ -114,6 +121,8 @@
                     <button class="nav-group-toggle">🎓 Học tập & Phát triển</button>
                     <ul class="nav-submenu">
                         <li><button class="nav-btn" data-target="focus-mode">Chế độ tập trung</button></li>
+                        <!-- MỤC MỚI: BẢNG ĐIỂM -->
+                        <li><button class="nav-btn" data-target="academic-transcripts">📚 Bảng điểm cá nhân</button></li>
                         <li><button class="nav-btn" data-target="achievements">Thành tích</button></li>
                         <li><button class="nav-btn" data-target="student-journey">Hành trình SV5T</button></li>
                         <li><button class="nav-btn" data-target="proofs-management">Quản lý Minh chứng</button></li>
@@ -177,7 +186,85 @@
                 </div>
             </section>
 
-            <!-- [QUAN TRỌNG] SECTION: QUẢN LÝ LỘ TRÌNH (ĐÃ THÊM VÀO ĐỂ KHÔNG LỖI JS) -->
+            <!-- SECTION MỚI: YÊU CẦU HẸN (APPOINTMENT REQUESTS) -->
+            <section id="appointment-requests" class="content-section">
+                <h1>Quản lý Yêu cầu hẹn</h1>
+                <div class="task-controls">
+                    <div class="task-filter-controls">
+                        <button class="filter-btn active" onclick="filterAppointments('pending')">Chờ duyệt</button>
+                        <button class="filter-btn" onclick="filterAppointments('approved')">Đã duyệt</button>
+                        <button class="filter-btn" onclick="filterAppointments('rejected')">Đã từ chối</button>
+                    </div>
+                </div>
+                <div id="appointment-list-container" class="list-container">
+                    <p class="empty-state">Đang tải danh sách hẹn...</p>
+                </div>
+            </section>
+
+            <!-- SECTION MỚI: BẢNG ĐIỂM (ACADEMIC TRANSCRIPTS) -->
+            <section id="academic-transcripts" class="content-section">
+                <h1>Bảng điểm cá nhân</h1>
+                
+                <!-- Thẻ tóm tắt GPA -->
+                <div id="gpa-summary-card" class="dashboard-card" style="margin-bottom: 20px; display:flex; justify-content:space-around; text-align:center;">
+                    <div>
+                        <div style="font-size:0.9rem; color:#666;">GPA Tích lũy (Hệ 4)</div>
+                        <div id="gpa-accumulated" style="font-size:2rem; font-weight:bold; color:var(--primary-orange);">0.00</div>
+                    </div>
+                    <div>
+                        <div style="font-size:0.9rem; color:#666;">GPA Học kỳ (Hệ 4)</div>
+                        <div id="gpa-term" style="font-size:2rem; font-weight:bold; color:var(--primary-blue);">0.00</div>
+                    </div>
+                    <div>
+                        <div style="font-size:0.9rem; color:#666;">Tổng tín chỉ</div>
+                        <div id="total-credits" style="font-size:2rem; font-weight:bold;">0</div>
+                    </div>
+                </div>
+
+                <!-- Form thêm môn học -->
+                <div class="form-container">
+                    <h3>Nhập điểm môn học</h3>
+                    <input type="hidden" id="transcript-id">
+                    <div class="form-grid">
+                        <div class="form-group"><label>Mã HP</label><input type="text" id="subject-code" placeholder="VD: KTL101"></div>
+                        <div class="form-group"><label>Tên học phần</label><input type="text" id="subject-name" placeholder="VD: Kinh tế vi mô"></div>
+                        <div class="form-group"><label>Số tín chỉ</label><input type="number" id="subject-credits" value="3"></div>
+                        <div class="form-group"><label>Điểm hệ 10</label><input type="number" id="subject-score" step="0.1" placeholder="VD: 8.5"></div>
+                        <div class="form-group"><label>Học kỳ</label><input type="text" id="subject-term" placeholder="VD: HK1 2023-2024"></div>
+                        <div class="form-group">
+                            <label>Loại</label>
+                            <select id="subject-type">
+                                <option value="bắt buộc">Bắt buộc</option>
+                                <option value="tự chọn">Tự chọn</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div style="margin-top:10px; display:flex; gap:10px;">
+                        <button id="btn-save-transcript" class="btn-submit">Lưu điểm</button>
+                        <button id="btn-cancel-transcript" class="btn-submit" style="background:#666; display:none;">Hủy</button>
+                    </div>
+                </div>
+
+                <!-- Bảng danh sách môn học -->
+                <div class="proof-table-container">
+                    <table class="proof-table" id="transcripts-table">
+                        <thead>
+                            <tr>
+                                <th>Mã HP</th>
+                                <th>Tên HP</th>
+                                <th>TC</th>
+                                <th>Điểm (10)</th>
+                                <th>Điểm (4)</th>
+                                <th>Điểm Chữ</th>
+                                <th>Hành động</th>
+                            </tr>
+                        </thead>
+                        <tbody id="transcripts-list-body"></tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- SECTION: QUẢN LÝ LỘ TRÌNH (Timeline) -->
             <section id="manage-timeline" class="content-section">
                 <h1>Quản lý Lộ trình (Timeline)</h1>
                 <div class="form-container">
@@ -206,7 +293,7 @@
                 <p style="text-align:center; color:#666; margin-top:10px;">💡 Mẹo: Kéo thả các ô để thay đổi thứ tự hiển thị.</p>
             </section>
 
-            <!-- [QUAN TRỌNG] SECTION: QUẢN LÝ ALBUM -->
+            <!-- SECTION: QUẢN LÝ ALBUM -->
             <section id="manage-albums" class="content-section">
                 <h1>Quản lý Album Ảnh</h1>
                 <div class="form-container">
@@ -228,7 +315,7 @@
                 <div id="admin-album-list" style="display:grid; grid-template-columns:repeat(auto-fill, minmax(250px, 1fr)); gap:15px; margin-top:20px;"></div>
             </section>
 
-            <!-- PERSONAL INFO -->
+            <!-- SECTION: HỒ SƠ CÁ NHÂN -->
             <section id="personal-info" class="content-section">
                 <h1>Hồ sơ cá nhân</h1>
                 <div class="personal-info-card" style="max-width: 800px;">
@@ -346,6 +433,12 @@
                 <div id="calendar-section-container">
                     <div class="calendar-header">
                         <div class="calendar-header-controls">
+                            <!-- NÚT GOOGLE SYNC (MỚI) -->
+                            <button id="btn-google-sync" class="btn-google-sync" style="background:#fff; color:#333; border:1px solid #ddd; padding:5px 15px; border-radius:20px; font-size:0.9rem; font-weight:bold; cursor:pointer; margin-right:15px; display:flex; align-items:center; gap:5px;">
+                                <svg width="16" height="16" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.24.81-.6z"/><path fill="#EA4335" d="M12 4.61c1.61 0 3.09.56 4.23 1.64l3.18-3.18C17.46 1.18 14.97 0 12 0 7.7 0 3.99 2.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+                                Đồng bộ Google
+                            </button>
+
                             <button id="cal-prev-btn">&lt;</button>
                             <h2 id="current-view-range"></h2>
                             <button id="cal-next-btn">&gt;</button>
@@ -477,11 +570,10 @@
 
     <!-- ================= MODALS ================= -->
 
-    <div id="edit-modal" class="modal"><div class="modal-content"><div class="modal-header"><h2 class="modal-title" id="modal-title"></h2><button class="close-btn" id="close-edit-modal">&times;</button></div><div class="modal-body" id="modal-body"></div></div></div>
-
     <div id="event-modal" class="modal">
         <div class="modal-content">
-            <div class="modal-header"><h2>Sự kiện</h2><button class="close-btn" id="close-event-modal">&times;</button></div>
+            <!-- SỬA DÒNG DƯỚI: Thêm id="event-modal-title" vào thẻ h2 -->
+            <div class="modal-header"><h2 id="event-modal-title">Sự kiện</h2><button class="close-btn" id="close-event-modal">&times;</button></div>
             <div class="modal-body">
                 <input type="hidden" id="event-id">
                 <div class="form-group"><label>Tiêu đề</label><input type="text" id="event-title"></div>
