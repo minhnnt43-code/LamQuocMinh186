@@ -16,6 +16,11 @@ const DEFAULT_UID = "5a6YielwJJYFwB2DyFfUB9DVQXR2";
 
 const OWNER_UID = urlParams.get('uid') || DEFAULT_UID;
 
+// --- [BẮT BUỘC PHẢI CÓ 2 DÒNG NÀY Ở ĐÂY] ---
+let currentLightboxPhotos = []; 
+let currentLightboxIndex = 0;
+// -------------------------------------------
+
 let publicData = {
     projects: [],
     tasks: [],
@@ -30,9 +35,6 @@ let currentCalendarMonth = new Date();
 const todayLocal = new Date();
 const offset = todayLocal.getTimezoneOffset() * 60000;
 let selectedDateStr = (new Date(todayLocal - offset)).toISOString().split('T')[0]; 
-
-let currentLightboxPhotos = [];
-let currentLightboxIndex = 0;
 
 console.log("🚀 Đang tải Portfolio của:", OWNER_UID);
 
@@ -86,7 +88,7 @@ async function loadOwnerPortfolio() {
 
 async function loadSubCollections() {
     try {
-        const albumQ = query(collection(db, `users/${OWNER_UID}/albums`), orderBy('createdAt', 'desc'));
+        const albumQ = query(collection(db, `users/${OWNER_UID}/albums`), orderBy('eventDate', 'desc'));
         const albumSnap = await getDocs(albumQ);
         publicData.albums = albumSnap.docs.map(doc => doc.data());
         renderAlbums(publicData.albums);
@@ -346,18 +348,75 @@ function renderTimeline(timeline) {
     });
 }
 
+// --- [REPLACE] HÀM RENDER ALBUM THEO NĂM (TIMELINE) ---
 function renderAlbums(albums) {
-    const container = document.getElementById('pf-album-shelf');
+    // Lưu ý: ID trong HTML mới là 'pf-album-container'
+    const container = document.getElementById('pf-album-container'); 
     if (!container) return;
     container.innerHTML = '';
+
+    if (!albums || albums.length === 0) {
+        container.innerHTML = '<p style="text-align:center; color:#999; padding:20px;">Chưa có album nào.</p>';
+        return;
+    }
+
+    // 1. Sắp xếp: Mới nhất lên đầu
+    albums.sort((a, b) => {
+        const d1 = new Date(a.eventDate || a.createdAt);
+        const d2 = new Date(b.eventDate || b.createdAt);
+        return d2 - d1;
+    });
+
+    // 2. Gom nhóm theo Năm
+    const groups = {};
     albums.forEach(album => {
-        const div = document.createElement('div');
-        div.className = 'album-card';
-        div.innerHTML = `
-            <div style="height:200px; overflow:hidden;"><img src="${album.cover}" class="album-cover" onerror="this.src='https://placehold.co/600x400'"></div>
-            <div class="album-info"><div class="album-title">${album.title}</div></div>`;
-        div.onclick = () => { if (album.photos?.length) window.openLightbox(album.photos, 0); };
-        container.appendChild(div);
+        // Nếu không có ngày diễn ra thì lấy ngày tạo
+        const dateObj = new Date(album.eventDate || album.createdAt);
+        const year = dateObj.getFullYear();
+        if (!groups[year]) groups[year] = [];
+        groups[year].push(album);
+    });
+
+    // 3. Vẽ HTML ra màn hình
+    Object.keys(groups).sort((a, b) => b - a).forEach(year => {
+        // A. Vẽ số Năm to đùng
+        const yearHeader = document.createElement('div');
+        yearHeader.className = 'album-timeline-year';
+        yearHeader.setAttribute('data-year', year);
+        yearHeader.innerText = year; // Fallback text
+        container.appendChild(yearHeader);
+
+        // B. Vẽ cái lưới chứa ảnh
+        const grid = document.createElement('div');
+        grid.className = 'album-shelf';
+
+        groups[year].forEach(album => {
+            const div = document.createElement('div');
+            div.className = 'album-card';
+            
+            // Format ngày và địa điểm
+            const displayDate = album.eventDate ? formatDateVN(album.eventDate) : '...';
+            const locationHtml = album.location 
+                ? `<div class="album-location-tag">📍 ${album.location}</div>` 
+                : '';
+
+            div.innerHTML = `
+                <div class="album-cover-wrapper">
+                    <img src="${album.cover}" class="album-cover" onerror="this.src='https://placehold.co/600x400'">
+                    ${locationHtml}
+                </div>
+                <div class="album-info">
+                    <div class="album-title">${album.title}</div>
+                    <div class="album-desc-short">${album.description || 'Chưa có mô tả.'}</div>
+                    <div class="album-meta-date">📅 ${displayDate} • 📸 ${album.photos ? album.photos.length : 0} ảnh</div>
+                </div>
+            `;
+            
+            // KHI CLICK -> GỌI HÀM MỞ STORY (Bước 3 sẽ thêm hàm này)
+            div.onclick = () => openStoryModal(album);
+            grid.appendChild(div);
+        });
+        container.appendChild(grid);
     });
 }
 
@@ -686,6 +745,88 @@ window.changeLightboxSlide = (n) => {
     window.openLightbox(currentLightboxPhotos, currentLightboxIndex);
 }
 
+// --- [REPLACE] HÀM MỞ MODAL CHI TIẾT ALBUM (CÓ NÚT DOWNLOAD) ---
+window.openStoryModal = (album) => {
+    const modal = document.getElementById('story-modal');
+    const content = document.getElementById('story-content-wrapper');
+    if(!modal || !content) return;
+
+    // 1. Lưu danh sách ảnh vào biến toàn cục
+    window.currentStoryPhotos = album.photos || [];
+
+    const displayDate = album.eventDate ? formatDateVN(album.eventDate) : '';
+    const locationText = album.location ? `tại <strong>${album.location}</strong>` : '';
+
+    // 2. Render danh sách ảnh
+    let galleryHtml = '';
+    if (window.currentStoryPhotos.length > 0) {
+        window.currentStoryPhotos.forEach((p, index) => {
+            const url = typeof p === 'string' ? p : p.url;
+            
+            // --- ĐOẠN NÀY CÓ NÚT DOWNLOAD NÈ ---
+            galleryHtml += `
+                <div class="story-img-item" onclick="window.openLightboxFromStory(${index})">
+                    <img src="${url}" loading="lazy" alt="Khoảnh khắc">
+                    
+                    <!-- Nút tải ảnh (có stopPropagation để không mở lightbox) -->
+                    <button class="btn-download-img" title="Tải ảnh gốc" 
+                        onclick="event.stopPropagation(); window.open('${url}', '_blank');">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                    </button>
+                </div>`;
+            // ------------------------------------
+        });
+    } else {
+        galleryHtml = '<p style="text-align:center; color:#999; width:100%;">Album này chưa có ảnh chi tiết.</p>';
+    }
+
+    content.innerHTML = `
+        <div class="story-header">
+            <h2 class="story-title">${album.title}</h2>
+            <div class="story-meta">Diễn ra ngày ${displayDate} ${locationText}</div>
+            ${album.description ? `<div class="story-intro">"${album.description}"</div>` : ''}
+        </div>
+        <div class="story-gallery">
+            ${galleryHtml}
+        </div>
+        <button onclick="document.getElementById('story-modal').style.display='none'" 
+            style="position:absolute; top:10px; right:15px; background:none; border:none; font-size:2rem; cursor:pointer; color:#333;">&times;</button>
+    `;
+
+    modal.style.display = 'flex';
+};
+
+// --- [NEW] HÀM TRUNG GIAN ĐỂ MỞ LIGHTBOX TỪ STORY ---
+window.openLightboxFromStory = (index) => {
+    // Gọi lại hàm openLightbox cũ nhưng truyền danh sách ảnh của Story
+    window.openLightbox(window.currentStoryPhotos, index);
+};
+
+// --- Dán đoạn này vào cuối file js/portfolio.js ---
+
+// Hàm trung gian để mở Lightbox từ Story (Bắt buộc phải có hàm này)
+window.openLightboxFromStory = (index) => {
+    if (window.currentStoryPhotos && window.currentStoryPhotos.length > 0) {
+        window.openLightbox(window.currentStoryPhotos, index);
+    } else {
+        console.error("Không tìm thấy danh sách ảnh để mở!");
+    }
+};
+
+// Hỗ trợ bàn phím (Mũi tên trái/phải)
+document.addEventListener('keydown', (e) => {
+    const lightbox = document.getElementById('lightbox-modal');
+    // Chỉ chạy khi Lightbox đang mở (đang hiển thị)
+    if (lightbox && lightbox.style.display === 'flex') {
+        if (e.key === 'ArrowLeft') {
+            window.changeLightboxSlide(-1); // Qua trái
+        } else if (e.key === 'ArrowRight') {
+            window.changeLightboxSlide(1);  // Qua phải
+        } else if (e.key === 'Escape') {
+            window.closeLightbox();         // Nhấn Esc để thoát
+        }
+    }
+});
 // --- INIT ---
 document.addEventListener('DOMContentLoaded', () => {
     if(document.getElementById('qr-overlay')) document.getElementById('qr-overlay').style.display = 'none';

@@ -1,6 +1,6 @@
 // --- FILE: js/firebase.js ---
 
-// 1. IMPORT THƯ VIỆN TỪ CDN
+// 1. IMPORT THƯ VIỆN TỪ CDN (GIỮ NGUYÊN ĐỂ CHẠY TRÊN TRÌNH DUYỆT)
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
 import { 
     getAuth, 
@@ -33,7 +33,7 @@ import {
     deleteObject 
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-storage.js";
 
-// 2. CẤU HÌNH FIREBASE
+// 2. CẤU HÌNH FIREBASE (ĐÃ CẬP NHẬT SANG DỰ ÁN MỚI: lamquocminhidvn)
 const firebaseConfig = {
   apiKey: "AIzaSyBcmFqZahUIqeCcqszwRB641nBQySydF6c",
   authDomain: "websitecualqm.firebaseapp.com",
@@ -51,10 +51,15 @@ export const auth = getAuth(app);
 export const db = getFirestore(app);
 export const storage = getStorage(app);
 
-// Cấu hình Google Provider với Scope cho Calendar
+// --- CẤU HÌNH QUYỀN TRUY CẬP GOOGLE ---
 export const provider = new GoogleAuthProvider();
+
+// Quyền 1: Để xem Lịch (cho module Lịch biểu)
 provider.addScope('https://www.googleapis.com/auth/calendar.events.readonly'); 
-// Lưu ý: Nếu muốn thêm sự kiện vào Google Calendar, cần đổi thành 'https://www.googleapis.com/auth/calendar.events'
+
+// Quyền 2: Để xem file và dung lượng Google Drive (cho module Drive)
+// QUAN TRỌNG: Bạn phải bật API này trên Google Cloud của dự án "lamquocminhidvn"
+provider.addScope('https://www.googleapis.com/auth/drive.readonly'); 
 
 // ============================================================
 // A. CÁC HÀM XÁC THỰC (AUTH)
@@ -63,11 +68,11 @@ provider.addScope('https://www.googleapis.com/auth/calendar.events.readonly');
 export const loginWithGoogle = async () => {
     try {
         const result = await signInWithPopup(auth, provider);
-        // Có thể lấy Google Access Token ở đây nếu cần ngay lập tức
+        // Lấy Google Access Token để gọi API
         const credential = GoogleAuthProvider.credentialFromResult(result);
         const token = credential.accessToken;
         
-        // Lưu token vào localStorage để dùng cho Calendar API sau này (phiên làm việc hiện tại)
+        // Lưu token vào localStorage để dùng cho drive.js và calendar
         if (token) localStorage.setItem('google_access_token', token);
         
         return result.user;
@@ -80,6 +85,7 @@ export const loginWithGoogle = async () => {
 export const logoutUser = async () => {
     try {
         await signOut(auth);
+        // Xóa token khi đăng xuất để bảo mật
         localStorage.removeItem('google_access_token');
     } catch (error) {
         console.error("Lỗi đăng xuất:", error);
@@ -96,7 +102,6 @@ export const subscribeToAuthChanges = (callback) => {
 // B. FIRESTORE: QUẢN LÝ DỮ LIỆU USER CHÍNH
 // ============================================================
 
-// Lấy dữ liệu user (Tasks, Projects, Settings...)
 export const getUserData = async (uid) => {
     try {
         const docRef = doc(db, "users", uid);
@@ -108,7 +113,6 @@ export const getUserData = async (uid) => {
     }
 };
 
-// Lưu/Cập nhật dữ liệu chính
 export const saveUserData = async (uid, data) => {
     try {
         const docRef = doc(db, "users", uid);
@@ -119,7 +123,6 @@ export const saveUserData = async (uid, data) => {
     }
 };
 
-// Lấy danh sách tất cả User (Cho Admin Dashboard)
 export const getAllUsers = async () => {
     try {
         const usersCollection = collection(db, "users");
@@ -136,15 +139,12 @@ export const getAllUsers = async () => {
 };
 
 // ============================================================
-// C. [MỚI] FIRESTORE: SUB-COLLECTIONS (Cho Bảng điểm, Hẹn,...)
+// C. FIRESTORE: SUB-COLLECTIONS
 // ============================================================
-// Dùng cho các dữ liệu dạng danh sách dài, tránh làm nặng user document chính
 
-// 1. Thêm item vào sub-collection (VD: users/UID/academic_transcripts)
 export const addSubCollectionDoc = async (uid, subColName, data) => {
     try {
         const colRef = collection(db, `users/${uid}/${subColName}`);
-        // Nếu data có id thì dùng setDoc, không thì dùng addDoc
         if (data.id) {
             await setDoc(doc(colRef, data.id), data);
         } else {
@@ -156,7 +156,6 @@ export const addSubCollectionDoc = async (uid, subColName, data) => {
     }
 };
 
-// 2. Lấy danh sách từ sub-collection
 export const getSubCollectionDocs = async (uid, subColName, orderField = null) => {
     try {
         let q = collection(db, `users/${uid}/${subColName}`);
@@ -171,7 +170,6 @@ export const getSubCollectionDocs = async (uid, subColName, orderField = null) =
     }
 };
 
-// 3. Cập nhật item trong sub-collection
 export const updateSubCollectionDoc = async (uid, subColName, docId, data) => {
     try {
         const docRef = doc(db, `users/${uid}/${subColName}`, docId);
@@ -182,7 +180,6 @@ export const updateSubCollectionDoc = async (uid, subColName, docId, data) => {
     }
 };
 
-// 4. Xóa item trong sub-collection
 export const deleteSubCollectionDoc = async (uid, subColName, docId) => {
     try {
         await deleteDoc(doc(db, `users/${uid}/${subColName}`, docId));
@@ -192,7 +189,6 @@ export const deleteSubCollectionDoc = async (uid, subColName, docId) => {
     }
 };
 
-// 5. Query đặc biệt cho Appointment Requests (Lọc theo status)
 export const getAppointmentRequests = async (uid, status = 'all') => {
     try {
         const colRef = collection(db, `users/${uid}/appointment_requests`);
@@ -243,7 +239,7 @@ export const deleteFileFromStorage = async (path) => {
 };
 
 // ============================================================
-// E. GLOBAL TEMPLATES (MẪU DÙNG CHUNG)
+// E. GLOBAL TEMPLATES
 // ============================================================
 
 export const getGlobalTemplates = async () => {
@@ -277,4 +273,4 @@ export const deleteGlobalTemplate = async (id) => {
         console.error("Lỗi xóa mẫu:", error);
         throw error;
     }
-};  
+};

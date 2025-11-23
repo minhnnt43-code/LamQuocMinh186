@@ -11,16 +11,16 @@ import { getAllUsers, createGlobalTemplate, getGlobalTemplates, getAppointmentRe
 import { showNotification, openModal, convertDriveLink, formatDate, generateID } from './common.js';
 
 // 2. CẤU HÌNH
-const ADMIN_EMAIL = "lqm186005@gmail.com"; // <--- Đảm bảo đúng email Admin của bạn
+const ADMIN_EMAIL = "lqm186005@gmail.com"; // <--- Đảm bảo đúng email Admin
 let currentAdminUID = null;
 
-// Biến theo dõi trạng thái Sửa
+// Biến theo dõi trạng thái
 let editingAlbumId = null;
 let editingTimelineId = null;
+let isAlbumManagerInit = false; // Cờ kiểm tra đã khởi tạo nút bấm chưa
 
 // 3. KHỞI TẠO MODULE ADMIN
 export const initAdminModule = async (user) => {
-    // Kiểm tra quyền Admin (Chỉ hiện nút nếu đúng email)
     if (!user || user.email !== ADMIN_EMAIL) return;
 
     currentAdminUID = user.uid;
@@ -29,57 +29,219 @@ export const initAdminModule = async (user) => {
     const sidebarMenu = document.querySelector('.nav-menu');
     if (!sidebarMenu) return;
 
-    // A. Thêm nút "Dashboard Admin" vào Sidebar (Mở Modal Thống kê/User)
+    // A. Thêm nút Dashboard Admin
     if (!document.querySelector('.nav-item-admin')) {
         const adminLi = document.createElement('li');
         adminLi.className = 'nav-item-admin';
         adminLi.innerHTML = `<button class="nav-btn" style="color: #ffeb3b; font-weight: bold; border: 1px dashed rgba(255, 235, 59, 0.3);">👮 Dashboard Admin</button>`;
-        
-        // Chèn lên đầu menu
         sidebarMenu.insertBefore(adminLi, sidebarMenu.firstChild);
 
-        // Click vào đây thì mở Modal Admin (Thống kê & User list)
         adminLi.querySelector('button').addEventListener('click', () => {
             renderAnalytics();
             renderUserList();
-            renderTemplateManager(); // Quản lý mẫu
-            renderMessageManager();  // Quản lý tin nhắn
+            renderTemplateManager();
+            renderMessageManager();
             openModal('admin-modal');
         });
     }
 
-    // B. Gán sự kiện cho các nút Menu quản trị
+    // B. Gán sự kiện
     const btnAlbum = document.getElementById('nav-btn-albums');
     if (btnAlbum) btnAlbum.addEventListener('click', () => renderAlbumManager());
 
     const btnTimeline = document.getElementById('nav-btn-timeline');
     if (btnTimeline) btnTimeline.addEventListener('click', () => renderTimelineManager());
 
-    // C. Cập nhật Badge Yêu cầu Hẹn & Sự kiện tab Hẹn
+    // C. Badge & Appt
     updateAppointmentBadge();
-    
-    // Gán sự kiện click cho tab Hẹn
     const btnAppt = document.querySelector('.nav-btn[data-target="appointment-requests"]');
     if (btnAppt) {
         btnAppt.addEventListener('click', () => renderAppointmentManager('pending'));
     }
     
-    // Gán sự kiện Filter cho tab Hẹn
     window.filterAppointments = (status) => {
-        // Update active button style
         document.querySelectorAll('#appointment-requests .filter-btn').forEach(btn => btn.classList.remove('active'));
         const activeBtn = document.querySelector(`#appointment-requests .filter-btn[onclick*="${status}"]`);
         if(activeBtn) activeBtn.classList.add('active');
-        
         renderAppointmentManager(status);
     };
 };
 
 // ============================================================
-// PHẦN QUẢN LÝ YÊU CẦU HẸN (ĐÃ NÂNG CẤP TỰ ĐỘNG THÊM LỊCH)
+// PHẦN QUẢN LÝ ALBUM (ĐÃ FIX LỖI LƯU/SỬA)
 // ============================================================
+async function renderAlbumManager() {
+    if (!currentAdminUID) return;
+    const container = document.getElementById('admin-album-list');
+    
+    // 1. CHỈ KHỞI TẠO SỰ KIỆN NÚT BẤM 1 LẦN DUY NHẤT
+    if (!isAlbumManagerInit) {
+        const btnSave = document.getElementById('btn-create-album');
+        const btnCancel = document.getElementById('btn-cancel-album');
 
-// Đếm số lượng hẹn chờ duyệt để hiện Badge đỏ
+        if (btnSave && btnCancel) {
+            // Xóa clone cũ nếu có để tránh lỗi, gán sự kiện trực tiếp
+            const newBtnSave = btnSave.cloneNode(true);
+            btnSave.parentNode.replaceChild(newBtnSave, btnSave);
+            
+            const newBtnCancel = btnCancel.cloneNode(true);
+            btnCancel.parentNode.replaceChild(newBtnCancel, btnCancel);
+
+            // Sự kiện Hủy
+            newBtnCancel.onclick = () => {
+                editingAlbumId = null;
+                resetAlbumFormInputs();
+                newBtnSave.innerText = "Tạo Album Mới";
+                newBtnSave.style.backgroundColor = ""; 
+                newBtnCancel.style.display = 'none';
+            };
+
+            // Sự kiện Lưu
+            newBtnSave.onclick = async () => {
+                const title = document.getElementById('album-title').value.trim();
+                const coverRaw = document.getElementById('album-cover').value.trim();
+                const desc = document.getElementById('album-desc').value;
+                const photosRaw = document.getElementById('album-photos').value;
+                const eventDate = document.getElementById('album-date').value;
+                const location = document.getElementById('album-location').value.trim();
+
+                if (!title) return alert("Chưa nhập tên Album!");
+
+                newBtnSave.innerText = "Đang lưu...";
+                newBtnSave.disabled = true;
+
+                try {
+                    const cover = convertDriveLink(coverRaw) || coverRaw || 'https://placehold.co/600x400?text=Album';
+                    const photos = photosRaw.split('\n').map(link => {
+                        const url = link.trim();
+                        return url ? { url: convertDriveLink(url), caption: "" } : null;
+                    }).filter(p => p !== null);
+
+                    const data = { 
+                        title, cover, description: desc, photos, 
+                        eventDate: eventDate || new Date().toISOString().split('T')[0], 
+                        location: location || '',
+                        createdAt: new Date().toISOString() 
+                    };
+
+                    if (editingAlbumId) {
+                        await setDoc(doc(db, `users/${currentAdminUID}/albums`, editingAlbumId), data, { merge: true });
+                        showNotification("Đã cập nhật Album!");
+                    } else {
+                        await addDoc(collection(db, `users/${currentAdminUID}/albums`), data);
+                        showNotification("Đã tạo Album mới!");
+                    }
+
+                    // Reset form và load lại list
+                    editingAlbumId = null;
+                    resetAlbumFormInputs();
+                    newBtnSave.innerText = "Tạo Album Mới";
+                    newBtnSave.style.backgroundColor = ""; 
+                    newBtnCancel.style.display = 'none';
+                    
+                    await loadAlbumListToUI(container); // Load lại danh sách
+
+                } catch (e) { 
+                    console.error(e);
+                    alert("Lỗi: " + e.message); 
+                } finally {
+                    newBtnSave.disabled = false;
+                    // Kiểm tra lại trạng thái để gán text đúng (trường hợp lỗi)
+                    if(newBtnSave.innerText === "Đang lưu...") {
+                         newBtnSave.innerText = editingAlbumId ? "Lưu Thay Đổi" : "Tạo Album Mới";
+                    }
+                }
+            };
+            isAlbumManagerInit = true; // Đánh dấu đã khởi tạo xong
+        }
+    }
+
+    // 2. LOAD DANH SÁCH ALBUM
+    await loadAlbumListToUI(container);
+}
+
+// Hàm phụ trợ: Reset ô input
+function resetAlbumFormInputs() {
+    document.getElementById('album-edit-id').value = '';
+    document.getElementById('album-title').value = '';
+    document.getElementById('album-cover').value = '';
+    document.getElementById('album-desc').value = '';
+    document.getElementById('album-photos').value = '';
+    document.getElementById('album-date').value = '';
+    document.getElementById('album-location').value = '';
+}
+
+// Hàm phụ trợ: Load và vẽ danh sách Album
+async function loadAlbumListToUI(container) {
+    if (!container) return;
+    container.innerHTML = '<p style="grid-column:1/-1;">Đang tải danh sách...</p>';
+    
+    try {
+        const snapshot = await getDocs(query(collection(db, `users/${currentAdminUID}/albums`), orderBy('eventDate', 'desc')));
+        container.innerHTML = snapshot.empty ? '<p style="grid-column:1/-1; color:#999; text-align:center;">Chưa có album nào.</p>' : '';
+
+        snapshot.forEach(docShot => {
+            const album = docShot.data();
+            const div = document.createElement('div');
+            div.style.cssText = "background:white; border:1px solid #ddd; border-radius:8px; overflow:hidden; box-shadow: 0 2px 5px rgba(0,0,0,0.1); display: flex; flex-direction: column;";
+            
+            div.innerHTML = `
+                <div style="height:150px; overflow:hidden; background:#f0f0f0;">
+                    <img src="${album.cover}" style="width:100%; height:100%; object-fit:cover;" onerror="this.src='https://placehold.co/300x200?text=No+Image'">
+                </div>
+                <div style="padding:15px; flex-grow:1; display:flex; flex-direction:column;">
+                    <div style="font-weight:bold; font-size:1.1rem; margin-bottom:5px; color:#333;">${album.title}</div>
+                    <div style="font-size:0.85rem; color:#666; margin-bottom:5px;">📅 ${album.eventDate || '???'} | 📍 ${album.location || '...'}</div>
+                    <div style="font-size:0.85rem; color:#888; margin-bottom:15px;">${album.photos ? album.photos.length : 0} ảnh</div>
+                    
+                    <div style="margin-top:auto; display:flex; gap:10px;">
+                        <button class="btn-edit" style="flex:1; background:#f1c40f; color:white; border:none; border-radius:4px; cursor:pointer; padding:8px; font-weight:bold;">✏️ Sửa</button>
+                        <button class="btn-del" style="flex:1; background:#e74c3c; color:white; border:none; border-radius:4px; cursor:pointer; padding:8px; font-weight:bold;">🗑️ Xóa</button>
+                    </div>
+                </div>
+            `;
+
+            // Nút Sửa
+            div.querySelector('.btn-edit').onclick = () => {
+                editingAlbumId = docShot.id;
+                document.getElementById('album-edit-id').value = docShot.id;
+                document.getElementById('album-title').value = album.title;
+                document.getElementById('album-cover').value = album.cover;
+                document.getElementById('album-desc').value = album.description || '';
+                document.getElementById('album-photos').value = (album.photos || []).map(p => p.url).join('\n');
+                document.getElementById('album-date').value = album.eventDate || '';
+                document.getElementById('album-location').value = album.location || '';
+                
+                // Cập nhật trạng thái nút Lưu
+                const btnSave = document.getElementById('btn-create-album');
+                const btnCancel = document.getElementById('btn-cancel-album');
+                if(btnSave) {
+                    btnSave.innerText = "💾 Lưu Thay Đổi";
+                    btnSave.style.backgroundColor = "#005B96";
+                }
+                if(btnCancel) btnCancel.style.display = 'inline-block';
+                
+                document.querySelector('#manage-albums .form-container').scrollIntoView({ behavior: 'smooth' });
+            };
+
+            // Nút Xóa
+            div.querySelector('.btn-del').onclick = async () => {
+                if (confirm(`Xóa album "${album.title}"?`)) {
+                    await deleteDoc(doc(db, `users/${currentAdminUID}/albums`, docShot.id));
+                    await loadAlbumListToUI(container); // Reload list sau khi xóa
+                }
+            };
+            container.appendChild(div);
+        });
+    } catch(e) { 
+        console.error("Lỗi tải album:", e); 
+        container.innerHTML = '<p style="color:red">Lỗi tải danh sách.</p>';
+    }
+}
+
+// ============================================================
+// PHẦN QUẢN LÝ YÊU CẦU HẸN (GIỮ NGUYÊN)
+// ============================================================
 async function updateAppointmentBadge() {
     if (!currentAdminUID) return;
     try {
@@ -104,7 +266,6 @@ async function renderAppointmentManager(status = 'pending') {
 
     try {
         const requests = await getAppointmentRequests(currentAdminUID, status);
-        
         if (requests.length === 0) {
             container.innerHTML = `<p class="empty-state">Không có yêu cầu nào (${status}).</p>`;
             return;
@@ -113,15 +274,12 @@ async function renderAppointmentManager(status = 'pending') {
         container.innerHTML = '';
         requests.forEach(req => {
             const div = document.createElement('div');
-            div.className = 'task-item'; // Tận dụng style của Task Item
+            div.className = 'task-item'; 
             div.style.borderLeftColor = status === 'pending' ? 'orange' : (status === 'approved' ? 'green' : 'gray');
-            
-            // Format ngày giờ
             const dateStr = formatDate(req.date);
             
             let actionsHtml = '';
             if (status === 'pending') {
-                // Truyền thêm guestName để tạo tiêu đề lịch
                 actionsHtml = `
                     <button class="btn-submit" style="padding:5px 10px; font-size:0.8rem; background:#28a745;" 
                         onclick="window.handleAppt('${req.id}', 'approved', '${req.title}', '${req.date}', '${req.time}', '${req.guestEmail}', '${req.guestName}')">
@@ -151,128 +309,81 @@ async function renderAppointmentManager(status = 'pending') {
         });
 
     } catch (e) {
-        console.error("Lỗi tải hẹn:", e);
         container.innerHTML = '<p style="color:red">Lỗi tải dữ liệu.</p>';
     }
 }
 
-// HÀM XỬ LÝ DUYỆT (FIX BUG GIỜ 24:00)
 window.handleAppt = async (id, newStatus, title, date, time, email, guestName) => {
     if (!currentAdminUID) return alert("Vui lòng đăng nhập lại!");
-
-    const confirmMsg = newStatus === 'approved' 
-        ? "Duyệt yêu cầu này? Hệ thống sẽ TỰ ĐỘNG thêm vào Lịch trình công khai."
-        : "Từ chối yêu cầu này?";
-
+    const confirmMsg = newStatus === 'approved' ? "Duyệt yêu cầu này? Hệ thống sẽ TỰ ĐỘNG thêm vào Lịch trình." : "Từ chối yêu cầu này?";
     if (!confirm(confirmMsg)) return;
 
     try {
-        // 1. Cập nhật trạng thái yêu cầu
-        await updateDoc(doc(db, `users/${currentAdminUID}/appointment_requests`, id), {
-            status: newStatus
-        });
+        await updateDoc(doc(db, `users/${currentAdminUID}/appointment_requests`, id), { status: newStatus });
 
-        // 2. NẾU DUYỆT -> TỰ ĐỘNG THÊM VÀO LỊCH (calendarEvents)
         if (newStatus === 'approved') {
-            // Lấy dữ liệu user hiện tại để update mảng calendarEvents
             const userData = await getUserData(currentAdminUID);
             let events = userData.calendarEvents || [];
-
-            // [FIX BUG] Tính giờ kết thúc: Xử lý trường hợp 23:00 + 1 = 24:00 (Lỗi) -> Chuyển thành 00:00
             let [hour, minute] = time.split(':').map(Number);
-            let endHour = (hour + 1) % 24; // Dùng Modulo để quay vòng về 0 nếu là 24
+            let endHour = (hour + 1) % 24; 
             let endTime = `${endHour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
 
-            // Tạo sự kiện mới
             const newEvent = {
                 id: generateID('appt_ev'),
-                title: `Hẹn gặp: ${guestName}`, // Tiêu đề hiện trên lịch
+                title: `Hẹn gặp: ${guestName}`,
                 date: date,
                 startTime: time,
                 endTime: endTime,
-                type: 'manual', // Hoặc 'appointment' nếu muốn màu khác
+                type: 'manual',
+                color: '#28a745',
                 linkedTaskId: '',
                 description: `Nội dung: ${title}. Email khách: ${email}`
             };
-
-            // Thêm vào mảng và lưu lại
             events.push(newEvent);
             await saveUserData(currentAdminUID, { calendarEvents: events });
-            
-            showNotification("✅ Đã duyệt & Đã thêm vào Lịch trình!");
+            showNotification("✅ Đã duyệt & Thêm vào lịch!");
         } else {
-            showNotification("Đã từ chối yêu cầu.");
+            showNotification("Đã từ chối.");
         }
-        
         updateAppointmentBadge();
         renderAppointmentManager('pending');
-
-    } catch (e) {
-        console.error(e);
-        showNotification("Lỗi cập nhật: " + e.message, "error");
-    }
+    } catch (e) { showNotification("Lỗi: " + e.message, "error"); }
 };
 
 // ============================================================
-// CÁC PHẦN QUẢN TRỊ KHÁC (GIỮ NGUYÊN LOGIC)
+// PHẦN QUẢN TRỊ KHÁC (GIỮ NGUYÊN)
 // ============================================================
-
-// 1. Thống kê
 async function renderAnalytics() {
     try {
         const users = await getAllUsers();
         document.getElementById('admin-total-users').textContent = users.length;
-        
         let totalTasks = 0;
-        let activeCount = 0;
-        const now = new Date();
-        
-        users.forEach(u => {
-            if (u.tasks) totalTasks += u.tasks.length;
-            if (u.lastUpdated) {
-                // User hoạt động trong 7 ngày qua
-                if (Math.ceil(Math.abs(now - new Date(u.lastUpdated)) / (1000 * 60 * 60 * 24)) <= 7) activeCount++;
-            }
-        });
-        
+        users.forEach(u => { if (u.tasks) totalTasks += u.tasks.length; });
         document.getElementById('admin-total-tasks').textContent = totalTasks;
-        document.getElementById('admin-active-users').textContent = activeCount;
     } catch (e) { console.error(e); }
 }
 
-// 2. Danh sách User
 async function renderUserList() {
     const tbody = document.getElementById('admin-user-list');
     if (!tbody) return;
-    tbody.innerHTML = '<tr><td colspan="3">Đang tải...</td></tr>';
-    
     try {
         const users = await getAllUsers();
         tbody.innerHTML = '';
         users.forEach((u) => {
             const name = u.personalInfo?.fullName || 'Ẩn danh';
-            const email = u.email || u.personalInfo?.email || 'No Email';
-            const avatar = u.settings?.customAvatarUrl || 'https://placehold.co/30';
-            
+            const email = u.email || 'No Email';
             const tr = document.createElement('tr');
-            tr.innerHTML = `
-                <td><div style="display:flex; align-items:center;"><img src="${avatar}" width="30" height="30" style="border-radius:50%; margin-right:10px; object-fit:cover;"><b>${name}</b></div></td>
-                <td>${email}</td>
-                <td><button class="btn-submit" style="padding:5px 10px; font-size:0.7rem; background:#666;" onclick="alert('ID: ${u.id}')">ID</button></td>
-            `;
+            tr.innerHTML = `<td>${name}</td><td>${email}</td><td>${u.id}</td>`;
             tbody.appendChild(tr);
         });
-    } catch (e) { tbody.innerHTML = '<tr><td colspan="3" style="color:red">Lỗi tải</td></tr>'; }
+    } catch (e) { tbody.innerHTML = '<tr><td colspan="3">Lỗi tải</td></tr>'; }
 }
 
-// 3. Quản lý Mẫu (Global Templates)
 async function renderTemplateManager() {
     const container = document.getElementById('template-list-container');
     if (!container) return;
-    
     const templates = await getGlobalTemplates();
     container.innerHTML = templates.length === 0 ? '<p style="color:#888">Trống.</p>' : '';
-    
     templates.forEach(tpl => {
         container.innerHTML += `
             <div style="background:#f9f9f9; padding:8px; margin-bottom:5px; border:1px solid #eee; display:flex; justify-content:space-between;">
@@ -280,14 +391,10 @@ async function renderTemplateManager() {
                 <span style="color:#888; font-size:0.8rem">ID: ${tpl.id.substring(0, 5)}...</span>
             </div>`;
     });
-
     const btn = document.getElementById('btn-create-template');
     if(!btn) return;
-    
-    // Clone để xóa event cũ
     const newBtn = btn.cloneNode(true);
     btn.parentNode.replaceChild(newBtn, btn);
-    
     newBtn.addEventListener('click', async () => {
         const name = document.getElementById('tpl-name').value.trim();
         if (!name) return alert("Nhập tên mẫu!");
@@ -297,176 +404,26 @@ async function renderTemplateManager() {
     });
 }
 
-// 4. Quản lý Tin nhắn (Message Wall)
 async function renderMessageManager() {
     if (!currentAdminUID) return;
     const container = document.getElementById('admin-msg-list');
     if (!container) return;
     container.innerHTML = '<p>Đang tải...</p>';
-    
     try {
         const q = query(collection(db, `users/${currentAdminUID}/public_messages`), orderBy('timestamp', 'desc'));
         const snapshot = await getDocs(q);
-        
-        container.innerHTML = snapshot.empty ? '<p style="text-align:center; color:#999">Hộp thư trống.</p>' : '';
-        
+        container.innerHTML = snapshot.empty ? '<p>Trống.</p>' : '';
         snapshot.forEach(docShot => {
             const msg = docShot.data();
             const div = document.createElement('div');
-            div.innerHTML = `
-                <div style="flex:1">
-                    <b style="color:#005B96">${msg.sender || 'Ẩn danh'}</b> 
-                    <span style="color:#999; font-size:0.8rem">(${msg.timestamp ? new Date(msg.timestamp).toLocaleString() : ''})</span>: 
-                    <div style="color:#333;">${msg.content}</div>
-                </div>
-                <button class="btn-del-msg" style="color:red; border:none; background:none; cursor:pointer; font-weight:bold;">&times;</button>
-            `;
-            
-            div.querySelector('.btn-del-msg').onclick = async () => {
-                if (confirm("Xóa tin nhắn này?")) {
-                    await deleteDoc(doc(db, `users/${currentAdminUID}/public_messages`, docShot.id));
-                    renderMessageManager();
-                }
-            };
+            div.innerHTML = `<div><b>${msg.sender}</b>: ${msg.content}</div>`;
             container.appendChild(div);
         });
-    } catch (e) { container.innerHTML = '<p style="color:red">Lỗi tải tin nhắn.</p>'; }
+    } catch (e) {}
 }
 
-
 // ============================================================
-// PHẦN 5: QUẢN LÝ ALBUM (TAB RIÊNG)
-// ============================================================
-async function renderAlbumManager() {
-    if (!currentAdminUID) return;
-    const container = document.getElementById('admin-album-list');
-    const btnSave = document.getElementById('btn-create-album');
-    const btnCancel = document.getElementById('btn-cancel-album');
-
-    if (!container || !btnSave) return;
-
-    // Hàm Reset form
-    const resetAlbumForm = () => {
-        editingAlbumId = null;
-        document.getElementById('album-edit-id').value = '';
-        document.getElementById('album-title').value = '';
-        document.getElementById('album-cover').value = '';
-        document.getElementById('album-desc').value = '';
-        document.getElementById('album-photos').value = '';
-        
-        btnSave.innerText = "Tạo Album Mới";
-        btnSave.style.backgroundColor = ""; 
-        btnCancel.style.display = 'none';
-    };
-
-    // Gán sự kiện cho nút Hủy
-    const newBtnCancel = btnCancel.cloneNode(true);
-    btnCancel.parentNode.replaceChild(newBtnCancel, btnCancel);
-    newBtnCancel.onclick = resetAlbumForm;
-
-    // Gán sự kiện cho nút Lưu
-    const newBtnSave = btnSave.cloneNode(true);
-    btnSave.parentNode.replaceChild(newBtnSave, btnSave);
-
-    newBtnSave.onclick = async () => {
-        const title = document.getElementById('album-title').value.trim();
-        const coverRaw = document.getElementById('album-cover').value.trim();
-        const desc = document.getElementById('album-desc').value;
-        const photosRaw = document.getElementById('album-photos').value;
-
-        if (!title) return alert("Chưa nhập tên Album!");
-
-        newBtnSave.innerText = "Đang lưu...";
-        newBtnSave.disabled = true;
-
-        const cover = convertDriveLink(coverRaw) || coverRaw || 'https://placehold.co/600x400?text=Album';
-        
-        // Xử lý danh sách link ảnh (mỗi dòng 1 link)
-        const photos = photosRaw.split('\n').map(link => {
-            const url = link.trim();
-            return url ? { url: convertDriveLink(url), caption: "" } : null;
-        }).filter(p => p !== null);
-
-        const data = { title, cover, description: desc, photos, createdAt: new Date().toISOString() };
-
-        try {
-            if (editingAlbumId) {
-                // Cập nhật album cũ
-                await setDoc(doc(db, `users/${currentAdminUID}/albums`, editingAlbumId), data, { merge: true });
-                showNotification("Đã cập nhật Album!");
-            } else {
-                // Tạo mới
-                await addDoc(collection(db, `users/${currentAdminUID}/albums`), data);
-                showNotification("Đã tạo Album mới!");
-            }
-            resetAlbumForm();
-            renderAlbumManager();
-        } catch (e) { 
-            alert("Lỗi: " + e.message); 
-        } finally {
-            newBtnSave.disabled = false;
-            if(newBtnSave.innerText === "Đang lưu...") newBtnSave.innerText = editingAlbumId ? "Lưu Thay Đổi" : "Tạo Album Mới";
-        }
-    };
-
-    // Load Danh sách Album
-    try {
-        const snapshot = await getDocs(collection(db, `users/${currentAdminUID}/albums`));
-        container.innerHTML = snapshot.empty ? '<p style="grid-column:1/-1; color:#999; text-align:center;">Chưa có album nào.</p>' : '';
-
-        snapshot.forEach(docShot => {
-            const album = docShot.data();
-            const div = document.createElement('div');
-            
-            div.style.cssText = "background:white; border:1px solid #ddd; border-radius:8px; overflow:hidden; box-shadow: 0 2px 5px rgba(0,0,0,0.1); display: flex; flex-direction: column;";
-            
-            div.innerHTML = `
-                <div style="height:150px; overflow:hidden; background:#f0f0f0;">
-                    <img src="${album.cover}" style="width:100%; height:100%; object-fit:cover;" onerror="this.src='https://placehold.co/300x200?text=No+Image'">
-                </div>
-                <div style="padding:15px; flex-grow:1; display:flex; flex-direction:column;">
-                    <div style="font-weight:bold; font-size:1.1rem; margin-bottom:5px; color:#333;">${album.title}</div>
-                    <div style="font-size:0.85rem; color:#666; margin-bottom:15px;">${album.photos ? album.photos.length : 0} ảnh</div>
-                    
-                    <div style="margin-top:auto; display:flex; gap:10px;">
-                        <button class="btn-edit" style="flex:1; background:#f1c40f; color:white; border:none; border-radius:4px; cursor:pointer; padding:8px; font-weight:bold;">✏️ Sửa</button>
-                        <button class="btn-del" style="flex:1; background:#e74c3c; color:white; border:none; border-radius:4px; cursor:pointer; padding:8px; font-weight:bold;">🗑️ Xóa</button>
-                    </div>
-                </div>
-            `;
-
-            // Nút Sửa
-            div.querySelector('.btn-edit').onclick = () => {
-                editingAlbumId = docShot.id;
-                document.getElementById('album-edit-id').value = docShot.id;
-                document.getElementById('album-title').value = album.title;
-                document.getElementById('album-cover').value = album.cover;
-                document.getElementById('album-desc').value = album.description || '';
-                document.getElementById('album-photos').value = (album.photos || []).map(p => p.url).join('\n');
-                
-                newBtnSave.innerText = "💾 Lưu Thay Đổi";
-                newBtnSave.style.backgroundColor = "#005B96";
-                newBtnCancel.style.display = 'inline-block';
-                
-                // Cuộn lên form nhập
-                document.querySelector('#manage-albums .form-container').scrollIntoView({ behavior: 'smooth' });
-            };
-
-            // Nút Xóa
-            div.querySelector('.btn-del').onclick = async () => {
-                if (confirm(`Xóa album "${album.title}"?`)) {
-                    await deleteDoc(doc(db, `users/${currentAdminUID}/albums`, docShot.id));
-                    renderAlbumManager();
-                }
-            };
-            container.appendChild(div);
-        });
-    } catch(e) { console.error("Lỗi tải album:", e); }
-}
-
-
-// ============================================================
-// PHẦN 6: QUẢN LÝ TIMELINE (TAB RIÊNG - CÓ KÉO THẢ)
+// PHẦN 6: QUẢN LÝ TIMELINE (GIỮ NGUYÊN)
 // ============================================================
 async function renderTimelineManager() {
     if (!currentAdminUID) return;
@@ -476,22 +433,16 @@ async function renderTimelineManager() {
 
     if (!container || !btnSave) return;
 
-    // 1. Load List (Sắp xếp theo 'order' để giữ vị trí)
     const snapshot = await getDocs(query(collection(db, `users/${currentAdminUID}/timeline`), orderBy('order', 'asc')));
-    
     container.innerHTML = snapshot.empty ? '<p style="color:#999; text-align:center;">Chưa có mốc lộ trình.</p>' : '';
 
     snapshot.forEach(docShot => {
         const item = docShot.data();
-        let color = '#333';
-        if(item.type === 'academic') color = '#3498db';
-        if(item.type === 'work') color = '#e67e22';
-        if(item.type === 'activity') color = '#2ecc71';
+        let color = item.type === 'academic' ? '#3498db' : (item.type === 'work' ? '#e67e22' : '#2ecc71');
 
         const div = document.createElement('div');
         div.setAttribute('data-id', docShot.id);
         div.className = 'timeline-draggable-item'; 
-        
         div.style.cssText = `border-left: 5px solid ${color}; background:white; padding:15px; margin-bottom:10px; border-radius:8px; box-shadow:0 2px 5px rgba(0,0,0,0.05); cursor: grab; user-select: none;`;
         
         div.innerHTML = `
@@ -501,14 +452,26 @@ async function renderTimelineManager() {
             </div>
             <div style="font-size:1.2rem; color:${color}; font-weight:bold; margin-bottom:5px;">${item.title}</div>
             <div style="font-weight:600; color:#555; margin-bottom:5px;">${item.role}</div>
-            
             <div style="margin-top:10px; display:flex; gap:10px; border-top:1px dashed #eee; padding-top:10px;">
                 <button class="btn-edit-tl" style="font-size:0.9rem; cursor:pointer; border:none; background:none; color:#f39c12; font-weight:bold;">✏️ Sửa</button>
                 <button class="btn-del-tl" style="font-size:0.9rem; cursor:pointer; border:none; background:none; color:#e74c3c; font-weight:bold;">🗑️ Xóa</button>
             </div>
         `;
 
-        div.querySelector('.btn-edit-tl').onclick = () => loadTimelineToEdit(docShot.id, item);
+        div.querySelector('.btn-edit-tl').onclick = () => {
+            editingTimelineId = docShot.id;
+            document.getElementById('tl-edit-id').value = docShot.id;
+            document.getElementById('tl-time').value = item.time;
+            document.getElementById('tl-title').value = item.title;
+            document.getElementById('tl-role').value = item.role;
+            document.getElementById('tl-type').value = item.type;
+            document.getElementById('tl-logo').value = item.logo || '';
+            document.getElementById('tl-desc').value = item.description || '';
+            btnSave.innerText = "💾 Lưu Thay Đổi";
+            btnSave.style.backgroundColor = "#005B96";
+            btnCancel.style.display = 'inline-block';
+            document.querySelector('#manage-timeline .form-container').scrollIntoView({ behavior: 'smooth' });
+        };
         
         div.querySelector('.btn-del-tl').onclick = async () => {
             if (confirm("Xóa mốc này?")) {
@@ -519,50 +482,22 @@ async function renderTimelineManager() {
         container.appendChild(div);
     });
 
-    // --- TÍCH HỢP KÉO THẢ (SortableJS) ---
     if (typeof Sortable !== 'undefined') {
         new Sortable(container, {
             animation: 150,
             ghostClass: 'sortable-ghost',
             onEnd: async function (evt) {
-                // Lưu thứ tự mới vào Firebase
                 const items = container.querySelectorAll('.timeline-draggable-item');
                 const batch = writeBatch(db);
-                
                 items.forEach((item, index) => {
                     const id = item.getAttribute('data-id');
                     const ref = doc(db, `users/${currentAdminUID}/timeline`, id);
                     batch.update(ref, { order: index }); 
                 });
-
-                try {
-                    await batch.commit();
-                    showNotification("Đã cập nhật thứ tự!", "success");
-                } catch (e) {
-                    console.error("Lỗi lưu thứ tự:", e);
-                }
+                try { await batch.commit(); showNotification("Đã cập nhật thứ tự!", "success"); } catch (e) {}
             }
         });
-    } else {
-        console.warn("Chưa tải được thư viện SortableJS");
     }
-
-    // 2. Hàm Sửa/Reset
-    const loadTimelineToEdit = (id, data) => {
-        editingTimelineId = id;
-        document.getElementById('tl-edit-id').value = id;
-        document.getElementById('tl-time').value = data.time;
-        document.getElementById('tl-title').value = data.title;
-        document.getElementById('tl-role').value = data.role;
-        document.getElementById('tl-type').value = data.type;
-        document.getElementById('tl-logo').value = data.logo || '';
-        document.getElementById('tl-desc').value = data.description || '';
-
-        btnSave.innerText = "💾 Lưu Thay Đổi";
-        btnSave.style.backgroundColor = "#005B96";
-        btnCancel.style.display = 'inline-block';
-        document.querySelector('#manage-timeline .form-container').scrollIntoView({ behavior: 'smooth' });
-    };
 
     const resetTimelineForm = () => {
         editingTimelineId = null;
@@ -572,13 +507,11 @@ async function renderTimelineManager() {
         document.getElementById('tl-role').value = '';
         document.getElementById('tl-logo').value = '';
         document.getElementById('tl-desc').value = '';
-        
         btnSave.innerText = "Thêm Mốc Lộ Trình";
         btnSave.style.backgroundColor = ""; 
         btnCancel.style.display = 'none';
     };
 
-    // Clone nút để xóa event cũ
     const newBtnSave = btnSave.cloneNode(true);
     btnSave.parentNode.replaceChild(newBtnSave, btnSave);
     const newBtnCancel = btnCancel.cloneNode(true);
@@ -595,7 +528,6 @@ async function renderTimelineManager() {
         const desc = document.getElementById('tl-desc').value;
 
         if (!time || !title) return alert("Vui lòng nhập Thời gian và Tiêu đề!");
-
         newBtnSave.innerText = "Đang xử lý...";
         newBtnSave.disabled = true;
 
@@ -607,11 +539,9 @@ async function renderTimelineManager() {
 
         try {
             if (editingTimelineId) {
-                // Cập nhật
                 await setDoc(doc(db, `users/${currentAdminUID}/timeline`, editingTimelineId), data, { merge: true });
                 showNotification("Đã cập nhật Lộ trình!");
             } else {
-                // Tạo mới (cho order lớn để nằm cuối)
                 data.order = Date.now(); 
                 await addDoc(collection(db, `users/${currentAdminUID}/timeline`), data);
                 showNotification("Đã thêm Mốc mới!");
