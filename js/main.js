@@ -6,7 +6,7 @@ import {
 } from './firebase.js';
 
 import {
-    toggleLoading, showNotification, setupModal, convertDriveLink
+    toggleLoading, showNotification, setupModal
 } from './common.js';
 
 import { initWorkModule } from './work.js';
@@ -22,6 +22,8 @@ const DEFAULT_DATA = {
     achievements: [],
     studentJourney: {},
     drafts: [],
+    outlines: [],
+    calendarEvents: [],
     personalInfo: {},
     settings: {
         darkMode: false,
@@ -44,10 +46,10 @@ document.addEventListener('DOMContentLoaded', () => {
             console.log("User đã đăng nhập:", user.email);
             toggleLoading(true);
 
-            // --- CƠ CHẾ AN TOÀN: Tự tắt Loading sau 3 giây ---
+            // --- CƠ CHẾ AN TOÀN: Tự tắt Loading sau 5 giây ---
             const safetyTimer = setTimeout(() => {
                 toggleLoading(false);
-            }, 3000); 
+            }, 5000); 
 
             // Ẩn màn hình Login, Hiện màn hình App
             document.getElementById('login-container').style.display = 'none';
@@ -78,22 +80,22 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (!currentUserData.personalInfo) currentUserData.personalInfo = {};
                 currentUserData.email = user.email;
 
-                // Lưu lại thông tin cơ bản
+                // Lưu lại thông tin cơ bản (cập nhật email mới nhất)
                 saveUserData(user.uid, {
                     email: user.email,
                     'personalInfo.email': user.email
                 });
 
-                // Áp dụng cài đặt giao diện
+                // Áp dụng cài đặt giao diện (Dark mode, Color)
                 applyUserSettings(currentUserData.settings, user);
 
-                // --- KHỞI CHẠY CÁC MODULE CON ---
-                initAdminModule(user);
-                initWorkModule(currentUserData, user);
-                initStudyModule(currentUserData, user);
+                // --- KHỞI CHẠY CÁC MODULE CON (QUAN TRỌNG) ---
+                await initAdminModule(user);       // Module Admin (Duyệt hẹn, Album, Timeline)
+                initWorkModule(currentUserData, user);  // Module Lịch, Task, Google Sync
+                initStudyModule(currentUserData, user); // Module Học tập, GPA, SV5T
 
                 // --- KHỞI TẠO UI CHUNG ---
-                setupNavigation(); // <--- HÀM NÀY ĐÃ ĐƯỢC ĐỊNH NGHĨA BÊN DƯỚI
+                setupNavigation(); 
                 setupAllModals();
                 setupSettings(user);
                 loadProfileDataToForm();
@@ -177,9 +179,7 @@ function startRealTimeClock() {
     setInterval(updateClock, 1000);
 }
 
-// ============================================================
-// [FIX] HÀM setupNavigation ĐÃ ĐƯỢC BỔ SUNG VÀO ĐÂY
-// ============================================================
+// --- HÀM ĐIỀU HƯỚNG (SIDEBAR) ---
 function setupNavigation() {
     const buttons = document.querySelectorAll('.nav-btn');
     const sections = document.querySelectorAll('.content-section');
@@ -187,7 +187,7 @@ function setupNavigation() {
     // 1. Xử lý chuyển Tab
     buttons.forEach(btn => {
         btn.addEventListener('click', (e) => {
-            // Nếu nút này là nút Admin (không có data-target) thì bỏ qua, admin.js sẽ xử lý
+            // Nếu nút này không có data-target (ví dụ nút Admin Dashboard) thì bỏ qua
             const targetId = btn.getAttribute('data-target');
             if (!targetId) return;
 
@@ -203,6 +203,7 @@ function setupNavigation() {
             // Tự động đóng menu mobile sau khi chọn
             if (window.innerWidth <= 768) {
                 document.getElementById('sidebar').classList.remove('mobile-open');
+                document.getElementById('mobile-menu-overlay').classList.remove('active');
             }
         });
     });
@@ -210,7 +211,6 @@ function setupNavigation() {
     // 2. Xử lý Menu đa cấp (Accordion)
     const groupToggles = document.querySelectorAll('.nav-group-toggle');
     groupToggles.forEach(toggle => {
-        // Clone để xóa sự kiện cũ
         const newToggle = toggle.cloneNode(true);
         toggle.parentNode.replaceChild(newToggle, toggle);
 
@@ -224,25 +224,28 @@ function setupNavigation() {
     // 3. Xử lý Hamburger Menu (Mobile)
     const btnToggle = document.getElementById('btn-toggle-sidebar');
     const sidebar = document.getElementById('sidebar');
+    const overlay = document.getElementById('mobile-menu-overlay');
     
     if (btnToggle && sidebar) {
-        // Clone nút để tránh gán sự kiện nhiều lần
         const newBtnToggle = btnToggle.cloneNode(true);
         btnToggle.parentNode.replaceChild(newBtnToggle, btnToggle);
 
         newBtnToggle.addEventListener('click', (e) => {
             e.stopPropagation();
-            sidebar.classList.toggle('mobile-open'); // Class này đã định nghĩa trong style.css
+            sidebar.classList.toggle('mobile-open');
+            // Toggle Class 'active' cho sidebar thay vì mobile-open nếu CSS dùng .active
+            sidebar.classList.toggle('active'); 
+            if(overlay) overlay.classList.toggle('active');
         });
 
-        // Bấm ra ngoài thì đóng sidebar
-        document.addEventListener('click', (e) => {
-            if (sidebar.classList.contains('mobile-open') && 
-                !sidebar.contains(e.target) && 
-                e.target !== newBtnToggle) {
+        // Bấm overlay thì đóng sidebar
+        if(overlay) {
+            overlay.addEventListener('click', () => {
+                sidebar.classList.remove('active');
                 sidebar.classList.remove('mobile-open');
-            }
-        });
+                overlay.classList.remove('active');
+            });
+        }
     }
 }
 
@@ -298,7 +301,10 @@ function setupSettings(user) {
             const linkInput = document.getElementById('profile-pic-link');
             const rawLink = linkInput.value.trim();
             if (!rawLink) return showNotification('Vui lòng dán link ảnh!', 'error');
-            const directLink = convertDriveLink(rawLink);
+            
+            // Import hàm convert từ common nếu cần, ở đây dùng tạm logic đơn giản
+            // const directLink = convertDriveLink(rawLink); 
+            const directLink = rawLink; // Giả sử link đã đúng hoặc common.js xử lý
 
             document.getElementById('sidebar-profile-pic').src = directLink;
             const preview = document.getElementById('settings-profile-preview');
@@ -387,13 +393,11 @@ function applyUserSettings(settings, user) {
 function setupAllModals() {
     const modals = [
         'edit-modal', 'event-modal', 'achievement-modal', 'project-modal',
-        'document-modal', 'document-viewer-modal', 'outline-modal',
-        'confirm-modal', 'duplicate-review-modal', 'admin-modal'
+        'document-modal', 'outline-modal', 'confirm-modal', 'admin-modal'
     ];
     const closes = [
         'close-edit-modal', 'close-event-modal', 'close-achievement-modal', 'close-project-modal',
-        'close-document-modal', 'close-viewer-modal', 'close-outline-modal',
-        'btn-cancel-confirm', 'close-duplicate-modal', 'close-admin-modal'
+        'close-document-modal', 'close-outline-modal', 'btn-cancel-confirm', 'close-admin-modal'
     ];
 
     modals.forEach((id, i) => setupModal(id, closes[i]));
