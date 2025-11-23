@@ -3,14 +3,15 @@
 // 1. IMPORT
 import { db } from './firebase.js';
 import { 
-    collection, getDocs, deleteDoc, doc, addDoc, query, orderBy, setDoc, writeBatch 
+    collection, getDocs, deleteDoc, doc, addDoc, query, orderBy, setDoc, writeBatch, updateDoc, where
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-import { getAllUsers, createGlobalTemplate, getGlobalTemplates } from './firebase.js';
-import { showNotification, openModal, convertDriveLink } from './common.js';
+// Thêm getUserData và saveUserData để thao tác với Lịch chính
+import { getAllUsers, createGlobalTemplate, getGlobalTemplates, getAppointmentRequests, getUserData, saveUserData } from './firebase.js';
+import { showNotification, openModal, convertDriveLink, formatDate, generateID } from './common.js';
 
 // 2. CẤU HÌNH
-const ADMIN_EMAIL = "lqm186005@gmail.com"; // <--- Đảm bảo đúng email Admin
+const ADMIN_EMAIL = "lqm186005@gmail.com"; // <--- Đảm bảo đúng email Admin của bạn
 let currentAdminUID = null;
 
 // Biến theo dõi trạng thái Sửa
@@ -47,23 +48,164 @@ export const initAdminModule = async (user) => {
         });
     }
 
-    // B. Gán sự kiện cho nút Menu "Quản trị Nội dung" (Album & Timeline)
-    // Các nút này đã có sẵn trong HTML (id="nav-btn-albums", id="nav-btn-timeline")
+    // B. Gán sự kiện cho các nút Menu quản trị
     
     const btnAlbum = document.getElementById('nav-btn-albums');
-    if (btnAlbum) {
-        btnAlbum.addEventListener('click', () => {
-            renderAlbumManager(); // Load dữ liệu Album khi bấm tab
-        });
-    }
+    if (btnAlbum) btnAlbum.addEventListener('click', () => renderAlbumManager());
 
     const btnTimeline = document.getElementById('nav-btn-timeline');
-    if (btnTimeline) {
-        btnTimeline.addEventListener('click', () => {
-            renderTimelineManager(); // Load dữ liệu Timeline khi bấm tab
+    if (btnTimeline) btnTimeline.addEventListener('click', () => renderTimelineManager());
+
+    // C. Cập nhật Badge Yêu cầu Hẹn & Sự kiện tab Hẹn
+    updateAppointmentBadge();
+    // Gán sự kiện click cho tab Hẹn (Nút này đã thêm ở index.html)
+    const btnAppt = document.querySelector('.nav-btn[data-target="appointment-requests"]');
+    if (btnAppt) {
+        btnAppt.addEventListener('click', () => renderAppointmentManager('pending'));
+    }
+    
+    // Gán sự kiện Filter cho tab Hẹn
+    window.filterAppointments = (status) => {
+        // Update active button style
+        document.querySelectorAll('#appointment-requests .filter-btn').forEach(btn => btn.classList.remove('active'));
+        event.target.classList.add('active');
+        renderAppointmentManager(status);
+    };
+};
+
+// ============================================================
+// PHẦN QUẢN LÝ YÊU CẦU HẸN (ĐÃ NÂNG CẤP TỰ ĐỘNG THÊM LỊCH)
+// ============================================================
+
+// Đếm số lượng hẹn chờ duyệt để hiện Badge đỏ
+async function updateAppointmentBadge() {
+    try {
+        const requests = await getAppointmentRequests(currentAdminUID, 'pending');
+        const badge = document.getElementById('appt-badge');
+        if (badge) {
+            badge.textContent = requests.length;
+            badge.style.display = requests.length > 0 ? 'inline-block' : 'none';
+        }
+    } catch (e) { console.error(e); }
+}
+
+async function renderAppointmentManager(status = 'pending') {
+    const container = document.getElementById('appointment-list-container');
+    if (!container) return;
+    container.innerHTML = '<p>Đang tải...</p>';
+
+    try {
+        const requests = await getAppointmentRequests(currentAdminUID, status);
+        
+        if (requests.length === 0) {
+            container.innerHTML = `<p class="empty-state">Không có yêu cầu nào (${status}).</p>`;
+            return;
+        }
+
+        container.innerHTML = '';
+        requests.forEach(req => {
+            const div = document.createElement('div');
+            div.className = 'task-item'; // Tận dụng style của Task Item
+            div.style.borderLeftColor = status === 'pending' ? 'orange' : (status === 'approved' ? 'green' : 'gray');
+            
+            // Format ngày giờ
+            const dateStr = formatDate(req.date);
+            
+            let actionsHtml = '';
+            if (status === 'pending') {
+                // Truyền thêm guestName để tạo tiêu đề lịch
+                actionsHtml = `
+                    <button class="btn-submit" style="padding:5px 10px; font-size:0.8rem; background:#28a745;" 
+                        onclick="window.handleAppt('${req.id}', 'approved', '${req.title}', '${req.date}', '${req.time}', '${req.guestEmail}', '${req.guestName}')">
+                        ✅ Duyệt & Thêm vào Lịch
+                    </button>
+                    <button class="btn-submit" style="padding:5px 10px; font-size:0.8rem; background:#dc3545;" 
+                        onclick="window.handleAppt('${req.id}', 'rejected')">
+                        ❌ Từ chối
+                    </button>
+                `;
+            } else {
+                actionsHtml = `<span style="font-weight:bold; color:#666;">${status.toUpperCase()}</span>`;
+            }
+
+            div.innerHTML = `
+                <div style="flex-grow:1">
+                    <h3 style="margin:0; font-size:1.1rem; color:var(--primary-blue);">📅 ${req.title || 'Cuộc hẹn mới'}</h3>
+                    <div style="font-size:0.9rem; color:#555; margin-top:5px;">
+                        <strong>Khách:</strong> ${req.guestName} (${req.guestEmail})<br>
+                        <strong>Thời gian:</strong> ${req.time} - ${dateStr}<br>
+                        <strong>Lý do:</strong> ${req.reason}
+                    </div>
+                </div>
+                <div style="display:flex; gap:5px; align-items:center;">${actionsHtml}</div>
+            `;
+            container.appendChild(div);
         });
+
+    } catch (e) {
+        console.error("Lỗi tải hẹn:", e);
+        container.innerHTML = '<p style="color:red">Lỗi tải dữ liệu.</p>';
+    }
+}
+
+// HÀM XỬ LÝ DUYỆT (NÂNG CẤP)
+window.handleAppt = async (id, newStatus, title, date, time, email, guestName) => {
+    const confirmMsg = newStatus === 'approved' 
+        ? "Duyệt yêu cầu này? Hệ thống sẽ TỰ ĐỘNG thêm vào Lịch trình công khai."
+        : "Từ chối yêu cầu này?";
+
+    if (!confirm(confirmMsg)) return;
+
+    try {
+        // 1. Cập nhật trạng thái yêu cầu
+        await updateDoc(doc(db, `users/${currentAdminUID}/appointment_requests`, id), {
+            status: newStatus
+        });
+
+        // 2. NẾU DUYỆT -> TỰ ĐỘNG THÊM VÀO LỊCH (calendarEvents)
+        if (newStatus === 'approved') {
+            // Lấy dữ liệu user hiện tại để update mảng calendarEvents
+            const userData = await getUserData(currentAdminUID);
+            let events = userData.calendarEvents || [];
+
+            // Tính giờ kết thúc (Mặc định +1 tiếng)
+            let [hour, minute] = time.split(':').map(Number);
+            let endHour = hour + 1;
+            let endTime = `${endHour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
+
+            // Tạo sự kiện mới
+            const newEvent = {
+                id: generateID('appt_ev'),
+                title: `Hẹn gặp: ${guestName}`, // Tiêu đề hiện trên lịch
+                date: date,
+                startTime: time,
+                endTime: endTime,
+                type: 'manual', // Hoặc 'appointment' nếu muốn màu khác
+                linkedTaskId: '',
+                description: `Nội dung: ${title}. Email khách: ${email}`
+            };
+
+            // Thêm vào mảng và lưu lại
+            events.push(newEvent);
+            await saveUserData(currentAdminUID, { calendarEvents: events });
+            
+            showNotification("✅ Đã duyệt & Đã thêm vào Lịch trình!");
+        } else {
+            showNotification("Đã từ chối yêu cầu.");
+        }
+        
+        updateAppointmentBadge();
+        renderAppointmentManager('pending');
+
+    } catch (e) {
+        console.error(e);
+        showNotification("Lỗi cập nhật: " + e.message, "error");
     }
 };
+
+// ============================================================
+// CÁC PHẦN CŨ (GIỮ NGUYÊN)
+// ============================================================
 
 // --- CÁC HÀM DASHBOARD (TRONG MODAL) ---
 
