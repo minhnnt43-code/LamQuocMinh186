@@ -5,7 +5,7 @@ export const generateID = (prefix = 'id') => {
     return `${prefix}_${Date.now()}_${Math.floor(Math.random() * 1000)}`;
 };
 
-// 2. CHỐNG LỖI BẢO MẬT XSS (Khi hiển thị text người dùng nhập)
+// 2. CHỐNG LỖI BẢO MẬT XSS (Sanitize Input)
 export const escapeHTML = (str) => {
     if (typeof str !== 'string') return str;
     return str.replace(/[&<>'"]/g, 
@@ -18,7 +18,7 @@ export const escapeHTML = (str) => {
         }[tag]));
 };
 
-// 3. FORMAT NGÀY THÁNG
+// 3. FORMAT DATE & TIME
 export const formatDate = (dateString) => {
     if (!dateString) return "";
     const date = new Date(dateString);
@@ -26,16 +26,17 @@ export const formatDate = (dateString) => {
     return date.toLocaleDateString('vi-VN'); // DD/MM/YYYY
 };
 
+// Format sang chuẩn input type="date" (YYYY-MM-DD)
 export const toLocalISOString = (date) => {
     if (!date) return "";
     const d = new Date(date);
     const year = d.getFullYear();
     const month = String(d.getMonth() + 1).padStart(2, '0');
     const day = String(d.getDate()).padStart(2, '0');
-    return `${year}-${month}-${day}`; // YYYY-MM-DD
+    return `${year}-${month}-${day}`;
 };
 
-// 4. FORMAT DUNG LƯỢNG FILE
+// 4. FORMAT DỮ LIỆU KHÁC (FILE, TIỀN TỆ)
 export const formatBytes = (bytes, decimals = 2) => {
     if (!+bytes) return '0 Bytes';
     const k = 1024;
@@ -45,7 +46,11 @@ export const formatBytes = (bytes, decimals = 2) => {
     return `${parseFloat((bytes / Math.pow(k, i)).toFixed(dm))} ${sizes[i]}`;
 };
 
-// 5. CHUYỂN LINK GOOGLE DRIVE -> LINK ẢNH TRỰC TIẾP
+export const formatCurrency = (amount) => {
+    return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(amount);
+};
+
+// 5. XỬ LÝ LINK GOOGLE DRIVE (Direct Link)
 export const convertDriveLink = (url) => {
     if (!url) return '';
     if (!url.includes('drive.google.com') && !url.includes('googleusercontent.com')) return url;
@@ -53,12 +58,12 @@ export const convertDriveLink = (url) => {
     try {
         let id = '';
         const parts = url.split('/');
-        // Dạng: .../d/ID_FILE/...
+        // Dạng 1: .../d/ID_FILE/...
         const dIndex = parts.indexOf('d');
         if (dIndex !== -1 && parts[dIndex + 1]) {
             id = parts[dIndex + 1];
         } 
-        // Dạng: ...id=ID_FILE...
+        // Dạng 2: ...id=ID_FILE...
         else if (url.includes('id=')) {
             const match = url.match(/id=([^&]+)/);
             if (match) id = match[1];
@@ -73,12 +78,29 @@ export const convertDriveLink = (url) => {
     }
 };
 
-// 6. UI HELPERS
+// 6. [MỚI] TÍNH ĐIỂM HỌC TẬP (GPA 4.0 & CHỮ)
+// Quy chuẩn phổ biến: 8.5+ A (4.0), 7.0-8.4 B (3.0), v.v...
+export const calculateAcademicScore = (score10) => {
+    const s = parseFloat(score10);
+    if (isNaN(s)) return { char: 'F', scale4: 0 };
+
+    if (s >= 8.5) return { char: 'A', scale4: 4.0 };
+    if (s >= 8.0) return { char: 'B+', scale4: 3.5 };
+    if (s >= 7.0) return { char: 'B', scale4: 3.0 };
+    if (s >= 6.5) return { char: 'C+', scale4: 2.5 };
+    if (s >= 5.5) return { char: 'C', scale4: 2.0 };
+    if (s >= 5.0) return { char: 'D+', scale4: 1.5 };
+    if (s >= 4.0) return { char: 'D', scale4: 1.0 };
+    return { char: 'F', scale4: 0.0 };
+};
+
+// 7. UI HELPERS (Notification & Loading)
 export const showNotification = (message, type = 'success') => {
     const container = document.getElementById("notification-container");
     if (!container) return;
 
     const notif = document.createElement("div");
+    // type có thể là: success, error, info, warning
     notif.className = `notification ${type}`;
     notif.textContent = message;
     
@@ -95,7 +117,7 @@ export const toggleLoading = (show) => {
     if (spinner) spinner.style.display = show ? 'flex' : 'none';
 };
 
-// 7. MODAL HELPERS
+// 8. MODAL HELPERS
 export const setupModal = (modalId, closeBtnId) => {
     const modal = document.getElementById(modalId);
     const closeBtn = document.getElementById(closeBtnId);
@@ -108,6 +130,7 @@ export const setupModal = (modalId, closeBtnId) => {
         });
     }
     
+    // Đóng khi click ra ngoài vùng content
     window.addEventListener('click', (e) => {
         if (e.target === modal) {
             modal.style.display = 'none';
@@ -117,10 +140,16 @@ export const setupModal = (modalId, closeBtnId) => {
 
 export const openModal = (modalId) => {
     const modal = document.getElementById(modalId);
-    if (modal) modal.style.display = 'flex';
+    if (modal) {
+        modal.style.display = 'flex';
+        // Reset scroll nếu modal dài
+        const content = modal.querySelector('.modal-body');
+        if (content) content.scrollTop = 0;
+    }
 };
 
 export const closeModal = (modalId) => {
     const modal = document.getElementById(modalId);
     if (modal) modal.style.display = 'none';
+
 };
