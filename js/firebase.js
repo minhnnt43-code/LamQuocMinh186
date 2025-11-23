@@ -18,7 +18,11 @@ import {
     collection, 
     getDocs,
     addDoc,
-    deleteDoc
+    deleteDoc,
+    updateDoc,
+    query,
+    orderBy,
+    where
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
 import { 
@@ -29,7 +33,7 @@ import {
     deleteObject 
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-storage.js";
 
-// 2. CẤU HÌNH FIREBASE (CONFIG)
+// 2. CẤU HÌNH FIREBASE
 const firebaseConfig = {
   apiKey: "AIzaSyBcmFqZahUIqeCcqszwRB641nBQySydF6c",
   authDomain: "websitecualqm.firebaseapp.com",
@@ -40,16 +44,17 @@ const firebaseConfig = {
   measurementId: "G-F34WEDPYW5"
 };
 
-// 3. KHỞI TẠO APP & EXPORT CÔNG CỤ
-// (Đây là phần quan trọng nhất để các file khác kết nối được)
+// 3. KHỞI TẠO APP
 const app = initializeApp(firebaseConfig);
 
 export const auth = getAuth(app);
 export const db = getFirestore(app);
 export const storage = getStorage(app);
 
-const provider = new GoogleAuthProvider();
-provider.addScope('https://www.googleapis.com/auth/calendar.events.readonly');
+// Cấu hình Google Provider với Scope cho Calendar
+export const provider = new GoogleAuthProvider();
+provider.addScope('https://www.googleapis.com/auth/calendar.events.readonly'); 
+// Lưu ý: Nếu muốn thêm sự kiện vào Google Calendar, cần đổi thành 'https://www.googleapis.com/auth/calendar.events'
 
 // ============================================================
 // A. CÁC HÀM XÁC THỰC (AUTH)
@@ -58,6 +63,13 @@ provider.addScope('https://www.googleapis.com/auth/calendar.events.readonly');
 export const loginWithGoogle = async () => {
     try {
         const result = await signInWithPopup(auth, provider);
+        // Có thể lấy Google Access Token ở đây nếu cần ngay lập tức
+        const credential = GoogleAuthProvider.credentialFromResult(result);
+        const token = credential.accessToken;
+        
+        // Lưu token vào localStorage để dùng cho Calendar API sau này (phiên làm việc hiện tại)
+        if (token) localStorage.setItem('google_access_token', token);
+        
         return result.user;
     } catch (error) {
         console.error("Lỗi đăng nhập:", error);
@@ -68,6 +80,7 @@ export const loginWithGoogle = async () => {
 export const logoutUser = async () => {
     try {
         await signOut(auth);
+        localStorage.removeItem('google_access_token');
     } catch (error) {
         console.error("Lỗi đăng xuất:", error);
     }
@@ -80,10 +93,10 @@ export const subscribeToAuthChanges = (callback) => {
 };
 
 // ============================================================
-// B. CÁC HÀM DỮ LIỆU NGƯỜI DÙNG (FIRESTORE)
+// B. FIRESTORE: QUẢN LÝ DỮ LIỆU USER CHÍNH
 // ============================================================
 
-// Lấy dữ liệu full của 1 user
+// Lấy dữ liệu user (Tasks, Projects, Settings...)
 export const getUserData = async (uid) => {
     try {
         const docRef = doc(db, "users", uid);
@@ -95,11 +108,10 @@ export const getUserData = async (uid) => {
     }
 };
 
-// Lưu/Cập nhật dữ liệu user
+// Lưu/Cập nhật dữ liệu chính
 export const saveUserData = async (uid, data) => {
     try {
         const docRef = doc(db, "users", uid);
-        // merge: true giúp giữ lại các trường cũ không bị thay đổi
         await setDoc(docRef, { ...data, lastUpdated: new Date().toISOString() }, { merge: true });
     } catch (error) {
         console.error("Lỗi lưu dữ liệu:", error);
@@ -107,7 +119,7 @@ export const saveUserData = async (uid, data) => {
     }
 };
 
-// Lấy danh sách tất cả User (Dùng cho Admin Dashboard)
+// Lấy danh sách tất cả User (Cho Admin Dashboard)
 export const getAllUsers = async () => {
     try {
         const usersCollection = collection(db, "users");
@@ -124,7 +136,82 @@ export const getAllUsers = async () => {
 };
 
 // ============================================================
-// C. CÁC HÀM XỬ LÝ FILE (STORAGE)
+// C. [MỚI] FIRESTORE: SUB-COLLECTIONS (Cho Bảng điểm, Hẹn,...)
+// ============================================================
+// Dùng cho các dữ liệu dạng danh sách dài, tránh làm nặng user document chính
+
+// 1. Thêm item vào sub-collection (VD: users/UID/academic_transcripts)
+export const addSubCollectionDoc = async (uid, subColName, data) => {
+    try {
+        const colRef = collection(db, `users/${uid}/${subColName}`);
+        // Nếu data có id thì dùng setDoc, không thì dùng addDoc
+        if (data.id) {
+            await setDoc(doc(colRef, data.id), data);
+        } else {
+            await addDoc(colRef, data);
+        }
+    } catch (error) {
+        console.error(`Lỗi thêm vào ${subColName}:`, error);
+        throw error;
+    }
+};
+
+// 2. Lấy danh sách từ sub-collection
+export const getSubCollectionDocs = async (uid, subColName, orderField = null) => {
+    try {
+        let q = collection(db, `users/${uid}/${subColName}`);
+        if (orderField) {
+            q = query(q, orderBy(orderField));
+        }
+        const snapshot = await getDocs(q);
+        return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    } catch (error) {
+        console.error(`Lỗi lấy ${subColName}:`, error);
+        return [];
+    }
+};
+
+// 3. Cập nhật item trong sub-collection
+export const updateSubCollectionDoc = async (uid, subColName, docId, data) => {
+    try {
+        const docRef = doc(db, `users/${uid}/${subColName}`, docId);
+        await updateDoc(docRef, data);
+    } catch (error) {
+        console.error(`Lỗi update ${subColName}:`, error);
+        throw error;
+    }
+};
+
+// 4. Xóa item trong sub-collection
+export const deleteSubCollectionDoc = async (uid, subColName, docId) => {
+    try {
+        await deleteDoc(doc(db, `users/${uid}/${subColName}`, docId));
+    } catch (error) {
+        console.error(`Lỗi xóa ${subColName}:`, error);
+        throw error;
+    }
+};
+
+// 5. Query đặc biệt cho Appointment Requests (Lọc theo status)
+export const getAppointmentRequests = async (uid, status = 'all') => {
+    try {
+        const colRef = collection(db, `users/${uid}/appointment_requests`);
+        let q = query(colRef, orderBy('createdAt', 'desc'));
+        
+        if (status !== 'all') {
+            q = query(colRef, where('status', '==', status), orderBy('createdAt', 'desc'));
+        }
+        
+        const snapshot = await getDocs(q);
+        return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    } catch (error) {
+        console.error("Lỗi lấy danh sách hẹn:", error);
+        return [];
+    }
+};
+
+// ============================================================
+// D. STORAGE (FILE)
 // ============================================================
 
 export const uploadFileToStorage = async (file, path) => {
@@ -156,7 +243,7 @@ export const deleteFileFromStorage = async (path) => {
 };
 
 // ============================================================
-// D. CÁC HÀM KHO MẪU (TEMPLATES)
+// E. GLOBAL TEMPLATES (MẪU DÙNG CHUNG)
 // ============================================================
 
 export const getGlobalTemplates = async () => {
@@ -190,4 +277,5 @@ export const deleteGlobalTemplate = async (id) => {
         console.error("Lỗi xóa mẫu:", error);
         throw error;
     }
-};
+
+};  
