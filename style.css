@@ -3305,3 +3305,128 @@
 }
 
 .appt-close:hover { color: var(--danger-color); }
+/* ============================================================
+   [BỔ SUNG] GIAO DIỆN QUẢN LÝ CÔNG VIỆC THÔNG MINH
+   (Dán đoạn này vào cuối file style.css)
+   ============================================================ */
+
+/* 1. Ô Thêm nhanh (Quick Add) nổi bật */
+.quick-add-container {
+    background: #fff;
+    padding: 15px 20px;
+    border-radius: 10px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+    margin-bottom: 20px;
+    border-left: 5px solid var(--primary-blue); /* Điểm nhấn bên trái */
+    transition: all 0.3s ease;
+}
+
+.quick-add-container:focus-within {
+    border-left-color: var(--primary-orange); /* Đổi màu khi đang nhập */
+    box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+    transform: translateY(-2px);
+}
+
+#quick-add-task-input {
+    font-size: 1.1rem;
+    border: none;
+    background: transparent;
+    width: 100%;
+    outline: none;
+    font-weight: 500;
+    color: var(--text-color-primary);
+    padding: 5px 0;
+}
+
+/* 2. Form chi tiết thu gọn (Collapsible Details) */
+details {
+    transition: all 0.3s ease;
+    overflow: hidden;
+}
+
+details[open] {
+    background-color: #fff;
+    box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+    border-radius: 8px;
+    margin-bottom: 20px;
+}
+
+details > summary {
+    list-style: none; /* Ẩn tam giác mặc định */
+    outline: none;
+    user-select: none;
+    transition: color 0.2s;
+}
+
+details > summary::-webkit-details-marker {
+    display: none; /* Ẩn trên Chrome/Safari cũ */
+}
+
+details > summary:hover {
+    color: var(--primary-orange) !important;
+}
+
+details[open] > summary {
+    color: var(--primary-orange) !important;
+    border-bottom: 1px dashed #eee;
+    margin-bottom: 10px;
+    padding-bottom: 10px;
+}
+
+/* 3. Checkbox Hoàn thành công việc */
+.task-complete-checkbox {
+    appearance: none; /* Xóa style mặc định trình duyệt */
+    -webkit-appearance: none;
+    width: 24px;
+    height: 24px;
+    border: 2px solid var(--primary-blue);
+    border-radius: 50%; /* Hình tròn */
+    cursor: pointer;
+    margin-right: 15px;
+    flex-shrink: 0;
+    position: relative;
+    transition: all 0.2s ease;
+}
+
+.task-complete-checkbox:checked {
+    background-color: var(--success-color);
+    border-color: var(--success-color);
+}
+
+/* Dấu tích V bên trong */
+.task-complete-checkbox:checked::after {
+    content: '✔';
+    color: white;
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 14px;
+    font-weight: bold;
+}
+
+.task-complete-checkbox:hover {
+    background-color: rgba(0, 91, 150, 0.1);
+}
+
+/* 4. Hỗ trợ Dark Mode cho phần mới */
+body.dark-mode .quick-add-container {
+    background: var(--card-background);
+    border-left-color: var(--primary-orange);
+}
+
+body.dark-mode #quick-add-task-input {
+    color: var(--text-color-primary);
+}
+
+body.dark-mode details[open] {
+    background-color: var(--card-background);
+}
+
+body.dark-mode .task-complete-checkbox {
+    border-color: var(--text-color-secondary);
+}
+
+body.dark-mode .task-complete-checkbox:checked {
+    border-color: var(--success-color);
+    background-color: var(--success-color);
+}
