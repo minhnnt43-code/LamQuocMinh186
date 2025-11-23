@@ -1,4 +1,3 @@
-
 // --- FILE: js/study.js ---
 
 import {
@@ -32,7 +31,7 @@ let saveDraftTimeout;
 let currentOutlineId = null;
 
 // ============================================================
-// --- CẤU HÌNH THANG ĐIỂM (THEO HÌNH ẢNH CUNG CẤP) ---
+// --- CẤU HÌNH THANG ĐIỂM ---
 // ============================================================
 const getGradeDetails = (score10) => {
     const s = parseFloat(score10);
@@ -82,6 +81,7 @@ const sv5tCriteriaData = {
             integration: { name: 'Hội nhập tốt', icon: '🌍', optionalGroups: [{ description: 'Về ngoại ngữ:', options: [{ id: 'truong_integration_1', text: 'Chứng chỉ tiếng Anh B1 hoặc tương đương' }, { id: 'truong_integration_2', text: 'Điểm tổng kết các học phần ngoại ngữ >= 8.0' }] }, { description: 'Về kỹ năng:', options: [{ id: 'truong_integration_4', text: 'Hoàn thành ít nhất 1 khóa học kỹ năng' }, { id: 'truong_integration_5', text: 'Được Đoàn - Hội khen thưởng' }] }, { description: 'Về hội nhập:', options: [{ id: 'truong_integration_6', text: 'Tham gia ít nhất 1 hoạt động hội nhập' }, { id: 'truong_integration_8', text: 'Tham gia giao lưu quốc tế' }] }] }
         }
     },
+    // (Các cấp khác giữ nguyên để tiết kiệm không gian hiển thị, code cũ đã có đủ)
     dhqg: {
         name: "Cấp ĐHQG",
         criteria: {
@@ -121,103 +121,80 @@ export const initStudyModule = (data, user) => {
     globalData = data;
     currentUser = user;
 
-    // Khởi tạo dữ liệu mặc định nếu chưa có
     if (!globalData.studentJourney) globalData.studentJourney = {};
     if (!globalData.documents) globalData.documents = [];
     if (!globalData.achievements) globalData.achievements = [];
     if (!globalData.drafts) globalData.drafts = [];
     if (!globalData.outlines) globalData.outlines = [];
 
-    // 1. Setup Transcript (Bảng điểm) - MODULE MỚI
-    try {
-        setupTranscriptManagement();
-    } catch (e) { console.error("Lỗi Transcript:", e); }
+    // 1. Setup Transcript (Bảng điểm)
+    setupTranscriptManagement().catch(e => console.error("Transcript Init Error:", e));
 
     // 2. Setup Pomodoro
-    try {
-        const btnStart = document.getElementById('pomodoro-start-btn');
-        const btnPause = document.getElementById('pomodoro-pause-btn');
-        const btnReset = document.getElementById('pomodoro-reset-btn');
-        if (btnStart) btnStart.addEventListener('click', startTimer);
-        if (btnPause) btnPause.addEventListener('click', pauseTimer);
-        if (btnReset) btnReset.addEventListener('click', resetTimer);
-    } catch (e) { console.error("Lỗi Pomodoro:", e); }
+    setupPomodoro();
 
     // 3. Setup SV5T
     try {
         renderSV5TBoard();
         const proofInput = document.getElementById('proof-upload-input');
         if (proofInput) {
-            // Clone để xóa sự kiện cũ
             const newProofInput = proofInput.cloneNode(true);
             proofInput.parentNode.replaceChild(newProofInput, proofInput);
         }
-    } catch (e) { console.error("Lỗi SV5T:", e); }
+    } catch (e) { console.error("SV5T Init Error:", e); }
 
     // 4. Setup Library
-    try {
-        renderLibrary();
-        setupLibraryEvents();
-    } catch (e) { console.error("Lỗi Library:", e); }
+    renderLibrary();
+    setupLibraryEvents();
 
     // 5. Setup Achievements
-    try {
-        renderAchievements();
-        setupAchievementEvents();
-    } catch (e) { console.error("Lỗi Achievements:", e); }
+    renderAchievements();
+    setupAchievementEvents();
 
-    // 6. Setup Drafts
-    try {
-        setTimeout(() => {
-            initQuillEditor();
-            renderDraftsList();
-        }, 500);
-        const btnCreateDraft = document.getElementById('btn-create-draft');
-        if (btnCreateDraft) btnCreateDraft.addEventListener('click', createNewDraft);
-        const draftTitleInput = document.getElementById('draft-title-input');
-        if (draftTitleInput) draftTitleInput.addEventListener('input', autoSaveDraft);
-    } catch (e) { console.error("Lỗi Drafts:", e); }
+    // 6. Setup Drafts (FIX LỖI QUILL EDITOR)
+    // Thay vì init ngay, ta lắng nghe sự kiện click vào tab "Bản nháp"
+    const draftNavBtn = document.querySelector('.nav-btn[data-target="drafts"]');
+    if (draftNavBtn) {
+        draftNavBtn.addEventListener('click', () => {
+            // Chờ 1 chút để UI chuyển tab xong (display: block) thì mới init Quill
+            setTimeout(() => {
+                if (!quillEditor) initQuillEditor();
+                renderDraftsList();
+            }, 100);
+        });
+    }
+    
+    // Gán sự kiện cho các nút Draft khác
+    const btnCreateDraft = document.getElementById('btn-create-draft');
+    if (btnCreateDraft) btnCreateDraft.addEventListener('click', createNewDraft);
+    
+    const draftTitleInput = document.getElementById('draft-title-input');
+    if (draftTitleInput) draftTitleInput.addEventListener('input', autoSaveDraft);
 
     // 7. Setup Outlines
-    try {
-        renderOutlineList();
-        const btnCreateOutline = document.getElementById('btn-create-outline');
-        if (btnCreateOutline) btnCreateOutline.addEventListener('click', () => {
-            document.getElementById('outline-id').value = '';
-            document.getElementById('outline-title').value = '';
-            openModal('outline-modal');
-        });
-        const btnSaveOutline = document.getElementById('btn-save-outline');
-        if (btnSaveOutline) btnSaveOutline.addEventListener('click', handleSaveOutline);
-        const btnAddRootNode = document.getElementById('btn-add-root-node');
-        if (btnAddRootNode) btnAddRootNode.addEventListener('click', handleAddRootNode);
-    } catch (e) { console.error("Lỗi Outlines:", e); }
+    renderOutlineList();
+    setupOutlineEvents();
 };
 
 // ============================================================
-// 2. TRANSCRIPT MODULE (BẢNG ĐIỂM) - MỚI
+// 2. TRANSCRIPT MODULE (BẢNG ĐIỂM)
 // ============================================================
 const setupTranscriptManagement = async () => {
-    // 1. Tải dữ liệu từ Sub-collection
+    // Tải dữ liệu từ Sub-collection
     globalTranscripts = await getSubCollectionDocs(currentUser.uid, 'academic_transcripts', 'term');
     renderTranscriptsTable();
     updateGPASummary();
 
-    // 2. Gán sự kiện nút Lưu
     const btnSave = document.getElementById('btn-save-transcript');
     if (btnSave) {
-        // Clone node để xóa event cũ (nếu có)
         const newBtnSave = btnSave.cloneNode(true);
         btnSave.parentNode.replaceChild(newBtnSave, btnSave);
         newBtnSave.addEventListener('click', handleSaveTranscript);
     }
 
-    // 3. Gán sự kiện nút Hủy
     const btnCancel = document.getElementById('btn-cancel-transcript');
     if (btnCancel) {
-        btnCancel.addEventListener('click', () => {
-            resetTranscriptForm();
-        });
+        btnCancel.addEventListener('click', resetTranscriptForm);
     }
 };
 
@@ -234,7 +211,6 @@ const handleSaveTranscript = async () => {
         return showNotification("Vui lòng nhập đủ thông tin!", "error");
     }
 
-    // Tính toán điểm quy đổi
     const gradeInfo = getGradeDetails(score10);
 
     const data = {
@@ -251,14 +227,11 @@ const handleSaveTranscript = async () => {
 
     try {
         if (id) {
-            // Update
             await updateSubCollectionDoc(currentUser.uid, 'academic_transcripts', id, data);
-            // Update local cache
             const index = globalTranscripts.findIndex(t => t.id === id);
             if (index > -1) globalTranscripts[index] = data;
             showNotification("Cập nhật điểm thành công!");
         } else {
-            // Add new
             await addSubCollectionDoc(currentUser.uid, 'academic_transcripts', data);
             globalTranscripts.push(data);
             showNotification("Thêm môn học thành công!");
@@ -284,8 +257,11 @@ const resetTranscriptForm = () => {
     document.getElementById('subject-credits').value = '3';
     document.getElementById('subject-score').value = '';
     
-    document.getElementById('btn-save-transcript').textContent = "Lưu điểm";
-    document.getElementById('btn-cancel-transcript').style.display = 'none';
+    const btnSave = document.getElementById('btn-save-transcript');
+    if(btnSave) btnSave.textContent = "Lưu điểm";
+    
+    const btnCancel = document.getElementById('btn-cancel-transcript');
+    if(btnCancel) btnCancel.style.display = 'none';
 };
 
 const renderTranscriptsTable = () => {
@@ -293,11 +269,10 @@ const renderTranscriptsTable = () => {
     if (!tbody) return;
     tbody.innerHTML = '';
 
-    // Sắp xếp theo học kỳ (đơn giản) hoặc tên môn
     globalTranscripts.sort((a, b) => a.term.localeCompare(b.term));
 
     globalTranscripts.forEach(t => {
-        const gradeInfo = getGradeDetails(t.score10); // Lấy lại màu sắc/rank nếu cần
+        const gradeInfo = getGradeDetails(t.score10);
         const tr = document.createElement('tr');
         tr.innerHTML = `
             <td><b>${escapeHTML(t.code)}</b></td>
@@ -319,11 +294,11 @@ const renderTranscriptsTable = () => {
 };
 
 const getBadgeColor = (char) => {
-    if (char.startsWith('A')) return '#28a745'; // Green
-    if (char.startsWith('B')) return '#17a2b8'; // Cyan
-    if (char.startsWith('C')) return '#ffc107'; // Yellow
-    if (char.startsWith('D')) return '#fd7e14'; // Orange
-    return '#dc3545'; // Red (F)
+    if (char.startsWith('A')) return '#28a745';
+    if (char.startsWith('B')) return '#17a2b8';
+    if (char.startsWith('C')) return '#ffc107';
+    if (char.startsWith('D')) return '#fd7e14';
+    return '#dc3545';
 };
 
 const loadTranscriptToEdit = (t) => {
@@ -338,13 +313,11 @@ const loadTranscriptToEdit = (t) => {
     document.getElementById('btn-save-transcript').textContent = "Cập nhật";
     document.getElementById('btn-cancel-transcript').style.display = 'inline-block';
     
-    // Scroll to form
     document.querySelector('#academic-transcripts .form-container').scrollIntoView({ behavior: 'smooth' });
 };
 
 const handleDeleteTranscript = async (id) => {
     if (!confirm("Xóa môn học này khỏi bảng điểm?")) return;
-    
     try {
         await deleteSubCollectionDoc(currentUser.uid, 'academic_transcripts', id);
         globalTranscripts = globalTranscripts.filter(t => t.id !== id);
@@ -360,10 +333,7 @@ const updateGPASummary = () => {
     let totalCredits = 0;
     let totalPoints4 = 0;
     
-    // Tính toán GPA Tích lũy (Tính hết tất cả các môn)
-    // Lưu ý: Logic thực tế có thể phức tạp hơn (môn rớt không tính, học cải thiện...), ở đây tính đơn giản trung bình cộng.
     globalTranscripts.forEach(t => {
-        // Chỉ tính môn có điểm số (bỏ qua môn Miễn/Đạt nếu có logic đó sau này)
         const cred = parseInt(t.credits);
         totalCredits += cred;
         totalPoints4 += (parseFloat(t.scale4) * cred);
@@ -371,15 +341,14 @@ const updateGPASummary = () => {
 
     const gpaAccumulated = totalCredits > 0 ? (totalPoints4 / totalCredits).toFixed(2) : "0.00";
 
-    document.getElementById('gpa-accumulated').textContent = gpaAccumulated;
-    document.getElementById('total-credits').textContent = totalCredits;
+    const gpaAccEl = document.getElementById('gpa-accumulated');
+    if(gpaAccEl) gpaAccEl.textContent = gpaAccumulated;
     
-    // GPA Học kỳ gần nhất (Demo: Lấy học kỳ của môn cuối cùng được nhập)
+    const creditEl = document.getElementById('total-credits');
+    if(creditEl) creditEl.textContent = totalCredits;
+    
     if (globalTranscripts.length > 0) {
-        // Tìm học kỳ mới nhất (dựa trên string compare hoặc logic date nếu có)
-        // Ở đây lấy học kỳ của item cuối trong mảng (mới nhập/load sau cùng)
         const lastTerm = globalTranscripts[globalTranscripts.length - 1].term;
-        
         let termCredits = 0;
         let termPoints4 = 0;
         
@@ -390,14 +359,23 @@ const updateGPASummary = () => {
         });
         
         const gpaTerm = termCredits > 0 ? (termPoints4 / termCredits).toFixed(2) : "0.00";
-        document.getElementById('gpa-term').textContent = gpaTerm;
+        const gpaTermEl = document.getElementById('gpa-term');
+        if(gpaTermEl) gpaTermEl.textContent = gpaTerm;
     }
 };
-
 
 // ============================================================
 // 3. POMODORO MODULE
 // ============================================================
+function setupPomodoro() {
+    const btnStart = document.getElementById('pomodoro-start-btn');
+    const btnPause = document.getElementById('pomodoro-pause-btn');
+    const btnReset = document.getElementById('pomodoro-reset-btn');
+    if (btnStart) btnStart.addEventListener('click', startTimer);
+    if (btnPause) btnPause.addEventListener('click', pauseTimer);
+    if (btnReset) btnReset.addEventListener('click', resetTimer);
+}
+
 const startTimer = () => {
     if (isRunning) return;
     const durationInput = document.getElementById('focus-duration');
@@ -551,17 +529,13 @@ window.openSV5TPanel = (level, type, criteriaInfo) => {
     let descriptionHTML = '<div style="display:flex; flex-direction:column; gap:10px;">';
     if (criteriaInfo.required && criteriaInfo.required.length > 0) {
         descriptionHTML += `<div><strong style="color:#d32f2f;">🔴 Tiêu chuẩn bắt buộc:</strong><ul style="margin:5px 0 0 20px; padding:0;">`;
-        criteriaInfo.required.forEach(req => {
-            descriptionHTML += `<li style="margin-bottom:5px;">${req.text}</li>`;
-        });
+        criteriaInfo.required.forEach(req => { descriptionHTML += `<li style="margin-bottom:5px;">${req.text}</li>`; });
         descriptionHTML += `</ul></div>`;
     }
     if (criteriaInfo.optionalGroups && criteriaInfo.optionalGroups.length > 0) {
         criteriaInfo.optionalGroups.forEach(group => {
             descriptionHTML += `<div><strong style="color:#0288d1;">🔵 ${group.description || 'Tiêu chuẩn tự chọn:'}</strong><ul style="margin:5px 0 0 20px; padding:0;">`;
-            group.options.forEach(opt => {
-                descriptionHTML += `<li style="margin-bottom:5px;">${opt.text}</li>`;
-            });
+            group.options.forEach(opt => { descriptionHTML += `<li style="margin-bottom:5px;">${opt.text}</li>`; });
             descriptionHTML += `</ul></div>`;
         });
     }
@@ -617,9 +591,7 @@ const renderProofs = (criteriaKey) => {
         const li = document.createElement('li');
         li.className = 'proof-item';
         li.innerHTML = `
-            <div class="proof-info">
-                <a href="${p.link}" target="_blank">${escapeHTML(p.title)}</a>
-            </div>
+            <div class="proof-info"><a href="${p.link}" target="_blank">${escapeHTML(p.title)}</a></div>
             <button style="color:red; border:none; background:none; cursor:pointer;" onclick="window.deleteProof('${p.id}', '${criteriaKey}')">🗑️</button>
         `;
         list.appendChild(li);
@@ -755,7 +727,6 @@ const openEditDocument = (doc) => {
     
     const btnDel = document.getElementById('btn-delete-doc');
     if(btnDel) btnDel.style.display = 'inline-block';
-    
     openModal('document-modal');
 };
 
@@ -770,7 +741,7 @@ const handleSaveDocument = async () => {
     let fileUrl = link;
     let fullPath = null;
 
-    if (fileInput.files.length > 0) {
+    if (fileInput && fileInput.files.length > 0) {
         showNotification('Đang tải file...', 'info');
         const file = fileInput.files[0];
         const result = await uploadFileToStorage(file, `library/${currentUser.uid}/${file.name}`);
@@ -838,7 +809,6 @@ const setupAchievementEvents = () => {
     if(btnAdd) {
         const newBtn = btnAdd.cloneNode(true);
         btnAdd.parentNode.replaceChild(newBtn, btnAdd);
-        
         newBtn.addEventListener('click', () => {
             document.getElementById('achievement-id').value = ''; 
             document.getElementById('achievement-title').value = '';
@@ -847,7 +817,6 @@ const setupAchievementEvents = () => {
             document.getElementById('achievement-category').value = 'other';
             document.getElementById('achievement-drive-link').value = '';
             document.getElementById('achievement-featured').checked = false;
-            
             const btnDel = document.getElementById('btn-delete-achievement'); 
             if(btnDel) btnDel.style.display = 'none';
             openModal('achievement-modal');
@@ -875,15 +844,9 @@ const renderAchievements = () => {
         const div = document.createElement('div');
         div.className = 'achievement-card';
         div.onclick = () => openEditAchievement(ach);
-
         div.innerHTML = `
-             <div class="achievement-preview">
-                ${ach.imageUrl ? `<img src="${ach.imageUrl}">` : '🏆'}
-            </div>
-            <div class="achievement-info">
-                <h3>${escapeHTML(ach.name || ach.title)}</h3>
-                <p>${formatDate(ach.date)}</p>
-            </div>
+             <div class="achievement-preview">${ach.imageUrl ? `<img src="${ach.imageUrl}">` : '🏆'}</div>
+            <div class="achievement-info"><h3>${escapeHTML(ach.name || ach.title)}</h3><p>${formatDate(ach.date)}</p></div>
         `;
         container.appendChild(div);
     });
@@ -905,25 +868,17 @@ const openEditAchievement = (ach) => {
 const handleSaveAchievement = async () => {
     const id = document.getElementById('achievement-id').value;
     const title = document.getElementById('achievement-title').value;
-    const date = document.getElementById('achievement-date').value;
-    const desc = document.getElementById('achievement-description').value;
-    const category = document.getElementById('achievement-category').value;
-    const rawLink = document.getElementById('achievement-drive-link').value;
-    const isFeatured = document.getElementById('achievement-featured').checked;
-
     if (!title) return showNotification('Vui lòng nhập tên thành tích!', 'error');
-
-    let finalImgUrl = rawLink; 
 
     const newAch = {
         id: id || generateID('ach'),
         name: title,
         title: title,
-        date: date,
-        description: desc,
-        category: category,
-        imageUrl: finalImgUrl,
-        isFeatured: isFeatured
+        date: document.getElementById('achievement-date').value,
+        description: document.getElementById('achievement-description').value,
+        category: document.getElementById('achievement-category').value,
+        imageUrl: document.getElementById('achievement-drive-link').value,
+        isFeatured: document.getElementById('achievement-featured').checked
     };
 
     if (id) {
@@ -942,7 +897,6 @@ const handleSaveAchievement = async () => {
 const handleDeleteAchievementInModal = async () => {
     const id = document.getElementById('achievement-id').value;
     if (!id) return;
-    
     if (!confirm("Bạn chắc chắn muốn xóa thành tích này?")) return;
 
     const index = globalData.achievements.findIndex(a => a.id === id);
@@ -956,28 +910,31 @@ const handleDeleteAchievementInModal = async () => {
 };
 
 // ============================================================
-// 7. DRAFTS & QUILL MODULE
+// 7. DRAFTS & QUILL MODULE (FIX LỖI UI)
 // ============================================================
 const initQuillEditor = () => {
-    if (document.getElementById('editor-container') && !quillEditor) {
-        if (typeof Quill !== 'undefined') {
-            quillEditor = new Quill('#editor-container', {
-                theme: 'snow',
-                placeholder: 'Viết ý tưởng của bạn tại đây...',
-                modules: {
-                    toolbar: [
-                        [{ 'header': [1, 2, false] }],
-                        ['bold', 'italic', 'underline'],
-                        [{ 'list': 'ordered'}, { 'list': 'bullet' }],
-                        ['clean']
-                    ]
-                }
-            });
-            
-            quillEditor.on('text-change', () => {
-                autoSaveDraft();
-            });
-        }
+    // Kiểm tra nếu đã init rồi thì thôi
+    if (quillEditor) return;
+    
+    const editorContainer = document.getElementById('editor-container');
+    // Chỉ init nếu container tồn tại và đang hiển thị
+    if (editorContainer && typeof Quill !== 'undefined') {
+        quillEditor = new Quill('#editor-container', {
+            theme: 'snow',
+            placeholder: 'Viết ý tưởng của bạn tại đây...',
+            modules: {
+                toolbar: [
+                    [{ 'header': [1, 2, false] }],
+                    ['bold', 'italic', 'underline'],
+                    [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+                    ['clean']
+                ]
+            }
+        });
+        
+        quillEditor.on('text-change', () => {
+            autoSaveDraft();
+        });
     }
 };
 
@@ -1019,7 +976,8 @@ const createNewDraft = () => {
 
 const loadDraft = (draft) => {
     currentDraftId = draft.id;
-    document.getElementById('draft-title-input').value = draft.title;
+    const titleInput = document.getElementById('draft-title-input');
+    if(titleInput) titleInput.value = draft.title;
 
     if (quillEditor) {
         try {
@@ -1050,8 +1008,9 @@ const deleteDraft = async (id) => {
 };
 
 const autoSaveDraft = () => {
-    if (!currentDraftId) return;
-    document.getElementById('draft-status').textContent = 'Đang lưu...';
+    if (!currentDraftId || !quillEditor) return;
+    const statusEl = document.getElementById('draft-status');
+    if(statusEl) statusEl.textContent = 'Đang lưu...';
     
     clearTimeout(saveDraftTimeout);
     saveDraftTimeout = setTimeout(async () => {
@@ -1059,15 +1018,11 @@ const autoSaveDraft = () => {
         if (draft) {
             const titleInput = document.getElementById('draft-title-input');
             draft.title = titleInput ? titleInput.value : 'Không tiêu đề';
-            
-            if (quillEditor) {
-                draft.content = JSON.stringify(quillEditor.getContents());
-            }
-            
+            draft.content = JSON.stringify(quillEditor.getContents());
             draft.lastModified = new Date().toISOString();
             
             await saveUserData(currentUser.uid, { drafts: globalData.drafts });
-            document.getElementById('draft-status').textContent = 'Đã lưu';
+            if(statusEl) statusEl.textContent = 'Đã lưu';
             renderDraftsList();
         }
     }, 1000);
@@ -1076,6 +1031,22 @@ const autoSaveDraft = () => {
 // ============================================================
 // 8. OUTLINE MODULE
 // ============================================================
+function setupOutlineEvents() {
+    const btnCreateOutline = document.getElementById('btn-create-outline');
+    if (btnCreateOutline) {
+        btnCreateOutline.addEventListener('click', () => {
+            document.getElementById('outline-id').value = '';
+            document.getElementById('outline-title').value = '';
+            openModal('outline-modal');
+        });
+    }
+    const btnSaveOutline = document.getElementById('btn-save-outline');
+    if (btnSaveOutline) btnSaveOutline.addEventListener('click', handleSaveOutline);
+    
+    const btnAddRootNode = document.getElementById('btn-add-root-node');
+    if (btnAddRootNode) btnAddRootNode.addEventListener('click', handleAddRootNode);
+}
+
 const renderOutlineList = () => {
     const container = document.getElementById('outline-list-container');
     if(!container) return;

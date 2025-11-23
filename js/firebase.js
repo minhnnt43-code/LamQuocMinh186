@@ -277,5 +277,4 @@ export const deleteGlobalTemplate = async (id) => {
         console.error("Lỗi xóa mẫu:", error);
         throw error;
     }
-
 };  

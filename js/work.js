@@ -18,10 +18,15 @@ export const initWorkModule = (data, user) => {
     globalData = data;
     currentUser = user;
 
+    // Khởi tạo dữ liệu mảng nếu chưa có
     if (!globalData.calendarEvents) globalData.calendarEvents = [];
     if (!globalData.tasks) globalData.tasks = [];
     if (!globalData.todos) globalData.todos = [];
     if (!globalData.projects) globalData.projects = [];
+
+    // [FIX LOGIC] Nạp dữ liệu cho Dropdown (tránh bị rỗng) và đặt mặc định ngày
+    populateTaskDropdowns();
+    resetTaskForm(); // Đặt ngày mặc định là hôm nay ngay khi vào
 
     renderDashboard();
     renderTasks();
@@ -32,6 +37,21 @@ export const initWorkModule = (data, user) => {
     // Sự kiện Task
     const addTaskBtn = document.getElementById('add-task-btn');
     if (addTaskBtn) addTaskBtn.addEventListener('click', handleSaveTask);
+
+    // [TÍNH NĂNG MỚI] Quick Add Task bằng phím Enter
+    const quickAddInput = document.getElementById('quick-add-task-input');
+    if (quickAddInput) {
+        // Clone để xóa event cũ nếu có
+        const newQuickInput = quickAddInput.cloneNode(true);
+        quickAddInput.parentNode.replaceChild(newQuickInput, quickAddInput);
+        
+        newQuickInput.addEventListener('keydown', async (e) => {
+            if (e.key === 'Enter') {
+                await handleQuickAddTask(newQuickInput.value);
+                newQuickInput.value = '';
+            }
+        });
+    }
 
     // Filter Task
     document.querySelectorAll('.task-filter-controls .filter-btn').forEach(btn => {
@@ -47,32 +67,28 @@ export const initWorkModule = (data, user) => {
     if (addTodoBtn) addTodoBtn.addEventListener('click', handleAddTodo);
 
     // Dự án
-    const openProjectBtn = document.getElementById('btn-open-project-modal');
-    if (openProjectBtn) {
-        openProjectBtn.addEventListener('click', () => {
-            document.getElementById('project-id').value = '';
-            document.getElementById('project-name').value = '';
-            document.getElementById('project-description').value = '';
-            document.getElementById('project-start-date').value = '';
-            document.getElementById('project-end-date').value = '';
-            document.getElementById('btn-delete-project').style.display = 'none';
-            openModal('project-modal');
-        });
-    }
-    document.getElementById('btn-save-project').addEventListener('click', handleSaveProject);
-    document.getElementById('btn-delete-project').addEventListener('click', handleDeleteProject);
+    setupProjectEvents();
 
     // Lịch
-    document.getElementById('cal-prev-btn').addEventListener('click', () => changeCalendarWeek(-1));
-    document.getElementById('cal-next-btn').addEventListener('click', () => changeCalendarWeek(1));
-    document.getElementById('cal-today-btn').addEventListener('click', () => {
-        currentWeekStart = getMonday(new Date());
-        renderCalendar();
-    });
-
-    document.getElementById('btn-save-event').addEventListener('click', handleSaveEvent);
-    document.getElementById('btn-delete-event').addEventListener('click', handleDeleteEvent);
+    setupCalendarEvents();
 };
+
+// [HÀM MỚI] Điền option cho dropdown nếu HTML đang để trống
+function populateTaskDropdowns() {
+    const categories = ['Học tập', 'Công việc', 'Cá nhân', 'Gia đình', 'Khác'];
+    const statuses = ['Chưa thực hiện', 'Đang làm', 'Hoàn thành', 'Đã hủy'];
+    
+    const catSelect = document.getElementById('task-category');
+    const statusSelect = document.getElementById('task-status');
+
+    if (catSelect && catSelect.options.length === 0) {
+        catSelect.innerHTML = categories.map(c => `<option value="${c}">${c}</option>`).join('');
+    }
+
+    if (statusSelect && statusSelect.options.length === 0) {
+        statusSelect.innerHTML = statuses.map(s => `<option value="${s}">${s}</option>`).join('');
+    }
+}
 
 // --- HELPER NGÀY THÁNG ---
 function getMonday(d) {
@@ -81,8 +97,54 @@ function getMonday(d) {
     return new Date(d.setDate(diff));
 }
 
+function setupProjectEvents() {
+    const openProjectBtn = document.getElementById('btn-open-project-modal');
+    if (openProjectBtn) {
+        const newBtn = openProjectBtn.cloneNode(true);
+        openProjectBtn.parentNode.replaceChild(newBtn, openProjectBtn);
+        newBtn.addEventListener('click', () => {
+            document.getElementById('project-id').value = '';
+            document.getElementById('project-name').value = '';
+            document.getElementById('project-description').value = '';
+            document.getElementById('project-start-date').value = toLocalISOString(new Date());
+            document.getElementById('project-end-date').value = '';
+            document.getElementById('btn-delete-project').style.display = 'none';
+            openModal('project-modal');
+        });
+    }
+    
+    const btnSaveProj = document.getElementById('btn-save-project');
+    if(btnSaveProj) {
+         const newBtn = btnSaveProj.cloneNode(true);
+         btnSaveProj.parentNode.replaceChild(newBtn, btnSaveProj);
+         newBtn.addEventListener('click', handleSaveProject);
+    }
+
+    const btnDelProj = document.getElementById('btn-delete-project');
+    if(btnDelProj) {
+        const newBtn = btnDelProj.cloneNode(true);
+        btnDelProj.parentNode.replaceChild(newBtn, btnDelProj);
+        newBtn.addEventListener('click', handleDeleteProject);
+    }
+}
+
+function setupCalendarEvents() {
+    document.getElementById('cal-prev-btn').onclick = () => changeCalendarWeek(-1);
+    document.getElementById('cal-next-btn').onclick = () => changeCalendarWeek(1);
+    document.getElementById('cal-today-btn').onclick = () => {
+        currentWeekStart = getMonday(new Date());
+        renderCalendar();
+    };
+
+    const btnSaveEvt = document.getElementById('btn-save-event');
+    const btnDelEvt = document.getElementById('btn-delete-event');
+
+    if(btnSaveEvt) btnSaveEvt.onclick = handleSaveEvent;
+    if(btnDelEvt) btnDelEvt.onclick = handleDeleteEvent;
+}
+
 // ============================================================
-// 2. LỊCH BIỂU (RENDER UI)
+// 2. LỊCH BIỂU (RENDER UI) - GIỮ NGUYÊN LOGIC CŨ
 // ============================================================
 const changeCalendarWeek = (offset) => {
     currentWeekStart.setDate(currentWeekStart.getDate() + (offset * 7));
@@ -95,7 +157,6 @@ const renderCalendar = () => {
     if (!calendarBody || !calendarHeader) return;
 
     calendarBody.innerHTML = '';
-    // Reset header, giữ lại cột Giờ
     calendarHeader.innerHTML = '<th class="time-col">Giờ</th>';
     
     const days = [];
@@ -117,7 +178,6 @@ const renderCalendar = () => {
     endWeek.setDate(endWeek.getDate() + 6);
     document.getElementById('current-view-range').textContent = `${formatDate(currentWeekStart)} - ${formatDate(endWeek)}`;
 
-    // Render sự kiện cả ngày / Task deadline
     let allDayHtml = '<td class="time-col">Hạn chót</td>';
     days.forEach(dateStr => {
         const dayTasks = (globalData.tasks || []).filter(t => t.dueDate === dateStr && t.status !== 'Hoàn thành');
@@ -131,7 +191,6 @@ const renderCalendar = () => {
     rowAllDay.innerHTML = allDayHtml;
     calendarBody.appendChild(rowAllDay);
 
-    // Render các khung giờ (06:00 - 22:00)
     for (let hour = 6; hour <= 22; hour++) {
         const row = document.createElement('tr');
         const timeLabel = `${hour.toString().padStart(2, '0')}:00`;
@@ -140,8 +199,6 @@ const renderCalendar = () => {
         for (let i = 0; i < 7; i++) {
             const cell = document.createElement('td');
             const cellDate = days[i];
-            
-            // Click vào ô trống để tạo sự kiện
             cell.addEventListener('click', () => openEventModal(null, cellDate, timeLabel));
             
             const cellEvents = (globalData.calendarEvents || []).filter(e => e.date === cellDate && e.startTime.startsWith(hour.toString().padStart(2, '0')));
@@ -160,7 +217,6 @@ const renderCalendar = () => {
 };
 
 const openEventModal = (event = null, date = null, time = null) => {
-    // SỬA LỖI Ở ĐÂY: Lấy đúng ID mà bạn vừa thêm vào HTML
     const modalTitle = document.getElementById('event-modal-title'); 
     const deleteBtn = document.getElementById('btn-delete-event');
     const taskSelect = document.getElementById('event-task-link');
@@ -226,7 +282,9 @@ const handleDeleteEvent = async () => {
     }
 };
 
-// --- 3. QUẢN LÝ CÔNG VIỆC (TASKS) ---
+// ============================================================
+// 3. QUẢN LÝ CÔNG VIỆC (TASKS) - [CÓ SỬA ĐỔI QUAN TRỌNG]
+// ============================================================
 const renderTasks = (filter = 'all') => {
     const container = document.getElementById('task-list');
     if(!container) return;
@@ -239,6 +297,7 @@ const renderTasks = (filter = 'all') => {
     if (filter === 'important') tasks = tasks.filter(t => t.priority === 'high');
     if (filter === 'today') tasks = tasks.filter(t => t.dueDate === toLocalISOString(today));
 
+    // Sắp xếp: Hoàn thành xuống dưới, Ngày gần lên trên
     tasks.sort((a, b) => {
         if (a.status === 'Hoàn thành' && b.status !== 'Hoàn thành') return 1;
         if (a.status !== 'Hoàn thành' && b.status === 'Hoàn thành') return -1;
@@ -248,8 +307,9 @@ const renderTasks = (filter = 'all') => {
     tasks.forEach(task => {
         const div = document.createElement('div');
         let statusClass = '';
+        const isCompleted = task.status === 'Hoàn thành';
 
-        if (task.status === 'Hoàn thành') {
+        if (isCompleted) {
             statusClass = 'completed';
         } else if (task.dueDate) {
             const taskDate = new Date(task.dueDate); taskDate.setHours(0, 0, 0, 0);
@@ -260,21 +320,35 @@ const renderTasks = (filter = 'all') => {
         }
 
         div.className = `task-item ${statusClass}`;
+        
+        // [NÂNG CẤP UI] Thêm Checkbox và xử lý hiển thị
         div.innerHTML = `
-            <div class="task-info" style="flex-grow: 1; cursor: pointer;">
-                <h3>${escapeHTML(task.name)} ${statusClass === 'overdue' ? '(Quá hạn)' : ''}</h3>
-                <div class="task-meta">
-                    <span class="priority-badge ${task.priority}">${task.priority === 'high' ? 'Cao' : (task.priority === 'medium' ? 'TB' : 'Thấp')}</span>
-                    <span>📅 ${formatDate(task.dueDate)}</span>
-                    <span class="tag-badge">${escapeHTML(task.category)}</span>
-                    <span>TT: ${task.status}</span>
+            <div style="display: flex; align-items: center; gap: 10px; width: 100%;">
+                <input type="checkbox" class="task-complete-checkbox" ${isCompleted ? 'checked' : ''} style="width: 20px; height: 20px; cursor: pointer;">
+                
+                <div class="task-info" style="flex-grow: 1; cursor: pointer;">
+                    <h3 style="${isCompleted ? 'text-decoration: line-through; color: #999;' : ''}">
+                        ${escapeHTML(task.name)} ${statusClass === 'overdue' && !isCompleted ? '<span style="color:red; font-size:0.8rem">(Quá hạn)</span>' : ''}
+                    </h3>
+                    <div class="task-meta">
+                        <span class="priority-badge ${task.priority}">${task.priority === 'high' ? 'Cao' : (task.priority === 'medium' ? 'TB' : 'Thấp')}</span>
+                        <span>📅 ${formatDate(task.dueDate)}</span>
+                        <span class="tag-badge">${escapeHTML(task.category)}</span>
+                    </div>
+                </div>
+                
+                <div class="task-actions">
+                    <button class="edit-btn" title="Sửa">✏️</button>
+                    <button class="delete-btn" title="Xóa">🗑️</button>
                 </div>
             </div>
-            <div class="task-actions">
-                <button class="edit-btn" title="Sửa">✏️</button>
-                <button class="delete-btn" title="Xóa">🗑️</button>
-            </div>
         `;
+
+        // Sự kiện Checkbox "Tick là xong"
+        const checkbox = div.querySelector('.task-complete-checkbox');
+        checkbox.addEventListener('change', async () => {
+            await toggleTaskCompletion(task);
+        });
 
         div.querySelector('.task-info').addEventListener('click', () => loadTaskToEdit(task));
         div.querySelector('.edit-btn').addEventListener('click', (e) => { e.stopPropagation(); loadTaskToEdit(task); });
@@ -282,6 +356,27 @@ const renderTasks = (filter = 'all') => {
 
         container.appendChild(div);
     });
+};
+
+// [HÀM MỚI] Xử lý bật/tắt trạng thái hoàn thành
+const toggleTaskCompletion = async (task) => {
+    if (task.status === 'Hoàn thành') {
+        task.status = 'Chưa thực hiện'; // Hoặc trạng thái cũ nếu muốn phức tạp hơn
+    } else {
+        task.status = 'Hoàn thành';
+    }
+    
+    // Cập nhật lại mảng dữ liệu
+    const index = globalData.tasks.findIndex(t => t.id === task.id);
+    if (index > -1) globalData.tasks[index] = task;
+
+    // Lưu Firebase
+    await saveUserData(currentUser.uid, { tasks: globalData.tasks });
+    
+    // Render lại giao diện
+    renderTasks();
+    renderDashboard();
+    showNotification(task.status === 'Hoàn thành' ? "Đã hoàn thành công việc! 🎉" : "Đã mở lại công việc");
 };
 
 const loadTaskToEdit = (task) => {
@@ -300,20 +395,54 @@ const loadTaskToEdit = (task) => {
     const btn = document.getElementById('add-task-btn');
     btn.textContent = "💾 Lưu thay đổi";
     btn.style.backgroundColor = "var(--primary-blue)";
+    
+    // Cuộn lên form để user thấy
+    document.querySelector('#tasks .form-container').scrollIntoView({ behavior: 'smooth' });
     document.getElementById('task-name').focus();
-    showNotification("Đang sửa: " + task.name, "info");
 };
 
 const resetTaskForm = () => {
     editingTaskId = null;
     document.getElementById('task-name').value = '';
+    // [FIX UX] Reset về ngày hôm nay
+    document.getElementById('task-due-date').value = toLocalISOString(new Date());
+    document.getElementById('task-status').value = 'Chưa thực hiện';
+    document.getElementById('task-priority').value = 'medium';
+    document.getElementById('task-category').value = 'Học tập';
+    
     document.getElementById('task-link').value = '';
     document.getElementById('task-tags').value = '';
     document.getElementById('task-notes').value = '';
     document.getElementById('task-recurrence').value = 'none';
+    
     const btn = document.getElementById('add-task-btn');
     btn.textContent = "Thêm công việc";
     btn.style.backgroundColor = "var(--primary-orange)";
+};
+
+// [HÀM MỚI] Thêm nhanh Task
+const handleQuickAddTask = async (taskName) => {
+    if (!taskName || !taskName.trim()) return;
+
+    const taskData = {
+        id: generateID('task'),
+        name: taskName.trim(),
+        priority: 'medium', // Mặc định
+        category: 'Chung', // Mặc định
+        dueDate: toLocalISOString(new Date()), // Mặc định hôm nay
+        status: 'Chưa thực hiện',
+        project: '',
+        recurrence: 'none',
+        link: '', tags: '', notes: ''
+    };
+
+    globalData.tasks.push(taskData);
+    await saveUserData(currentUser.uid, { tasks: globalData.tasks });
+    
+    renderTasks(); 
+    renderDashboard(); 
+    renderCalendar();
+    showNotification('Đã thêm nhanh công việc!');
 };
 
 const handleSaveTask = async () => {
@@ -466,5 +595,4 @@ const renderDashboard = () => {
     const completedCount = (globalData.tasks || []).filter(t => t.status === 'Hoàn thành').length;
     const countEl = document.getElementById('stat-tasks-completed');
     if(countEl) countEl.textContent = completedCount;
-
 };

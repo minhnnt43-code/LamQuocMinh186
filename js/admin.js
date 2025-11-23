@@ -6,7 +6,7 @@ import {
     collection, getDocs, deleteDoc, doc, addDoc, query, orderBy, setDoc, writeBatch, updateDoc, where
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-// Thêm getUserData và saveUserData để thao tác với Lịch chính
+// Import các hàm từ module chính
 import { getAllUsers, createGlobalTemplate, getGlobalTemplates, getAppointmentRequests, getUserData, saveUserData } from './firebase.js';
 import { showNotification, openModal, convertDriveLink, formatDate, generateID } from './common.js';
 
@@ -49,7 +49,6 @@ export const initAdminModule = async (user) => {
     }
 
     // B. Gán sự kiện cho các nút Menu quản trị
-    
     const btnAlbum = document.getElementById('nav-btn-albums');
     if (btnAlbum) btnAlbum.addEventListener('click', () => renderAlbumManager());
 
@@ -58,7 +57,8 @@ export const initAdminModule = async (user) => {
 
     // C. Cập nhật Badge Yêu cầu Hẹn & Sự kiện tab Hẹn
     updateAppointmentBadge();
-    // Gán sự kiện click cho tab Hẹn (Nút này đã thêm ở index.html)
+    
+    // Gán sự kiện click cho tab Hẹn
     const btnAppt = document.querySelector('.nav-btn[data-target="appointment-requests"]');
     if (btnAppt) {
         btnAppt.addEventListener('click', () => renderAppointmentManager('pending'));
@@ -68,7 +68,9 @@ export const initAdminModule = async (user) => {
     window.filterAppointments = (status) => {
         // Update active button style
         document.querySelectorAll('#appointment-requests .filter-btn').forEach(btn => btn.classList.remove('active'));
-        event.target.classList.add('active');
+        const activeBtn = document.querySelector(`#appointment-requests .filter-btn[onclick*="${status}"]`);
+        if(activeBtn) activeBtn.classList.add('active');
+        
         renderAppointmentManager(status);
     };
 };
@@ -79,6 +81,7 @@ export const initAdminModule = async (user) => {
 
 // Đếm số lượng hẹn chờ duyệt để hiện Badge đỏ
 async function updateAppointmentBadge() {
+    if (!currentAdminUID) return;
     try {
         const requests = await getAppointmentRequests(currentAdminUID, 'pending');
         const badge = document.getElementById('appt-badge');
@@ -86,13 +89,18 @@ async function updateAppointmentBadge() {
             badge.textContent = requests.length;
             badge.style.display = requests.length > 0 ? 'inline-block' : 'none';
         }
-    } catch (e) { console.error(e); }
+    } catch (e) { console.error("Lỗi cập nhật Badge:", e); }
 }
 
 async function renderAppointmentManager(status = 'pending') {
     const container = document.getElementById('appointment-list-container');
     if (!container) return;
     container.innerHTML = '<p>Đang tải...</p>';
+
+    if (!currentAdminUID) {
+        container.innerHTML = '<p class="empty-state">Chưa xác thực Admin.</p>';
+        return;
+    }
 
     try {
         const requests = await getAppointmentRequests(currentAdminUID, status);
@@ -117,7 +125,7 @@ async function renderAppointmentManager(status = 'pending') {
                 actionsHtml = `
                     <button class="btn-submit" style="padding:5px 10px; font-size:0.8rem; background:#28a745;" 
                         onclick="window.handleAppt('${req.id}', 'approved', '${req.title}', '${req.date}', '${req.time}', '${req.guestEmail}', '${req.guestName}')">
-                        ✅ Duyệt & Thêm vào Lịch
+                        ✅ Duyệt
                     </button>
                     <button class="btn-submit" style="padding:5px 10px; font-size:0.8rem; background:#dc3545;" 
                         onclick="window.handleAppt('${req.id}', 'rejected')">
@@ -148,8 +156,10 @@ async function renderAppointmentManager(status = 'pending') {
     }
 }
 
-// HÀM XỬ LÝ DUYỆT (NÂNG CẤP)
+// HÀM XỬ LÝ DUYỆT (FIX BUG GIỜ 24:00)
 window.handleAppt = async (id, newStatus, title, date, time, email, guestName) => {
+    if (!currentAdminUID) return alert("Vui lòng đăng nhập lại!");
+
     const confirmMsg = newStatus === 'approved' 
         ? "Duyệt yêu cầu này? Hệ thống sẽ TỰ ĐỘNG thêm vào Lịch trình công khai."
         : "Từ chối yêu cầu này?";
@@ -168,9 +178,9 @@ window.handleAppt = async (id, newStatus, title, date, time, email, guestName) =
             const userData = await getUserData(currentAdminUID);
             let events = userData.calendarEvents || [];
 
-            // Tính giờ kết thúc (Mặc định +1 tiếng)
+            // [FIX BUG] Tính giờ kết thúc: Xử lý trường hợp 23:00 + 1 = 24:00 (Lỗi) -> Chuyển thành 00:00
             let [hour, minute] = time.split(':').map(Number);
-            let endHour = hour + 1;
+            let endHour = (hour + 1) % 24; // Dùng Modulo để quay vòng về 0 nếu là 24
             let endTime = `${endHour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
 
             // Tạo sự kiện mới
@@ -204,10 +214,8 @@ window.handleAppt = async (id, newStatus, title, date, time, email, guestName) =
 };
 
 // ============================================================
-// CÁC PHẦN CŨ (GIỮ NGUYÊN)
+// CÁC PHẦN QUẢN TRỊ KHÁC (GIỮ NGUYÊN LOGIC)
 // ============================================================
-
-// --- CÁC HÀM DASHBOARD (TRONG MODAL) ---
 
 // 1. Thống kê
 async function renderAnalytics() {
@@ -291,6 +299,7 @@ async function renderTemplateManager() {
 
 // 4. Quản lý Tin nhắn (Message Wall)
 async function renderMessageManager() {
+    if (!currentAdminUID) return;
     const container = document.getElementById('admin-msg-list');
     if (!container) return;
     container.innerHTML = '<p>Đang tải...</p>';
@@ -329,6 +338,7 @@ async function renderMessageManager() {
 // PHẦN 5: QUẢN LÝ ALBUM (TAB RIÊNG)
 // ============================================================
 async function renderAlbumManager() {
+    if (!currentAdminUID) return;
     const container = document.getElementById('admin-album-list');
     const btnSave = document.getElementById('btn-create-album');
     const btnCancel = document.getElementById('btn-cancel-album');
@@ -459,6 +469,7 @@ async function renderAlbumManager() {
 // PHẦN 6: QUẢN LÝ TIMELINE (TAB RIÊNG - CÓ KÉO THẢ)
 // ============================================================
 async function renderTimelineManager() {
+    if (!currentAdminUID) return;
     const container = document.getElementById('admin-timeline-list');
     const btnSave = document.getElementById('btn-create-timeline');
     const btnCancel = document.getElementById('btn-cancel-timeline');

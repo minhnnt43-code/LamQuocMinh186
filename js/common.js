@@ -18,7 +18,7 @@ export const escapeHTML = (str) => {
         }[tag]));
 };
 
-// 3. FORMAT DATE & TIME
+// 3. FORMAT DATE & TIME (HIỂN THỊ GIAO DIỆN)
 export const formatDate = (dateString) => {
     if (!dateString) return "";
     const date = new Date(dateString);
@@ -26,14 +26,23 @@ export const formatDate = (dateString) => {
     return date.toLocaleDateString('vi-VN'); // DD/MM/YYYY
 };
 
-// Format sang chuẩn input type="date" (YYYY-MM-DD)
+// [ĐÃ FIX] Format sang chuẩn input type="date" (YYYY-MM-DD)
 export const toLocalISOString = (date) => {
     if (!date) return "";
+    
+    // Nếu đã là chuỗi YYYY-MM-DD thì trả về luôn
+    if (typeof date === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(date)) {
+        return date;
+    }
+
     const d = new Date(date);
-    const year = d.getFullYear();
-    const month = String(d.getMonth() + 1).padStart(2, '0');
-    const day = String(d.getDate()).padStart(2, '0');
-    return `${year}-${month}-${day}`;
+    if (isNaN(d.getTime())) return "";
+
+    // Tính toán offset để toISOString trả về giờ địa phương
+    const offset = d.getTimezoneOffset() * 60000;
+    const localDate = new Date(d.getTime() - offset);
+    
+    return localDate.toISOString().slice(0, 10);
 };
 
 // 4. FORMAT DỮ LIỆU KHÁC (FILE, TIỀN TỆ)
@@ -58,13 +67,10 @@ export const convertDriveLink = (url) => {
     try {
         let id = '';
         const parts = url.split('/');
-        // Dạng 1: .../d/ID_FILE/...
         const dIndex = parts.indexOf('d');
         if (dIndex !== -1 && parts[dIndex + 1]) {
             id = parts[dIndex + 1];
-        } 
-        // Dạng 2: ...id=ID_FILE...
-        else if (url.includes('id=')) {
+        } else if (url.includes('id=')) {
             const match = url.match(/id=([^&]+)/);
             if (match) id = match[1];
         }
@@ -78,20 +84,20 @@ export const convertDriveLink = (url) => {
     }
 };
 
-// 6. [MỚI] TÍNH ĐIỂM HỌC TẬP (GPA 4.0 & CHỮ)
-// Quy chuẩn phổ biến: 8.5+ A (4.0), 7.0-8.4 B (3.0), v.v...
+// 6. [CẬP NHẬT] TÍNH ĐIỂM HỌC TẬP THEO QUY ĐỊNH MỚI
+// Logic: 9.0->A+, 8.0->A, 7.0->B+, 6.0->B, 5.0->C, 4.0->D+, 3.0->D, <3.0->F
 export const calculateAcademicScore = (score10) => {
     const s = parseFloat(score10);
-    if (isNaN(s)) return { char: 'F', scale4: 0 };
+    if (isNaN(s)) return { char: 'F', scale4: 0.0, rank: 'Kém' };
 
-    if (s >= 8.5) return { char: 'A', scale4: 4.0 };
-    if (s >= 8.0) return { char: 'B+', scale4: 3.5 };
-    if (s >= 7.0) return { char: 'B', scale4: 3.0 };
-    if (s >= 6.5) return { char: 'C+', scale4: 2.5 };
-    if (s >= 5.5) return { char: 'C', scale4: 2.0 };
-    if (s >= 5.0) return { char: 'D+', scale4: 1.5 };
-    if (s >= 4.0) return { char: 'D', scale4: 1.0 };
-    return { char: 'F', scale4: 0.0 };
+    if (s >= 9.0) return { char: 'A+', scale4: 4.0, rank: 'Xuất sắc' };
+    if (s >= 8.0) return { char: 'A',  scale4: 3.5, rank: 'Giỏi' };
+    if (s >= 7.0) return { char: 'B+', scale4: 3.0, rank: 'Khá' };
+    if (s >= 6.0) return { char: 'B',  scale4: 2.5, rank: 'Trung bình khá' };
+    if (s >= 5.0) return { char: 'C',  scale4: 2.0, rank: 'Trung bình' };
+    if (s >= 4.0) return { char: 'D+', scale4: 1.5, rank: 'Yếu' }; // Điểm khác biệt: D+ ở mức 4.0-5.0
+    if (s >= 3.0) return { char: 'D',  scale4: 1.0, rank: 'Kém' }; // Điểm khác biệt: D ở mức 3.0-4.0
+    return { char: 'F', scale4: 0.0, rank: 'Kém' };                // < 3.0 là F
 };
 
 // 7. UI HELPERS (Notification & Loading)
@@ -100,7 +106,6 @@ export const showNotification = (message, type = 'success') => {
     if (!container) return;
 
     const notif = document.createElement("div");
-    // type có thể là: success, error, info, warning
     notif.className = `notification ${type}`;
     notif.textContent = message;
     
@@ -130,7 +135,6 @@ export const setupModal = (modalId, closeBtnId) => {
         });
     }
     
-    // Đóng khi click ra ngoài vùng content
     window.addEventListener('click', (e) => {
         if (e.target === modal) {
             modal.style.display = 'none';
@@ -142,7 +146,6 @@ export const openModal = (modalId) => {
     const modal = document.getElementById(modalId);
     if (modal) {
         modal.style.display = 'flex';
-        // Reset scroll nếu modal dài
         const content = modal.querySelector('.modal-body');
         if (content) content.scrollTop = 0;
     }
@@ -151,5 +154,4 @@ export const openModal = (modalId) => {
 export const closeModal = (modalId) => {
     const modal = document.getElementById(modalId);
     if (modal) modal.style.display = 'none';
-
 };
