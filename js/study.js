@@ -1,3 +1,4 @@
+
 // --- FILE: js/study.js ---
 
 import {
@@ -5,13 +6,17 @@ import {
     openModal, closeModal
 } from './common.js';
 
-import { saveUserData, uploadFileToStorage, deleteFileFromStorage } from './firebase.js';
+import { 
+    saveUserData, uploadFileToStorage, deleteFileFromStorage,
+    addSubCollectionDoc, getSubCollectionDocs, updateSubCollectionDoc, deleteSubCollectionDoc 
+} from './firebase.js';
 
 // ============================================================
 // KHAI BÁO BIẾN TOÀN CỤC
 // ============================================================
 let globalData = null;
 let currentUser = null;
+let globalTranscripts = []; // Cache local danh sách điểm
 
 // Biến Pomodoro
 let pomodoroInterval;
@@ -27,6 +32,23 @@ let saveDraftTimeout;
 let currentOutlineId = null;
 
 // ============================================================
+// --- CẤU HÌNH THANG ĐIỂM (THEO HÌNH ẢNH CUNG CẤP) ---
+// ============================================================
+const getGradeDetails = (score10) => {
+    const s = parseFloat(score10);
+    if (isNaN(s)) return { char: 'F', scale4: 0.0, rank: 'Kém' };
+
+    if (s >= 9.0) return { char: 'A+', scale4: 4.0, rank: 'Xuất sắc' };
+    if (s >= 8.0) return { char: 'A',  scale4: 3.5, rank: 'Giỏi' };
+    if (s >= 7.0) return { char: 'B+', scale4: 3.0, rank: 'Khá' };
+    if (s >= 6.0) return { char: 'B',  scale4: 2.5, rank: 'TB Khá' };
+    if (s >= 5.0) return { char: 'C',  scale4: 2.0, rank: 'Trung bình' };
+    if (s >= 4.0) return { char: 'D+', scale4: 1.5, rank: 'Yếu' };
+    if (s >= 3.0) return { char: 'D',  scale4: 1.0, rank: 'Kém' };
+    return { char: 'F', scale4: 0.0, rank: 'Kém' };
+};
+
+// ============================================================
 // --- CẤU HÌNH CẤP ĐỘ SV5T ---
 // ============================================================
 const SV5T_LEVELS = ['khoa', 'truong', 'dhqg', 'thanhpho', 'trunguong'];
@@ -39,298 +61,55 @@ const SV5T_NAMES = {
     trunguong: 'Cấp Trung ương'
 };
 
-// ============================================================
-// --- SV5T CRITERIA DATA (ĐẦY ĐỦ) ---
-// ============================================================
 const sv5tCriteriaData = {
     khoa: {
         name: "Cấp Khoa",
         criteria: {
-            ethics: { name: 'Đạo đức tốt', icon: '🏆',
-                required: [{ id: 'khoa_ethics_1', text: 'Điểm rèn luyện >= 80' }]
-            },
-            study: { name: 'Học tập tốt', icon: '📚',
-                required: [{ id: 'khoa_study_1', text: 'Điểm TB chung học tập >= 7.5' }]
-            },
-            physical: { name: 'Thể lực tốt', icon: '💪',
-                optionalGroups: [{
-                    description: 'Đạt 1 trong các tiêu chuẩn sau:',
-                    options: [
-                        { id: 'khoa_physical_1', text: 'Đạt danh hiệu "Thanh niên khỏe" cấp Trường trở lên' },
-                        { id: 'khoa_physical_2', text: 'Tham gia hoạt động thể thao từ cấp Khoa trở lên' },
-                    ]
-                }]
-            },
-            volunteer: { name: 'Tình nguyện tốt', icon: '❤️',
-                optionalGroups: [{
-                    description: 'Đạt 1 trong các tiêu chuẩn sau:',
-                    options: [
-                        { id: 'khoa_volunteer_1', text: 'Hoàn thành 1 trong các chiến dịch tình nguyện' },
-                        { id: 'khoa_volunteer_2', text: 'Tham gia ít nhất 03 ngày tình nguyện/năm' },
-                    ]
-                }]
-            },
-            integration: { name: 'Hội nhập tốt', icon: '🌍',
-                optionalGroups: [
-                    {
-                        description: 'Về ngoại ngữ (đạt 1 trong các tiêu chuẩn sau):',
-                        options: [
-                            { id: 'khoa_integration_1', text: 'Chứng chỉ tiếng Anh B1 hoặc tương đương' },
-                            { id: 'khoa_integration_2', text: 'Điểm tổng kết các học phần ngoại ngữ >= 7.0' },
-                        ]
-                    },
-                    {
-                        description: 'Về kỹ năng (đạt 1 trong các tiêu chuẩn sau):',
-                        options: [
-                            { id: 'khoa_integration_4', text: 'Hoàn thành ít nhất 1 khóa học kỹ năng' },
-                            { id: 'khoa_integration_5', text: 'Được Đoàn - Hội khen thưởng' }
-                        ]
-                    }
-                ]
-            }
+            ethics: { name: 'Đạo đức tốt', icon: '🏆', required: [{ id: 'khoa_ethics_1', text: 'Điểm rèn luyện >= 80' }] },
+            study: { name: 'Học tập tốt', icon: '📚', required: [{ id: 'khoa_study_1', text: 'Điểm TB chung học tập >= 7.5' }] },
+            physical: { name: 'Thể lực tốt', icon: '💪', optionalGroups: [{ description: 'Đạt 1 trong các tiêu chuẩn sau:', options: [{ id: 'khoa_physical_1', text: 'Đạt danh hiệu "Thanh niên khỏe" cấp Trường trở lên' }, { id: 'khoa_physical_2', text: 'Tham gia hoạt động thể thao từ cấp Khoa trở lên' }] }] },
+            volunteer: { name: 'Tình nguyện tốt', icon: '❤️', optionalGroups: [{ description: 'Đạt 1 trong các tiêu chuẩn sau:', options: [{ id: 'khoa_volunteer_1', text: 'Hoàn thành 1 trong các chiến dịch tình nguyện' }, { id: 'khoa_volunteer_2', text: 'Tham gia ít nhất 03 ngày tình nguyện/năm' }] }] },
+            integration: { name: 'Hội nhập tốt', icon: '🌍', optionalGroups: [{ description: 'Về ngoại ngữ:', options: [{ id: 'khoa_integration_1', text: 'Chứng chỉ tiếng Anh B1 hoặc tương đương' }, { id: 'khoa_integration_2', text: 'Điểm tổng kết các học phần ngoại ngữ >= 7.0' }] }, { description: 'Về kỹ năng:', options: [{ id: 'khoa_integration_4', text: 'Hoàn thành ít nhất 1 khóa học kỹ năng' }, { id: 'khoa_integration_5', text: 'Được Đoàn - Hội khen thưởng' }] }] }
         }
     },
     truong: {
         name: "Cấp Trường",
         criteria: {
-            ethics: { name: 'Đạo đức tốt', icon: '🏆',
-                required: [
-                    { id: 'truong_ethics_1', text: 'Điểm rèn luyện >= 80' },
-                    { id: 'truong_ethics_2', text: 'Xếp loại Đoàn viên/Hội viên xuất sắc' }
-                ]
-            },
-            study: { name: 'Học tập tốt', icon: '📚',
-                required: [{ id: 'truong_study_1', text: 'Điểm TB chung học tập >= 7.75' }],
-                optionalGroups: [{
-                    description: 'Đạt thêm 1 trong các tiêu chuẩn sau:',
-                    options: [
-                        { id: 'truong_study_2', text: 'Có đề tài NCKH hoặc luận văn tốt nghiệp' },
-                        { id: 'truong_study_4', text: 'Đạt giải cuộc thi học thuật cấp Khoa trở lên' },
-                    ]
-                }]
-            },
-            physical: { name: 'Thể lực tốt', icon: '💪',
-                optionalGroups: [{
-                    description: 'Đạt 1 trong các tiêu chuẩn sau:',
-                    options: [
-                        { id: 'truong_physical_1', text: 'Đạt danh hiệu "Thanh niên khỏe" cấp Trường trở lên' },
-                        { id: 'truong_physical_3', text: 'Đạt giải thể thao cấp Khoa trở lên' },
-                    ]
-                }]
-            },
-            volunteer: { name: 'Tình nguyện tốt', icon: '❤️',
-                optionalGroups: [{
-                    description: 'Đạt 1 trong các tiêu chuẩn sau:',
-                     options: [
-                        { id: 'truong_volunteer_1', text: 'Hoàn thành 1 trong các chiến dịch tình nguyện' },
-                        { id: 'truong_volunteer_2', text: 'Tham gia ít nhất 05 ngày tình nguyện/năm' },
-                    ]
-                }]
-            },
-            integration: { name: 'Hội nhập tốt', icon: '🌍',
-                optionalGroups: [
-                    {
-                        description: 'Về ngoại ngữ (đạt 1 trong các tiêu chuẩn sau):',
-                        options: [
-                            { id: 'truong_integration_1', text: 'Chứng chỉ tiếng Anh B1 hoặc tương đương' },
-                            { id: 'truong_integration_2', text: 'Điểm tổng kết các học phần ngoại ngữ >= 8.0' },
-                        ]
-                    },
-                    {
-                        description: 'Về kỹ năng (đạt 1 trong các tiêu chuẩn sau):',
-                        options: [
-                            { id: 'truong_integration_4', text: 'Hoàn thành ít nhất 1 khóa học kỹ năng' },
-                            { id: 'truong_integration_5', text: 'Được Đoàn - Hội khen thưởng' }
-                        ]
-                    },
-                    {
-                        description: 'Về hoạt động hội nhập (đạt 1 trong các tiêu chuẩn sau):',
-                        options: [
-                            { id: 'truong_integration_6', text: 'Tham gia ít nhất 1 hoạt động hội nhập' },
-                            { id: 'truong_integration_8', text: 'Tham gia giao lưu quốc tế' }
-                        ]
-                    }
-                ]
-            }
+            ethics: { name: 'Đạo đức tốt', icon: '🏆', required: [{ id: 'truong_ethics_1', text: 'Điểm rèn luyện >= 80' }, { id: 'truong_ethics_2', text: 'Xếp loại Đoàn viên/Hội viên xuất sắc' }] },
+            study: { name: 'Học tập tốt', icon: '📚', required: [{ id: 'truong_study_1', text: 'Điểm TB chung học tập >= 7.75' }], optionalGroups: [{ description: 'Đạt thêm 1 trong các tiêu chuẩn sau:', options: [{ id: 'truong_study_2', text: 'Có đề tài NCKH hoặc luận văn tốt nghiệp' }, { id: 'truong_study_4', text: 'Đạt giải cuộc thi học thuật cấp Khoa trở lên' }] }] },
+            physical: { name: 'Thể lực tốt', icon: '💪', optionalGroups: [{ description: 'Đạt 1 trong các tiêu chuẩn sau:', options: [{ id: 'truong_physical_1', text: 'Đạt danh hiệu "Thanh niên khỏe" cấp Trường trở lên' }, { id: 'truong_physical_3', text: 'Đạt giải thể thao cấp Khoa trở lên' }] }] },
+            volunteer: { name: 'Tình nguyện tốt', icon: '❤️', optionalGroups: [{ description: 'Đạt 1 trong các tiêu chuẩn sau:', options: [{ id: 'truong_volunteer_1', text: 'Hoàn thành 1 trong các chiến dịch tình nguyện' }, { id: 'truong_volunteer_2', text: 'Tham gia ít nhất 05 ngày tình nguyện/năm' }] }] },
+            integration: { name: 'Hội nhập tốt', icon: '🌍', optionalGroups: [{ description: 'Về ngoại ngữ:', options: [{ id: 'truong_integration_1', text: 'Chứng chỉ tiếng Anh B1 hoặc tương đương' }, { id: 'truong_integration_2', text: 'Điểm tổng kết các học phần ngoại ngữ >= 8.0' }] }, { description: 'Về kỹ năng:', options: [{ id: 'truong_integration_4', text: 'Hoàn thành ít nhất 1 khóa học kỹ năng' }, { id: 'truong_integration_5', text: 'Được Đoàn - Hội khen thưởng' }] }, { description: 'Về hội nhập:', options: [{ id: 'truong_integration_6', text: 'Tham gia ít nhất 1 hoạt động hội nhập' }, { id: 'truong_integration_8', text: 'Tham gia giao lưu quốc tế' }] }] }
         }
     },
     dhqg: {
         name: "Cấp ĐHQG",
         criteria: {
-            ethics: { name: 'Đạo đức tốt', icon: '🏆',
-                required: [
-                    { id: 'dhqg_ethics_1', text: 'Điểm rèn luyện >= 80' },
-                    { id: 'dhqg_ethics_2', text: 'Đoàn viên/Hội viên hoàn thành xuất sắc nhiệm vụ' }
-                ]
-            },
-            study: { name: 'Học tập tốt', icon: '📚',
-                required: [{ id: 'dhqg_study_1', text: 'Điểm TB chung học tập >= 8.0' }],
-                optionalGroups: [{
-                    description: 'Đạt thêm 1 trong các tiêu chuẩn sau:',
-                    options: [
-                        { id: 'dhqg_study_2', text: 'NCKH/Khóa luận tốt nghiệp >= 7.0' },
-                        { id: 'dhqg_study_3', text: 'Đạt giải Ba học thuật cấp Khoa trở lên' },
-                    ]
-                }]
-            },
-            physical: { name: 'Thể lực tốt', icon: '💪',
-                optionalGroups: [{
-                    description: 'Đạt 1 trong các tiêu chuẩn sau:',
-                    options: [
-                        { id: 'dhqg_physical_1', text: 'Đạt danh hiệu "Thanh niên khỏe" cấp Trường trở lên' },
-                        { id: 'dhqg_physical_2', text: 'Đạt giải thể thao cấp Trường trở lên' },
-                    ]
-                }]
-            },
-            volunteer: { name: 'Tình nguyện tốt', icon: '❤️',
-                optionalGroups: [{
-                    description: 'Đạt 1 trong các tiêu chuẩn sau:',
-                     options: [
-                        { id: 'dhqg_volunteer_1', text: 'Được khen thưởng tình nguyện cấp Trường trở lên' },
-                        { id: 'dhqg_volunteer_2', text: 'Tham gia ít nhất 05 ngày tình nguyện/năm' }
-                    ]
-                }]
-            },
-            integration: { name: 'Hội nhập tốt', icon: '🌍',
-                required: [{ id: 'dhqg_integration_1', text: 'Chứng chỉ tiếng Anh B1 hoặc tương đương' }],
-                optionalGroups: [
-                    {
-                        description: 'Về hội nhập (đạt thêm 1 trong các tiêu chuẩn sau):',
-                        options: [
-                            { id: 'dhqg_integration_2', text: 'Tham gia ít nhất 1 hoạt động giao lưu quốc tế' },
-                            { id: 'dhqg_integration_3', text: 'Đạt giải Ba hội nhập/NN cấp Trường trở lên' }
-                        ]
-                    },
-                    {
-                        description: 'Về kỹ năng (đạt thêm 1 trong các tiêu chuẩn sau):',
-                        options: [
-                            { id: 'dhqg_integration_4', text: 'Hoàn thành ít nhất 1 khóa học kỹ năng' },
-                            { id: 'dhqg_integration_6', text: 'Được Đoàn - Hội khen thưởng' }
-                        ]
-                    }
-                ]
-            }
+            ethics: { name: 'Đạo đức tốt', icon: '🏆', required: [{ id: 'dhqg_ethics_1', text: 'Điểm rèn luyện >= 80' }, { id: 'dhqg_ethics_2', text: 'Đoàn viên/Hội viên hoàn thành xuất sắc nhiệm vụ' }] },
+            study: { name: 'Học tập tốt', icon: '📚', required: [{ id: 'dhqg_study_1', text: 'Điểm TB chung học tập >= 8.0' }], optionalGroups: [{ description: 'Đạt thêm 1 trong các tiêu chuẩn sau:', options: [{ id: 'dhqg_study_2', text: 'NCKH/Khóa luận tốt nghiệp >= 7.0' }, { id: 'dhqg_study_3', text: 'Đạt giải Ba học thuật cấp Khoa trở lên' }] }] },
+            physical: { name: 'Thể lực tốt', icon: '💪', optionalGroups: [{ description: 'Đạt 1 trong các tiêu chuẩn sau:', options: [{ id: 'dhqg_physical_1', text: 'Đạt danh hiệu "Thanh niên khỏe" cấp Trường trở lên' }, { id: 'dhqg_physical_2', text: 'Đạt giải thể thao cấp Trường trở lên' }] }] },
+            volunteer: { name: 'Tình nguyện tốt', icon: '❤️', optionalGroups: [{ description: 'Đạt 1 trong các tiêu chuẩn sau:', options: [{ id: 'dhqg_volunteer_1', text: 'Được khen thưởng tình nguyện cấp Trường trở lên' }, { id: 'dhqg_volunteer_2', text: 'Tham gia ít nhất 05 ngày tình nguyện/năm' }] }] },
+            integration: { name: 'Hội nhập tốt', icon: '🌍', required: [{ id: 'dhqg_integration_1', text: 'Chứng chỉ tiếng Anh B1 hoặc tương đương' }], optionalGroups: [{ description: 'Về hội nhập:', options: [{ id: 'dhqg_integration_2', text: 'Tham gia ít nhất 1 hoạt động giao lưu quốc tế' }, { id: 'dhqg_integration_3', text: 'Đạt giải Ba hội nhập/NN cấp Trường trở lên' }] }, { description: 'Về kỹ năng:', options: [{ id: 'dhqg_integration_4', text: 'Hoàn thành ít nhất 1 khóa học kỹ năng' }, { id: 'dhqg_integration_6', text: 'Được Đoàn - Hội khen thưởng' }] }] }
         }
     },
     thanhpho: {
         name: "Cấp Thành phố",
         criteria: {
-             ethics: { name: 'Đạo đức tốt', icon: '🏆',
-                required: [
-                    { id: 'tp_ethics_1', text: 'Điểm rèn luyện >= 90' },
-                    { id: 'tp_ethics_2', text: 'Đoàn viên/Hội viên hoàn thành xuất sắc nhiệm vụ' }
-                ],
-                optionalGroups: [{
-                    description: 'Đạt thêm 1 trong các tiêu chuẩn sau:',
-                    options: [
-                        { id: 'tp_ethics_3', text: 'Là thành viên đội thi Mác-Lênin, TTHCM' },
-                        { id: 'tp_ethics_4', text: 'Là Thanh niên tiên tiến làm theo lời Bác' }
-                    ]
-                }]
-            },
-            study: { name: 'Học tập tốt', icon: '📚',
-                required: [{ id: 'tp_study_1', text: 'Điểm TB chung học tập >= 8.5' }],
-                optionalGroups: [{
-                    description: 'Đạt thêm 1 trong các tiêu chuẩn sau:',
-                    options: [
-                        { id: 'tp_study_2', text: 'NCKH/Khóa luận tốt nghiệp >= 8.0' },
-                        { id: 'tp_study_3', text: 'Đạt giải Euréka hoặc NCKH cấp Thành trở lên' },
-                    ]
-                }]
-            },
-            physical: { name: 'Thể lực tốt', icon: '💪',
-                optionalGroups: [{
-                    description: 'Đạt 1 trong các tiêu chuẩn sau:',
-                    options: [
-                        { id: 'tp_physical_1', text: 'Đạt danh hiệu "Thanh niên khỏe" cấp Trường trở lên' },
-                        { id: 'tp_physical_2', text: 'Đạt giải thể thao cấp Trường trở lên' },
-                    ]
-                }]
-            },
-            volunteer: { name: 'Tình nguyện tốt', icon: '❤️',
-                required: [
-                    { id: 'tp_volunteer_1', text: 'Được khen thưởng tình nguyện cấp Trường trở lên' },
-                    { id: 'tp_volunteer_2', text: 'Tham gia ít nhất 05 ngày tình nguyện/năm' }
-                ]
-            },
-            integration: { name: 'Hội nhập tốt', icon: '🌍',
-                required: [
-                    { id: 'tp_integration_1', text: 'Chứng chỉ tiếng Anh B1 hoặc tương đương' },
-                    { id: 'tp_integration_5', text: 'Tham gia ít nhất 01 hoạt động hội nhập' }
-                ],
-                optionalGroups: [
-                    {
-                        description: 'Về ngoại ngữ (đạt thêm 1 trong 2):',
-                        options: [
-                            { id: 'tp_integration_2', text: 'Tham gia ít nhất 1 hoạt động giao lưu quốc tế' },
-                            { id: 'tp_integration_3', text: 'Đạt giải Ba hội nhập/NN cấp Trường trở lên' }
-                        ]
-                    },
-                    {
-                        description: 'Về kỹ năng (đạt 1 trong 2):',
-                        options: [
-                            { id: 'tp_integration_4', text: 'Hoàn thành ít nhất 1 khóa học kỹ năng' },
-                            { id: 'tp_integration_6', text: 'Được Đoàn - Hội khen thưởng' }
-                        ]
-                    }
-                ]
-            }
+            ethics: { name: 'Đạo đức tốt', icon: '🏆', required: [{ id: 'tp_ethics_1', text: 'Điểm rèn luyện >= 90' }, { id: 'tp_ethics_2', text: 'Đoàn viên/Hội viên hoàn thành xuất sắc nhiệm vụ' }], optionalGroups: [{ description: 'Đạt thêm 1 trong các tiêu chuẩn sau:', options: [{ id: 'tp_ethics_3', text: 'Là thành viên đội thi Mác-Lênin, TTHCM' }, { id: 'tp_ethics_4', text: 'Là Thanh niên tiên tiến làm theo lời Bác' }] }] },
+            study: { name: 'Học tập tốt', icon: '📚', required: [{ id: 'tp_study_1', text: 'Điểm TB chung học tập >= 8.5' }], optionalGroups: [{ description: 'Đạt thêm 1 trong các tiêu chuẩn sau:', options: [{ id: 'tp_study_2', text: 'NCKH/Khóa luận tốt nghiệp >= 8.0' }, { id: 'tp_study_3', text: 'Đạt giải Euréka hoặc NCKH cấp Thành trở lên' }] }] },
+            physical: { name: 'Thể lực tốt', icon: '💪', optionalGroups: [{ description: 'Đạt 1 trong các tiêu chuẩn sau:', options: [{ id: 'tp_physical_1', text: 'Đạt danh hiệu "Thanh niên khỏe" cấp Trường trở lên' }, { id: 'tp_physical_2', text: 'Đạt giải thể thao cấp Trường trở lên' }] }] },
+            volunteer: { name: 'Tình nguyện tốt', icon: '❤️', required: [{ id: 'tp_volunteer_1', text: 'Được khen thưởng tình nguyện cấp Trường trở lên' }, { id: 'tp_volunteer_2', text: 'Tham gia ít nhất 05 ngày tình nguyện/năm' }] },
+            integration: { name: 'Hội nhập tốt', icon: '🌍', required: [{ id: 'tp_integration_1', text: 'Chứng chỉ tiếng Anh B1 hoặc tương đương' }, { id: 'tp_integration_5', text: 'Tham gia ít nhất 01 hoạt động hội nhập' }], optionalGroups: [{ description: 'Về ngoại ngữ:', options: [{ id: 'tp_integration_2', text: 'Tham gia ít nhất 1 hoạt động giao lưu quốc tế' }, { id: 'tp_integration_3', text: 'Đạt giải Ba hội nhập/NN cấp Trường trở lên' }] }, { description: 'Về kỹ năng:', options: [{ id: 'tp_integration_4', text: 'Hoàn thành ít nhất 1 khóa học kỹ năng' }, { id: 'tp_integration_6', text: 'Được Đoàn - Hội khen thưởng' }] }] }
         }
     },
     trunguong: {
         name: "Cấp Trung ương",
         criteria: {
-            ethics: { name: 'Đạo đức tốt', icon: '🏆',
-                required: [{ id: 'tw_ethics_1', text: 'Điểm rèn luyện >= 90' }],
-                 optionalGroups: [{
-                    description: 'Đạt thêm 1 trong các tiêu chuẩn sau:',
-                    options: [
-                        { id: 'tw_ethics_2', text: 'Là thành viên đội thi Mác-Lênin, TTHCM' },
-                        { id: 'tw_ethics_3', text: 'Là thanh niên tiêu biểu/tiên tiến' }
-                    ]
-                }]
-            },
-            study: { name: 'Học tập tốt', icon: '📚',
-                required: [{ id: 'tw_study_1', text: 'Điểm TB chung học tập >= 8.5 (ĐH) hoặc >= 8.0 (CĐ)' }],
-                optionalGroups: [{
-                    description: 'Đạt thêm 1 trong các tiêu chuẩn sau:',
-                    options: [
-                        { id: 'tw_study_2', text: 'NCKH đạt loại Tốt cấp Trường trở lên' },
-                        { id: 'tw_study_5', text: 'Là thành viên đội tuyển thi học thuật quốc gia, quốc tế' }
-                    ]
-                }]
-            },
-            physical: { name: 'Thể lực tốt', icon: '💪',
-                optionalGroups: [{
-                    description: 'Đạt 1 trong các tiêu chuẩn sau:',
-                    options: [
-                        { id: 'tw_physical_1', text: 'Đạt danh hiệu "Sinh viên khỏe" cấp Trường trở lên' },
-                        { id: 'tw_physical_2', text: 'Đạt danh hiệu "Sinh viên khỏe" cấp Tỉnh trở lên' },
-                    ]
-                }]
-            },
-            volunteer: { name: 'Tình nguyện tốt', icon: '❤️',
-                required: [
-                    { id: 'tw_volunteer_1', text: 'Tham gia ít nhất 05 ngày tình nguyện/năm' },
-                    { id: 'tw_volunteer_2', text: 'Được khen thưởng tình nguyện cấp Huyện/Trường trở lên' }
-                ]
-            },
-            integration: { name: 'Hội nhập tốt', icon: '🌍',
-                required: [
-                    { id: 'tw_integration_1', text: 'Hoàn thành 1 khóa kỹ năng hoặc được khen thưởng' },
-                    { id: 'tw_integration_2', text: 'Tham gia ít nhất 01 hoạt động hội nhập' },
-                    { id: 'tw_integration_3', text: 'Chứng chỉ tiếng Anh B1 hoặc tương đương' }
-                ],
-                optionalGroups: [
-                    {
-                        description: 'Đạt thêm 1 trong 2 tiêu chuẩn sau:',
-                        options: [
-                            { id: 'tw_integration_4', text: 'Tham gia ít nhất 1 hoạt động giao lưu quốc tế' },
-                            { id: 'tw_integration_5', text: 'Đạt giải Ba hội nhập/NN cấp Trường trở lên' }
-                        ]
-                    }
-                ]
-            }
+            ethics: { name: 'Đạo đức tốt', icon: '🏆', required: [{ id: 'tw_ethics_1', text: 'Điểm rèn luyện >= 90' }], optionalGroups: [{ description: 'Đạt thêm 1 trong các tiêu chuẩn sau:', options: [{ id: 'tw_ethics_2', text: 'Là thành viên đội thi Mác-Lênin, TTHCM' }, { id: 'tw_ethics_3', text: 'Là thanh niên tiêu biểu/tiên tiến' }] }] },
+            study: { name: 'Học tập tốt', icon: '📚', required: [{ id: 'tw_study_1', text: 'Điểm TB chung học tập >= 8.5 (ĐH) hoặc >= 8.0 (CĐ)' }], optionalGroups: [{ description: 'Đạt thêm 1 trong các tiêu chuẩn sau:', options: [{ id: 'tw_study_2', text: 'NCKH đạt loại Tốt cấp Trường trở lên' }, { id: 'tw_study_5', text: 'Là thành viên đội tuyển thi học thuật quốc gia, quốc tế' }] }] },
+            physical: { name: 'Thể lực tốt', icon: '💪', optionalGroups: [{ description: 'Đạt 1 trong các tiêu chuẩn sau:', options: [{ id: 'tw_physical_1', text: 'Đạt danh hiệu "Sinh viên khỏe" cấp Trường trở lên' }, { id: 'tw_physical_2', text: 'Đạt danh hiệu "Sinh viên khỏe" cấp Tỉnh trở lên' }] }] },
+            volunteer: { name: 'Tình nguyện tốt', icon: '❤️', required: [{ id: 'tw_volunteer_1', text: 'Tham gia ít nhất 05 ngày tình nguyện/năm' }, { id: 'tw_volunteer_2', text: 'Được khen thưởng tình nguyện cấp Huyện/Trường trở lên' }] },
+            integration: { name: 'Hội nhập tốt', icon: '🌍', required: [{ id: 'tw_integration_1', text: 'Hoàn thành 1 khóa kỹ năng hoặc được khen thưởng' }, { id: 'tw_integration_2', text: 'Tham gia ít nhất 01 hoạt động hội nhập' }, { id: 'tw_integration_3', text: 'Chứng chỉ tiếng Anh B1 hoặc tương đương' }], optionalGroups: [{ description: 'Đạt thêm 1 trong 2 tiêu chuẩn sau:', options: [{ id: 'tw_integration_4', text: 'Tham gia ít nhất 1 hoạt động giao lưu quốc tế' }, { id: 'tw_integration_5', text: 'Đạt giải Ba hội nhập/NN cấp Trường trở lên' }] }] }
         }
     }
 };
@@ -349,7 +128,12 @@ export const initStudyModule = (data, user) => {
     if (!globalData.drafts) globalData.drafts = [];
     if (!globalData.outlines) globalData.outlines = [];
 
-    // 1. Setup Pomodoro (Trong try-catch)
+    // 1. Setup Transcript (Bảng điểm) - MODULE MỚI
+    try {
+        setupTranscriptManagement();
+    } catch (e) { console.error("Lỗi Transcript:", e); }
+
+    // 2. Setup Pomodoro
     try {
         const btnStart = document.getElementById('pomodoro-start-btn');
         const btnPause = document.getElementById('pomodoro-pause-btn');
@@ -359,7 +143,7 @@ export const initStudyModule = (data, user) => {
         if (btnReset) btnReset.addEventListener('click', resetTimer);
     } catch (e) { console.error("Lỗi Pomodoro:", e); }
 
-    // 2. Setup SV5T
+    // 3. Setup SV5T
     try {
         renderSV5TBoard();
         const proofInput = document.getElementById('proof-upload-input');
@@ -370,19 +154,19 @@ export const initStudyModule = (data, user) => {
         }
     } catch (e) { console.error("Lỗi SV5T:", e); }
 
-    // 3. Setup Library (Thư viện)
+    // 4. Setup Library
     try {
         renderLibrary();
         setupLibraryEvents();
     } catch (e) { console.error("Lỗi Library:", e); }
 
-    // 4. Setup Achievements (Thành tích) - CÓ FIX NÚT BẤM
+    // 5. Setup Achievements
     try {
         renderAchievements();
         setupAchievementEvents();
     } catch (e) { console.error("Lỗi Achievements:", e); }
 
-    // 5. Setup Drafts (Nháp/Quill)
+    // 6. Setup Drafts
     try {
         setTimeout(() => {
             initQuillEditor();
@@ -394,7 +178,7 @@ export const initStudyModule = (data, user) => {
         if (draftTitleInput) draftTitleInput.addEventListener('input', autoSaveDraft);
     } catch (e) { console.error("Lỗi Drafts:", e); }
 
-    // 6. Setup Outlines (Dàn ý)
+    // 7. Setup Outlines
     try {
         renderOutlineList();
         const btnCreateOutline = document.getElementById('btn-create-outline');
@@ -411,7 +195,208 @@ export const initStudyModule = (data, user) => {
 };
 
 // ============================================================
-// 2. POMODORO MODULE
+// 2. TRANSCRIPT MODULE (BẢNG ĐIỂM) - MỚI
+// ============================================================
+const setupTranscriptManagement = async () => {
+    // 1. Tải dữ liệu từ Sub-collection
+    globalTranscripts = await getSubCollectionDocs(currentUser.uid, 'academic_transcripts', 'term');
+    renderTranscriptsTable();
+    updateGPASummary();
+
+    // 2. Gán sự kiện nút Lưu
+    const btnSave = document.getElementById('btn-save-transcript');
+    if (btnSave) {
+        // Clone node để xóa event cũ (nếu có)
+        const newBtnSave = btnSave.cloneNode(true);
+        btnSave.parentNode.replaceChild(newBtnSave, btnSave);
+        newBtnSave.addEventListener('click', handleSaveTranscript);
+    }
+
+    // 3. Gán sự kiện nút Hủy
+    const btnCancel = document.getElementById('btn-cancel-transcript');
+    if (btnCancel) {
+        btnCancel.addEventListener('click', () => {
+            resetTranscriptForm();
+        });
+    }
+};
+
+const handleSaveTranscript = async () => {
+    const id = document.getElementById('transcript-id').value;
+    const code = document.getElementById('subject-code').value.trim();
+    const name = document.getElementById('subject-name').value.trim();
+    const credits = parseInt(document.getElementById('subject-credits').value);
+    const score10 = parseFloat(document.getElementById('subject-score').value);
+    const term = document.getElementById('subject-term').value.trim();
+    const type = document.getElementById('subject-type').value;
+
+    if (!code || !name || isNaN(credits) || isNaN(score10)) {
+        return showNotification("Vui lòng nhập đủ thông tin!", "error");
+    }
+
+    // Tính toán điểm quy đổi
+    const gradeInfo = getGradeDetails(score10);
+
+    const data = {
+        id: id || generateID('trans'),
+        code, name, credits, score10, term, type,
+        scale4: gradeInfo.scale4,
+        charGrade: gradeInfo.char,
+        updatedAt: new Date().toISOString()
+    };
+
+    const btnSave = document.getElementById('btn-save-transcript');
+    btnSave.textContent = "Đang lưu...";
+    btnSave.disabled = true;
+
+    try {
+        if (id) {
+            // Update
+            await updateSubCollectionDoc(currentUser.uid, 'academic_transcripts', id, data);
+            // Update local cache
+            const index = globalTranscripts.findIndex(t => t.id === id);
+            if (index > -1) globalTranscripts[index] = data;
+            showNotification("Cập nhật điểm thành công!");
+        } else {
+            // Add new
+            await addSubCollectionDoc(currentUser.uid, 'academic_transcripts', data);
+            globalTranscripts.push(data);
+            showNotification("Thêm môn học thành công!");
+        }
+
+        renderTranscriptsTable();
+        updateGPASummary();
+        resetTranscriptForm();
+
+    } catch (e) {
+        console.error(e);
+        showNotification("Lỗi lưu điểm: " + e.message, "error");
+    } finally {
+        btnSave.textContent = id ? "Cập nhật" : "Lưu điểm";
+        btnSave.disabled = false;
+    }
+};
+
+const resetTranscriptForm = () => {
+    document.getElementById('transcript-id').value = '';
+    document.getElementById('subject-code').value = '';
+    document.getElementById('subject-name').value = '';
+    document.getElementById('subject-credits').value = '3';
+    document.getElementById('subject-score').value = '';
+    
+    document.getElementById('btn-save-transcript').textContent = "Lưu điểm";
+    document.getElementById('btn-cancel-transcript').style.display = 'none';
+};
+
+const renderTranscriptsTable = () => {
+    const tbody = document.getElementById('transcripts-list-body');
+    if (!tbody) return;
+    tbody.innerHTML = '';
+
+    // Sắp xếp theo học kỳ (đơn giản) hoặc tên môn
+    globalTranscripts.sort((a, b) => a.term.localeCompare(b.term));
+
+    globalTranscripts.forEach(t => {
+        const gradeInfo = getGradeDetails(t.score10); // Lấy lại màu sắc/rank nếu cần
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+            <td><b>${escapeHTML(t.code)}</b></td>
+            <td>${escapeHTML(t.name)} <div style="font-size:0.8rem; color:#666;">${t.term}</div></td>
+            <td style="text-align:center;">${t.credits}</td>
+            <td style="text-align:center; font-weight:bold;">${t.score10}</td>
+            <td style="text-align:center;">${t.scale4}</td>
+            <td style="text-align:center;"><span style="background:${getBadgeColor(gradeInfo.char)}; color:white; padding:2px 8px; border-radius:10px; font-size:0.8rem;">${gradeInfo.char}</span></td>
+            <td>
+                <button class="btn-edit-trans" style="border:none; background:none; cursor:pointer;">✏️</button>
+                <button class="btn-del-trans" style="border:none; background:none; cursor:pointer; color:red;">🗑️</button>
+            </td>
+        `;
+
+        tr.querySelector('.btn-edit-trans').onclick = () => loadTranscriptToEdit(t);
+        tr.querySelector('.btn-del-trans').onclick = () => handleDeleteTranscript(t.id);
+        tbody.appendChild(tr);
+    });
+};
+
+const getBadgeColor = (char) => {
+    if (char.startsWith('A')) return '#28a745'; // Green
+    if (char.startsWith('B')) return '#17a2b8'; // Cyan
+    if (char.startsWith('C')) return '#ffc107'; // Yellow
+    if (char.startsWith('D')) return '#fd7e14'; // Orange
+    return '#dc3545'; // Red (F)
+};
+
+const loadTranscriptToEdit = (t) => {
+    document.getElementById('transcript-id').value = t.id;
+    document.getElementById('subject-code').value = t.code;
+    document.getElementById('subject-name').value = t.name;
+    document.getElementById('subject-credits').value = t.credits;
+    document.getElementById('subject-score').value = t.score10;
+    document.getElementById('subject-term').value = t.term;
+    document.getElementById('subject-type').value = t.type;
+
+    document.getElementById('btn-save-transcript').textContent = "Cập nhật";
+    document.getElementById('btn-cancel-transcript').style.display = 'inline-block';
+    
+    // Scroll to form
+    document.querySelector('#academic-transcripts .form-container').scrollIntoView({ behavior: 'smooth' });
+};
+
+const handleDeleteTranscript = async (id) => {
+    if (!confirm("Xóa môn học này khỏi bảng điểm?")) return;
+    
+    try {
+        await deleteSubCollectionDoc(currentUser.uid, 'academic_transcripts', id);
+        globalTranscripts = globalTranscripts.filter(t => t.id !== id);
+        renderTranscriptsTable();
+        updateGPASummary();
+        showNotification("Đã xóa môn học", "success");
+    } catch (e) {
+        showNotification("Lỗi xóa: " + e.message, "error");
+    }
+};
+
+const updateGPASummary = () => {
+    let totalCredits = 0;
+    let totalPoints4 = 0;
+    
+    // Tính toán GPA Tích lũy (Tính hết tất cả các môn)
+    // Lưu ý: Logic thực tế có thể phức tạp hơn (môn rớt không tính, học cải thiện...), ở đây tính đơn giản trung bình cộng.
+    globalTranscripts.forEach(t => {
+        // Chỉ tính môn có điểm số (bỏ qua môn Miễn/Đạt nếu có logic đó sau này)
+        const cred = parseInt(t.credits);
+        totalCredits += cred;
+        totalPoints4 += (parseFloat(t.scale4) * cred);
+    });
+
+    const gpaAccumulated = totalCredits > 0 ? (totalPoints4 / totalCredits).toFixed(2) : "0.00";
+
+    document.getElementById('gpa-accumulated').textContent = gpaAccumulated;
+    document.getElementById('total-credits').textContent = totalCredits;
+    
+    // GPA Học kỳ gần nhất (Demo: Lấy học kỳ của môn cuối cùng được nhập)
+    if (globalTranscripts.length > 0) {
+        // Tìm học kỳ mới nhất (dựa trên string compare hoặc logic date nếu có)
+        // Ở đây lấy học kỳ của item cuối trong mảng (mới nhập/load sau cùng)
+        const lastTerm = globalTranscripts[globalTranscripts.length - 1].term;
+        
+        let termCredits = 0;
+        let termPoints4 = 0;
+        
+        globalTranscripts.filter(t => t.term === lastTerm).forEach(t => {
+            const cred = parseInt(t.credits);
+            termCredits += cred;
+            termPoints4 += (parseFloat(t.scale4) * cred);
+        });
+        
+        const gpaTerm = termCredits > 0 ? (termPoints4 / termCredits).toFixed(2) : "0.00";
+        document.getElementById('gpa-term').textContent = gpaTerm;
+    }
+};
+
+
+// ============================================================
+// 3. POMODORO MODULE
 // ============================================================
 const startTimer = () => {
     if (isRunning) return;
@@ -470,7 +455,7 @@ const updateTimerDisplay = (seconds = timeLeft) => {
 };
 
 // ============================================================
-// 3. SV5T MODULE (SINH VIÊN 5 TỐT)
+// 4. SV5T MODULE
 // ============================================================
 const renderSV5TBoard = () => {
     const container = document.getElementById('sv5t-board-container');
@@ -531,7 +516,6 @@ const renderSV5TBoard = () => {
 
         board.appendChild(col);
 
-        // Check level completion status
         let isCurrentLevelDone = true;
         ['ethics', 'study', 'physical', 'volunteer', 'integration'].forEach(t => {
             if (globalData.studentJourney[`${levelKey}_${t}`] !== true) isCurrentLevelDone = false;
@@ -564,10 +548,7 @@ window.openSV5TPanel = (level, type, criteriaInfo) => {
     const key = `${level}_${type}`;
     const isDone = globalData.studentJourney[key] === true;
 
-    // Render mô tả từ cấu trúc dữ liệu phức tạp
     let descriptionHTML = '<div style="display:flex; flex-direction:column; gap:10px;">';
-    
-    // 1. Hiển thị Required (Bắt buộc)
     if (criteriaInfo.required && criteriaInfo.required.length > 0) {
         descriptionHTML += `<div><strong style="color:#d32f2f;">🔴 Tiêu chuẩn bắt buộc:</strong><ul style="margin:5px 0 0 20px; padding:0;">`;
         criteriaInfo.required.forEach(req => {
@@ -575,8 +556,6 @@ window.openSV5TPanel = (level, type, criteriaInfo) => {
         });
         descriptionHTML += `</ul></div>`;
     }
-
-    // 2. Hiển thị Optional Groups (Tự chọn)
     if (criteriaInfo.optionalGroups && criteriaInfo.optionalGroups.length > 0) {
         criteriaInfo.optionalGroups.forEach(group => {
             descriptionHTML += `<div><strong style="color:#0288d1;">🔵 ${group.description || 'Tiêu chuẩn tự chọn:'}</strong><ul style="margin:5px 0 0 20px; padding:0;">`;
@@ -692,7 +671,7 @@ window.deleteProof = async (id, key) => {
 };
 
 // ============================================================
-// 4. LIBRARY MODULE (THƯ VIỆN SỐ)
+// 5. LIBRARY MODULE
 // ============================================================
 const renderLibrary = () => {
     const grid = document.getElementById('library-grid');
@@ -739,7 +718,6 @@ const renderLibrary = () => {
 const setupLibraryEvents = () => {
     const btnAdd = document.getElementById('btn-add-document');
     if(btnAdd) {
-        // Clone nút để xóa sự kiện cũ
         const newBtn = btnAdd.cloneNode(true);
         btnAdd.parentNode.replaceChild(newBtn, btnAdd);
         
@@ -853,12 +831,11 @@ window.deleteDoc = async (id) => {
 };
 
 // ============================================================
-// 5. ACHIEVEMENTS MODULE (THÀNH TÍCH)
+// 6. ACHIEVEMENTS MODULE
 // ============================================================
 const setupAchievementEvents = () => {
     const btnAdd = document.getElementById('btn-add-achievement');
     if(btnAdd) {
-        // Dùng cloneNode để xóa sạch sự kiện cũ, tránh lỗi bấm 1 lần mở 2 modal
         const newBtn = btnAdd.cloneNode(true);
         btnAdd.parentNode.replaceChild(newBtn, btnAdd);
         
@@ -891,13 +868,8 @@ const renderAchievements = () => {
     const container = document.getElementById('achievements-grid');
     if (!container) return;
     container.innerHTML = '';
-
     const achievements = globalData.achievements || [];
-    
-    if (achievements.length === 0) {
-        // Có thể hiện empty state nếu muốn
-        return;
-    }
+    if (achievements.length === 0) return;
 
     achievements.forEach(ach => {
         const div = document.createElement('div');
@@ -922,16 +894,11 @@ const openEditAchievement = (ach) => {
     document.getElementById('achievement-title').value = ach.name || ach.title;
     document.getElementById('achievement-date').value = ach.date;
     document.getElementById('achievement-description').value = ach.description || '';
-    
-    // Load loại & link
     document.getElementById('achievement-category').value = ach.category || 'other';
     document.getElementById('achievement-drive-link').value = ach.imageUrl || '';
-    // Load checkbox
     document.getElementById('achievement-featured').checked = ach.isFeatured || false;
-    
     const btnDel = document.getElementById('btn-delete-achievement');
     if(btnDel) btnDel.style.display = 'inline-block';
-    
     openModal('achievement-modal');
 };
 
@@ -946,17 +913,12 @@ const handleSaveAchievement = async () => {
 
     if (!title) return showNotification('Vui lòng nhập tên thành tích!', 'error');
 
-    // Xử lý link ảnh (nếu có hàm convertDriveLink thì dùng, ko thì để nguyên)
-    // import { convertDriveLink } from './common.js' đã có ở trên
-    // Nếu trong common.js chưa export hàm này thì dùng rawLink
     let finalImgUrl = rawLink; 
-    // Giả sử common.js có hàm convertDriveLink như trong file common.js mẫu
-    // finalImgUrl = convertDriveLink(rawLink); 
 
     const newAch = {
         id: id || generateID('ach'),
-        name: title, // Lưu thống nhất là name
-        title: title, // Backup trường hợp code cũ dùng title
+        name: title,
+        title: title,
         date: date,
         description: desc,
         category: category,
@@ -985,9 +947,6 @@ const handleDeleteAchievementInModal = async () => {
 
     const index = globalData.achievements.findIndex(a => a.id === id);
     if (index > -1) {
-        const ach = globalData.achievements[index];
-        // Nếu có xóa file storage thì thêm logic ở đây
-        
         globalData.achievements.splice(index, 1);
         await saveUserData(currentUser.uid, { achievements: globalData.achievements });
         renderAchievements();
@@ -997,7 +956,7 @@ const handleDeleteAchievementInModal = async () => {
 };
 
 // ============================================================
-// 6. DRAFTS & QUILL MODULE (NHÁP & EDITOR)
+// 7. DRAFTS & QUILL MODULE
 // ============================================================
 const initQuillEditor = () => {
     if (document.getElementById('editor-container') && !quillEditor) {
@@ -1115,7 +1074,7 @@ const autoSaveDraft = () => {
 };
 
 // ============================================================
-// 7. OUTLINE MODULE (DÀN Ý)
+// 8. OUTLINE MODULE
 // ============================================================
 const renderOutlineList = () => {
     const container = document.getElementById('outline-list-container');
