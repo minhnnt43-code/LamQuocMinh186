@@ -1,3 +1,4 @@
+
 // --- FILE: js/portfolio.js ---
 
 // 1. IMPORT FIREBASE
@@ -21,29 +22,30 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-// ==================================================================
-// 3. XÁC ĐỊNH CHỦ NHÂN (UID)
-// ==================================================================
-// Ưu tiên lấy UID từ URL (?uid=...), nếu không có thì dùng UID mặc định để test
+// 3. BIẾN TOÀN CỤC
 const urlParams = new URLSearchParams(window.location.search);
-const DEFAULT_UID = "5a6YielwJJYFwB2DyFfUB9DVQXR2"; // Thay bằng UID chính của bạn
+
+// --- [QUAN TRỌNG] THAY UID CỦA BẠN VÀO DÒNG DƯỚI ĐÂY ---
+const DEFAULT_UID = "5a6YielwJJYFwB2DyFfUB9DVQXR2"; 
+// -------------------------------------------------------
+
 const OWNER_UID = urlParams.get('uid') || DEFAULT_UID;
 
-console.log("Đang tải Portfolio của:", OWNER_UID);
+let publicData = {
+    projects: [],
+    tasks: [],
+    events: [],
+    achievements: [],
+    timeline: [],
+    albums: []
+};
 
-// --- CÁC HÀM HỖ TRỢ ---
-function getMonday(d) {
-    d = new Date(d);
-    var day = d.getDay(), diff = d.getDate() - day + (day == 0 ? -6 : 1);
-    return new Date(d.setDate(diff));
-}
+let currentCalendarMonth = new Date();
+let selectedDateStr = new Date().toISOString().split('T')[0]; // Ngày đang chọn (Mặc định hôm nay)
+let currentLightboxPhotos = [];
+let currentLightboxIndex = 0;
 
-function getLocalDateString(date) {
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const day = String(date.getDate()).padStart(2, '0');
-    return `${year}-${month}-${day}`;
-}
+console.log("🚀 Đang tải Portfolio của:", OWNER_UID);
 
 function formatDateVN(dateString) {
     if (!dateString) return '';
@@ -51,198 +53,124 @@ function formatDateVN(dateString) {
     return `${d}/${m}/${y}`;
 }
 
-// 4. HÀM TẢI DỮ LIỆU CHÍNH (MAIN LOAD)
+// ==================================================================
+// 4. MAIN LOAD FUNCTION
+// ==================================================================
 async function loadOwnerPortfolio() {
     try {
-        // 1. Lấy thông tin User (Profile, Settings, Projects, Tasks)
         const docRef = doc(db, "users", OWNER_UID);
         const docSnap = await getDoc(docRef);
 
         if (docSnap.exists()) {
             const data = docSnap.data();
-
             renderHeader(data);
-            renderProjects(data.projects || []);
-            renderAchievements(data.achievements || []); // Logic Filter & Limit 5
-            renderSchedule(data.tasks || [], data.calendarEvents || []);
+            
+            publicData.projects = data.projects || [];
+            publicData.tasks = data.tasks || [];
+            publicData.events = data.calendarEvents || []; 
+            publicData.achievements = data.achievements || [];
+
+            renderProjects(publicData.projects);
+            renderAchievements(publicData.achievements);
+            
+            // Render lịch và chọn ngày hôm nay mặc định
+            renderPublicCalendar(currentCalendarMonth);
+            
+            // Gọi selectDate để cập nhật cột bên trái ngay khi load
+            // (Cần đợi DOM render xong lịch một chút nên dùng setTimeout 0 hoặc gọi thẳng)
+            setTimeout(() => {
+                 window.selectDate(selectedDateStr); 
+            }, 100);
+
         } else {
             document.querySelector('.hero-title').innerText = "Người dùng không tồn tại.";
+            // Ẩn các phần khác nếu không tìm thấy user
             document.querySelector('.hero-subtitle').style.display = "none";
         }
 
-        // 2. Lấy dữ liệu Collection con (Albums, Timeline)
-        renderAlbums();
-        renderTimeline();
+        loadSubCollections();
 
     } catch (error) {
-        console.error("Lỗi tải Portfolio:", error);
+        console.error("❌ Lỗi tải Portfolio:", error);
     }
 }
 
-// --- RENDER HEADER (INFO) ---
+async function loadSubCollections() {
+    try {
+        const albumQ = query(collection(db, `users/${OWNER_UID}/albums`), orderBy('createdAt', 'desc'));
+        const albumSnap = await getDocs(albumQ);
+        publicData.albums = albumSnap.docs.map(doc => doc.data());
+        renderAlbums(publicData.albums);
+
+        const timelineQ = query(collection(db, `users/${OWNER_UID}/timeline`), orderBy('order', 'asc'));
+        const timelineSnap = await getDocs(timelineQ);
+        publicData.timeline = timelineSnap.docs.map(doc => doc.data());
+        renderTimeline(publicData.timeline);
+    } catch (e) { console.error(e); }
+}
+
 function renderHeader(data) {
     const info = data.personalInfo || {};
     const settings = data.settings || {};
 
     document.getElementById('pf-name').textContent = info.fullName || "Người dùng";
-    document.getElementById('pf-email').textContent = info.email || "Chưa cập nhật";
+    document.getElementById('pf-email').textContent = info.email || "";
     
-    // Link email ở footer
-    const emailLink = document.querySelector('a[title="Email"]');
-    if(emailLink) emailLink.href = `mailto:${info.email}`;
-
     if (info.occupation) {
-        document.querySelector('.hero-subtitle').textContent =
-            `Chào mừng đến với không gian làm việc số của tôi. Hiện tôi đang là ${info.occupation}.`;
+        document.querySelector('.hero-subtitle').textContent = `Xin chào, tôi là ${info.fullName}. Hiện đang là ${info.occupation}.`;
     }
-
     if (settings.customAvatarUrl) {
         document.getElementById('pf-avatar').src = settings.customAvatarUrl;
     }
 
-    // Render Chips (Thẻ định danh)
     const chipsContainer = document.querySelector('.info-chips');
     if (chipsContainer) {
         let chipsHTML = '';
         if (info.school) chipsHTML += `<span class="chip-item">🎓 ${info.school}</span>`;
         if (info.award) chipsHTML += `<span class="chip-item">⭐ ${info.award}</span>`;
-        if (info.role) chipsHTML += `<span class="chip-item">💼 ${info.role}</span>`;
-        if (info.location) chipsHTML += `<span class="chip-item">📍 ${info.location}</span>`;
-
-        if (chipsHTML === '') chipsHTML = `<span class="chip-item">🎓 Hello World!</span>`;
         chipsContainer.innerHTML = chipsHTML;
     }
 }
 
-// --- FILE: js/portfolio.js (Thay thế hàm renderProjects cũ) ---
-
+// ==================================================================
+// 5. RENDER CÁC TAB CƠ BẢN
+// ==================================================================
 function renderProjects(projects) {
     const container = document.getElementById('pf-projects');
     if (!container) return;
-
-    // [QUAN TRỌNG] Reset style của container để tránh xung đột với HTML cũ
-    container.style.display = 'block'; 
     container.innerHTML = '';
 
-    console.log("Dữ liệu dự án tải về:", projects); // Xem log (F12) để chắc chắn có dữ liệu
-
-    if (!projects || projects.length === 0) {
-        container.innerHTML = '<div style="text-align:center; padding:40px; color:#999; background:#f9f9f9; border-radius:12px;">Chưa có dự án nào được hiển thị.</div>';
+    if (projects.length === 0) {
+        container.innerHTML = '<p style="text-align:center; color:#999;">Chưa cập nhật dự án.</p>';
         return;
     }
 
-    // 1. Gom nhóm theo NĂM (Có xử lý chống lỗi nếu thiếu ngày)
     const groups = {};
     projects.forEach(p => {
-        let year = 'Đang thực hiện';
-        
-        // Kiểm tra kỹ xem có ngày không rồi mới cắt chuỗi
-        if (p.endDate && typeof p.endDate === 'string' && p.endDate.includes('-')) {
-            year = `Năm ${p.endDate.split('-')[0]}`;
-        } else if (p.startDate && typeof p.startDate === 'string' && p.startDate.includes('-')) {
-            year = `Năm ${p.startDate.split('-')[0]}`;
-        }
-
+        let year = p.endDate ? p.endDate.split('-')[0] : (p.startDate ? p.startDate.split('-')[0] : 'Khác');
         if (!groups[year]) groups[year] = [];
         groups[year].push(p);
     });
 
-    // 2. Sắp xếp năm giảm dần (Mới nhất lên đầu)
-    const sortedYears = Object.keys(groups).sort().reverse();
-
-    // 3. Render ra màn hình
-    sortedYears.forEach(year => {
-        // A. Tạo tiêu đề Năm
-        const yearHeader = document.createElement('h3');
-        yearHeader.className = 'pf-year-label'; // Class này đã có trong CSS style.css
-        yearHeader.style.cssText = "color:#005B96; border-bottom: 2px dashed #FF7A00; padding-bottom:10px; margin: 40px 0 20px 0; font-size:1.5rem; font-weight:800;";
-        yearHeader.textContent = year;
-        container.appendChild(yearHeader);
-
-        // B. Tạo lưới chứa Card
+    Object.keys(groups).sort().reverse().forEach(year => {
+        container.innerHTML += `<h3 class="pf-year-label">Năm ${year}</h3>`;
         const grid = document.createElement('div');
-        grid.style.cssText = "display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 25px;";
-
+        grid.className = 'pf-year-grid';
         groups[year].forEach(p => {
-            const div = document.createElement('div');
-            // Style trực tiếp cho Card (để chắc chắn có viền)
-            div.className = 'pf-card';
-            div.innerHTML = `
-                <h3 style="margin-top:0; color:#333;">${p.name}</h3>
-                <p style="color:#666; font-size:0.9rem; line-height:1.5; flex-grow:1;">
-                    ${p.description || 'Chưa có mô tả.'}
-                </p>
-                <div class="pf-card-footer" style="margin-top:15px; padding-top:10px; border-top:1px dashed #eee; display:flex; justify-content:space-between; align-items:center;">
-                    <span style="font-size:0.8rem; background:#e3f2fd; color:#005B96; padding:4px 10px; border-radius:12px;">
-                        ${p.endDate ? '🏁 Hoàn thành: ' + formatDateVN(p.endDate) : '🔥 Đang thực hiện'}
-                    </span>
-                </div>
-            `;
-            grid.appendChild(div);
+            grid.innerHTML += `
+                <div class="pf-card">
+                    <h3 style="margin-top:0; color:#005B96;">${p.name}</h3>
+                    <p style="color:#666; font-size:0.95rem; flex-grow:1;">${p.description || ''}</p>
+                    <div class="pf-card-footer"><span style="font-size:0.8rem; background:#e3f2fd; color:#005B96; padding:4px 10px; border-radius:12px;">${p.endDate ? 'Hoàn thành' : 'Đang thực hiện'}</span></div>
+                </div>`;
         });
-
         container.appendChild(grid);
     });
 }
 
-// --- RENDER SCHEDULE (LỊCH) ---
-function renderSchedule(tasks, events) {
-    const container = document.getElementById('pf-calendar');
-    if (!container) return;
-    container.innerHTML = '';
-
-    const startOfWeek = getMonday(new Date());
-    const days = ['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7'];
-
-    for (let i = 0; i < 7; i++) {
-        const date = new Date(startOfWeek);
-        date.setDate(startOfWeek.getDate() + i);
-        const dateStr = getLocalDateString(date);
-
-        const dayTasks = tasks.filter(t => t.dueDate === dateStr && t.status !== 'Hoàn thành');
-        const dayEvents = events.filter(e => e.date === dateStr);
-        const hasItems = dayTasks.length > 0 || dayEvents.length > 0;
-
-        let detailsHTML = '';
-        if (hasItems) {
-            detailsHTML += `<div style="text-align: left; font-size: 0.85rem; margin-top: 10px; max-height: 150px; overflow-y: auto;">`;
-            dayEvents.forEach(e => {
-                detailsHTML += `<div style="margin-bottom: 6px; color: #005B96; font-weight: 600; border-bottom: 1px dashed #eee; padding-bottom: 2px;">• ${e.title} <span style="font-size: 0.75rem;">(${e.startTime})</span></div>`;
-            });
-            dayTasks.forEach(t => {
-                detailsHTML += `<div style="margin-bottom: 4px; color: #333;">- ${t.name}</div>`;
-            });
-            detailsHTML += `</div>`;
-        } else {
-            detailsHTML = `<div style="color: #999; font-size: 0.8rem; margin-top: 20px; font-style: italic;">(Trống)</div>`;
-        }
-
-        const bg = hasItems ? '#fff' : '#f8f9fa';
-        const border = hasItems ? '2px solid #FF7A00' : '1px solid #e0e0e0';
-        const isToday = dateStr === getLocalDateString(new Date());
-        const todayStyle = isToday ? 'box-shadow: 0 0 15px rgba(0, 91, 150, 0.2); border-color: #005B96;' : '';
-
-        const html = `
-            <div class="day-slot" style="min-width: 160px; background: ${bg}; border: ${border}; border-radius: 12px; padding: 15px; display: flex; flex-direction: column; ${todayStyle}">
-                <div style="border-bottom: 1px solid #eee; padding-bottom: 8px; margin-bottom: 5px;">
-                    <div style="font-weight: bold; color: #005B96;">${days[date.getDay()]}</div>
-                    <div style="font-size: 0.8rem; color: #666;">${date.getDate()}/${date.getMonth() + 1}</div>
-                </div>
-                <div style="flex-grow: 1;">${detailsHTML}</div>
-            </div>
-        `;
-        container.innerHTML += html;
-    }
-}
-
-// ============================================================
-// [MỚI] RENDER THÀNH TÍCH (FILTER & LIMIT 5)
-// ============================================================
-let allAchievementsData = [];
-
 function renderAchievements(achievements) {
-    if (achievements) allAchievementsData = achievements;
-    filterAchievements('all');
+    window.allAchievementsData = achievements;
+    window.filterAchievements('all');
 }
 
 window.filterAchievements = (type) => {
@@ -250,389 +178,443 @@ window.filterAchievements = (type) => {
     if (!container) return;
     container.innerHTML = '';
 
-    // Active button style
     document.querySelectorAll('.ach-filter-btn').forEach(btn => {
         btn.classList.remove('active');
-        if (btn.getAttribute('onclick').includes(`'${type}'`)) {
-            btn.classList.add('active');
-        }
+        if (btn.getAttribute('onclick').includes(type)) btn.classList.add('active');
     });
 
-    // Filter Logic
-    let filtered = (type === 'all') ? allAchievementsData : allAchievementsData.filter(a => a.category === type);
-
-    if (!filtered || filtered.length === 0) {
-        container.innerHTML = '<p style="text-align:center; color:#999; width:100%; padding: 20px;">Chưa có mục nào.</p>';
+    let filtered = (type === 'all') ? window.allAchievementsData : window.allAchievementsData.filter(a => a.category === type);
+    
+    if (filtered.length === 0) {
+        container.innerHTML = '<p style="text-align:center; padding:20px; color:#999">Chưa có dữ liệu.</p>';
         return;
     }
 
-    // Sort: Featured first -> Date Desc
-    filtered.sort((a, b) => {
-        if (a.isFeatured && !b.isFeatured) return -1;
-        if (!a.isFeatured && b.isFeatured) return 1;
-        return new Date(b.date) - new Date(a.date);
-    });
-
-    // Group by Year
-    const groups = {};
+    const grid = document.createElement('div');
+    grid.style.cssText = 'display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px;';
     filtered.forEach(ach => {
-        const year = ach.date ? ach.date.split('-')[0] : 'Khác';
-        if (!groups[year]) groups[year] = [];
-        groups[year].push(ach);
-    });
-
-    const years = Object.keys(groups).sort((a, b) => b - a);
-
-    years.forEach(year => {
-        // Tiêu đề Năm
-        const yearBlock = document.createElement('div');
-        yearBlock.innerHTML = `<div class="ach-year-label">Năm ${year}</div>`;
-        container.appendChild(yearBlock);
-
-        const items = groups[year];
-        const limitCount = 5; // LIMIT 5
-        const hiddenItems = [];
-
-        const listWrapper = document.createElement('div');
-        listWrapper.className = 'ach-year-list';
-
-        items.forEach((ach, index) => {
-            let tagLabel = 'Khác', tagClass = 'other';
-            if (ach.category === 'academic') { tagLabel = 'Học thuật'; tagClass = 'academic'; }
-            else if (ach.category === 'social') { tagLabel = 'Đoàn - Hội'; tagClass = 'social'; }
-            else if (ach.category === 'award') { tagLabel = 'Khen thưởng'; tagClass = 'award'; }
-
-            const pinIcon = ach.isFeatured ? '<span style="margin-left:5px; font-size:0.9rem;" title="Nổi bật">📌</span>' : '';
-
-            const itemDiv = document.createElement('div');
-            itemDiv.className = 'ach-item';
-            // Thêm sự kiện click để xem ảnh nếu có
-            if (ach.imageUrl) {
-                itemDiv.style.cursor = "pointer";
-                itemDiv.onclick = () => openLightbox([{ url: ach.imageUrl, caption: ach.name }], 0);
-            }
-
-            itemDiv.innerHTML = `
-                <div class="ach-image">
-                    ${ach.imageUrl ? `<img src="${ach.imageUrl}" loading="lazy">` : '<span>🏆</span>'}
+        const imgHtml = ach.imageUrl ? `<div style="height:150px; overflow:hidden;"><img src="${ach.imageUrl}" style="width:100%; height:100%; object-fit:cover;"></div>` : '';
+        grid.innerHTML += `
+            <div class="pf-card" style="padding:0; overflow:hidden; cursor:pointer;" onclick="window.openLightbox([{url:'${ach.imageUrl}', caption:'${ach.name}'}], 0)">
+                ${imgHtml}
+                <div style="padding:20px;">
+                    <h3 style="font-size:1.1rem; margin-top:0; color:#005B96;">${ach.name}</h3>
+                    <p style="font-size:0.9rem; color:#666;">${formatDateVN(ach.date)}</p>
                 </div>
-                <div class="ach-info">
-                    <div class="ach-meta">
-                        <span class="ach-tag ${tagClass}">${tagLabel}</span>
-                        <span class="ach-date">${formatDateVN(ach.date)}</span>
-                        ${pinIcon}
-                    </div>
-                    <h3 class="ach-name">${ach.name}</h3>
-                    <p class="ach-desc">${ach.description || ''}</p>
-                </div>
-            `;
-
-            if (index >= limitCount) {
-                itemDiv.style.display = 'none';
-                hiddenItems.push(itemDiv);
-            }
-            listWrapper.appendChild(itemDiv);
-        });
-
-        container.appendChild(listWrapper);
-
-        // Nút Xem thêm
-        if (hiddenItems.length > 0) {
-            const moreBtn = document.createElement('button');
-            moreBtn.className = 'ach-show-more-btn';
-            moreBtn.innerHTML = `Xem thêm ${hiddenItems.length} hoạt động khác trong năm ${year} ↓`;
-            moreBtn.onclick = () => {
-                hiddenItems.forEach(el => { el.style.display = 'flex'; el.style.animation = 'fadeIn 0.5s'; });
-                moreBtn.style.display = 'none';
-            };
-            container.appendChild(moreBtn);
-        }
+            </div>`;
     });
+    container.appendChild(grid);
 };
 
-// ============================================================
-// [CẬP NHẬT] RENDER ALBUM (HIỆN ẢNH BÌA ĐẸP)
-// ============================================================
-async function renderAlbums() {
-    const container = document.getElementById('pf-album-shelf');
-    if (!container) return;
-
-    try {
-        const q = query(collection(db, `users/${OWNER_UID}/albums`), orderBy('createdAt', 'desc'));
-        const snapshot = await getDocs(q);
-
-        container.innerHTML = '';
-        if (snapshot.empty) {
-            container.innerHTML = '<p style="grid-column:1/-1; text-align:center; color:#999">Chưa có album ảnh nào.</p>';
-            return;
-        }
-
-        snapshot.forEach(docShot => {
-            const album = docShot.data();
-            const photos = album.photos || [];
-            
-            // Nếu không có ảnh bìa thì dùng ảnh mặc định
-            const coverUrl = album.cover || 'https://placehold.co/600x400?text=Album';
-
-            const div = document.createElement('div');
-            div.className = 'album-card';
-            
-            // Style Card có ảnh bìa
-            div.style.cssText = `
-                background: #fff; 
-                border-radius: 12px; 
-                box-shadow: 0 4px 10px rgba(0,0,0,0.1); 
-                cursor: pointer; 
-                transition: 0.3s; 
-                overflow: hidden; /* Để bo tròn ảnh */
-                border: 1px solid #eee;
-                display: flex;
-                flex-direction: column;
-            `;
-
-            div.innerHTML = `
-                <div style="height: 200px; overflow: hidden; background: #f0f0f0; position: relative;">
-                    <img src="${coverUrl}" 
-                         style="width: 100%; height: 100%; object-fit: cover; transition: transform 0.5s;"
-                         onerror="this.src='https://placehold.co/600x400?text=No+Image'" 
-                         alt="${album.title}">
-                </div>
-                <div style="padding: 15px;">
-                    <div style="font-weight: bold; color: #005B96; font-size: 1.1rem; margin-bottom: 5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
-                        ${album.title}
-                    </div>
-                    <div style="font-size: 0.85rem; color: #666; display: flex; justify-content: space-between;">
-                        <span>📸 ${photos.length} ảnh</span>
-                        <span style="color: #FF7A00;">Xem ngay ➜</span>
-                    </div>
-                </div>
-            `;
-            
-            // Hiệu ứng Hover: Phóng to ảnh nhẹ
-            div.onmouseover = () => { 
-                div.style.transform = "translateY(-5px)"; 
-                div.style.boxShadow = "0 10px 20px rgba(0,0,0,0.15)";
-                div.querySelector('img').style.transform = "scale(1.1)";
-            };
-            div.onmouseout = () => { 
-                div.style.transform = "translateY(0)"; 
-                div.style.boxShadow = "0 4px 10px rgba(0,0,0,0.1)";
-                div.querySelector('img').style.transform = "scale(1)";
-            };
-
-            // Click để mở Lightbox
-            div.onclick = () => {
-                if (photos.length > 0) openLightbox(photos, 0);
-                else alert("Album này chưa có ảnh!");
-            };
-            container.appendChild(div);
-        });
-    } catch (e) {
-        console.log("Lỗi tải album:", e);
-    }
-}
-
-// ============================================================
-// [CẬP NHẬT] RENDER TIMELINE (THEO THỨ TỰ KÉO THẢ ADMIN)
-// ============================================================
-async function renderTimeline() {
+function renderTimeline(timeline) {
     const container = document.getElementById('pf-timeline');
     if (!container) return;
+    container.innerHTML = '';
 
-    try {
-        // Lấy dữ liệu và sắp xếp theo trường 'order' tăng dần (0, 1, 2...)
-        // Nghĩa là cái nào bạn xếp trên cùng ở Admin (số 0) sẽ hiện đầu tiên.
-        const q = query(collection(db, `users/${OWNER_UID}/timeline`), orderBy('order', 'asc'));
-        const snapshot = await getDocs(q);
+    if(!timeline || timeline.length === 0) {
+        container.innerHTML = '<p style="text-align:center; color:#999;">Chưa cập nhật lộ trình.</p>';
+        return;
+    }
 
-        container.innerHTML = '';
+    timeline.forEach((item, index) => {
+        const pos = index % 2 === 0 ? 'left' : 'right';
         
-        if (snapshot.empty) {
-            container.innerHTML = '<p style="text-align:center; color:#999; padding:20px;">Lộ trình đang được cập nhật...</p>';
-            return;
-        }
+        // 1. Xử lý Logo
+        const logoHtml = item.logo ? `<img src="${item.logo}" class="tl-logo" alt="Logo" onerror="this.style.display='none'">` : '';
 
-        let index = 0;
-        snapshot.forEach(docShot => {
-            const item = docShot.data();
-            
-            // Vị trí Zíc-zắc
-            const positionClass = index % 2 === 0 ? 'left' : 'right';
-            
-            let tagClass = 'academic';
-            let tagLabel = 'Học tập';
-            if (item.type === 'work') { tagClass = 'work'; tagLabel = 'Công việc'; }
-            if (item.type === 'activity') { tagClass = 'activity'; tagLabel = 'Hoạt động'; }
+        // 2. Xử lý Màu sắc & Nhãn (Tag) - ĐÃ THÊM LẠI
+        let tagClass = 'academic';
+        let tagLabel = 'Học tập';
+        if (item.type === 'work') { tagClass = 'work'; tagLabel = 'Công việc'; }
+        if (item.type === 'activity') { tagClass = 'activity'; tagLabel = 'Hoạt động'; }
 
-            const div = document.createElement('div');
-            div.className = `timeline-node ${positionClass}`;
-            
-            const logoHtml = item.logo ? `<img src="${item.logo}" class="tl-logo" alt="Logo">` : '';
-
-            div.innerHTML = `
+        container.innerHTML += `
+            <div class="timeline-node ${pos}">
                 <div class="timeline-content">
-                    <span class="tl-time">${item.time}</span>
-                    <span class="tl-tag ${tagClass}">${tagLabel}</span>
-                    ${logoHtml}
-                    <h3 class="tl-title">${item.title}</h3>
-                    <h4 class="tl-role">${item.role}</h4>
-                    <p class="tl-desc">${item.description}</p>
+                    <div style="display:flex; justify-content:space-between; align-items:start;">
+                        ${logoHtml}
+                        <span class="tl-tag ${tagClass}">${tagLabel}</span>
+                    </div>
+                    
+                    <span style="font-size:0.85rem; font-weight:bold; color:#999; display:block; margin-bottom:5px;">${item.time}</span>
+                    
+                    <h3 style="margin:5px 0; color:#005B96;">${item.title}</h3>
+                    <h4 style="margin:0 0 10px; color:#333; font-size:1rem;">${item.role}</h4>
+                    <p style="font-size:0.9rem; color:#555; line-height:1.5;">${item.description || ''}</p>
                 </div>
-            `;
-            container.appendChild(div);
-            index++;
-        });
+            </div>
+        `;
+    });
+}
 
-    } catch (e) {
-        console.error("Lỗi tải Timeline:", e);
+function renderAlbums(albums) {
+    const container = document.getElementById('pf-album-shelf');
+    if (!container) return;
+    container.innerHTML = '';
+    albums.forEach(album => {
+        const div = document.createElement('div');
+        div.className = 'album-card';
+        div.innerHTML = `
+            <div style="height:200px; overflow:hidden;"><img src="${album.cover}" class="album-cover" onerror="this.src='https://placehold.co/600x400'"></div>
+            <div class="album-info"><div class="album-title">${album.title}</div></div>`;
+        div.onclick = () => { if (album.photos?.length) window.openLightbox(album.photos, 0); };
+        container.appendChild(div);
+    });
+}
+
+// ==================================================================
+// 6. CALENDAR (LOGIC MỚI: CHỌN NGÀY -> XEM CHI TIẾT -> ĐẶT HẸN)
+// ==================================================================
+
+// --- Render danh sách tháng (3 tháng trước -> 8 tháng sau) ---
+function renderMonthSelector() {
+    const container = document.getElementById('month-selector');
+    if (!container) return;
+    container.innerHTML = '';
+
+    const today = new Date();
+    // Vòng lặp từ -3 (3 tháng trước) đến +8 (8 tháng sau)
+    for (let i = -3; i <= 8; i++) {
+        const tempDate = new Date(today.getFullYear(), today.getMonth() + i, 1);
+        
+        const btn = document.createElement('button');
+        
+        const isSelected = tempDate.getMonth() === currentCalendarMonth.getMonth() && 
+                           tempDate.getFullYear() === currentCalendarMonth.getFullYear();
+
+        btn.className = `month-btn ${isSelected ? 'active' : ''}`;
+        
+        const monthStr = String(tempDate.getMonth() + 1).padStart(2, '0');
+        const yearStr = String(tempDate.getFullYear()).slice(-2);
+        btn.textContent = `Thg ${monthStr}/${yearStr}`;
+
+        btn.onclick = () => {
+            currentCalendarMonth = new Date(tempDate);
+            renderPublicCalendar(currentCalendarMonth);
+        };
+        container.appendChild(btn);
     }
 }
 
-// ============================================================
-// [MỚI] LIGHTBOX LOGIC (XEM ẢNH)
-// ============================================================
-let currentLightboxPhotos = [];
-let currentLightboxIndex = 0;
+// --- Render Lịch Chính ---
+function renderPublicCalendar(date) {
+    renderMonthSelector(); 
 
-function openLightbox(photos, index) {
-    currentLightboxPhotos = photos;
-    currentLightboxIndex = index;
+    const year = date.getFullYear();
+    const month = date.getMonth();
     
-    const modal = document.getElementById('lightbox-modal');
-    const img = document.getElementById('lightbox-img');
-    const caption = document.getElementById('lightbox-caption');
+    document.getElementById('calendar-month-title').textContent = `Tháng ${month + 1}/${year}`;
 
-    if(!modal || !img) return;
-
-    // Reset
-    img.src = "";
+    const monthStartStr = `${year}-${String(month + 1).padStart(2, '0')}`;
     
-    updateLightboxContent();
-    modal.style.display = 'flex';
+    const eventsInMonth = publicData.events.filter(e => e.date.startsWith(monthStartStr));
+    const tasksInMonth = publicData.tasks.filter(t => t.dueDate && t.dueDate.startsWith(monthStartStr));
+
+    // Render Grid Lịch
+    const grid = document.getElementById('pf-calendar-grid');
+    grid.innerHTML = '';
+    ['CN','T2','T3','T4','T5','T6','T7'].forEach(d => {
+        grid.innerHTML += `<div style="font-weight:bold; color:#999; padding:5px;">${d}</div>`;
+    });
+
+    const firstDay = new Date(year, month, 1).getDay();
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+    
+    const today = new Date();
+    today.setHours(0,0,0,0);
+
+    for(let i=0; i<firstDay; i++) grid.innerHTML += `<div></div>`;
+
+    for(let day=1; day<=daysInMonth; day++) {
+        const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+        
+        const currentDayObj = new Date(year, month, day);
+        const isPast = currentDayObj < today;
+
+        const hasEvent = eventsInMonth.some(e => e.date === dateStr);
+        const hasTask = tasksInMonth.some(t => t.dueDate === dateStr);
+        
+        let dotHtml = '';
+        if (hasEvent) dotHtml += `<span style="display:inline-block; width:6px; height:6px; background:#2980b9; border-radius:50%; margin:1px;"></span>`;
+        if (hasTask) dotHtml += `<span style="display:inline-block; width:6px; height:6px; background:#d35400; border-radius:50%; margin:1px;"></span>`;
+
+        const isTodayStr = today.toISOString().split('T')[0] === dateStr;
+        const isSelected = dateStr === selectedDateStr;
+
+        const bgStyle = isSelected ? '#fff5eb' : (isTodayStr ? '#fffbeb' : (isPast ? '#f9f9f9' : '#fff'));
+        const textStyle = isPast ? '#ccc' : (isTodayStr ? '#d35400' : '#333');
+        const borderStyle = isSelected ? '1px solid #FF7A00' : '1px solid #f0f0f0';
+
+        grid.innerHTML += `
+            <div style="height:60px; border:${borderStyle}; padding:5px; background:${bgStyle}; cursor:pointer; border-radius:4px;" 
+                 onclick="window.selectDate('${dateStr}')">
+                <span style="font-weight:${isTodayStr ? 'bold' : 'normal'}; color:${textStyle};">${day}</span>
+                <div style="display:flex; justify-content:center; margin-top:5px;">${dotHtml}</div>
+            </div>
+        `;
+    }
+}
+// --- HÀM TÍNH TOÁN MỨC ĐỘ BẬN RỘN ---
+function calculateBusyPercentage(dateStr) {
+    // Lọc các sự kiện trong ngày
+    const dayEvents = publicData.events.filter(e => e.date === dateStr);
+    
+    let totalBusyMinutes = 0;
+
+    dayEvents.forEach(e => {
+        if (e.startTime && e.endTime) {
+            const start = e.startTime.split(':').map(Number);
+            const end = e.endTime.split(':').map(Number);
+            
+            // Đổi ra phút (Giờ * 60 + Phút)
+            const startMin = start[0] * 60 + start[1];
+            const endMin = end[0] * 60 + end[1];
+            
+            let duration = endMin - startMin;
+            if (duration < 0) duration = 0; // Tránh lỗi âm
+            
+            totalBusyMinutes += duration;
+        } else {
+            // Nếu sự kiện không có giờ cụ thể, mặc định tính là 60 phút (1 tiếng)
+            totalBusyMinutes += 60;
+        }
+    });
+
+    // GIẢ ĐỊNH: Một ngày làm việc tiêu chuẩn là 10 TIẾNG (600 phút)
+    const WORK_DAY_MINUTES = 600; 
+    
+    // Tính phần trăm
+    let percentage = (totalBusyMinutes / WORK_DAY_MINUTES) * 100;
+    
+    return percentage; // Trả về số % (ví dụ: 85)
+}
+// --- HÀM CHỌN NGÀY & KIỂM TRA QUÁ KHỨ/BẬN RỘN ---
+window.selectDate = (dateStr) => {
+    selectedDateStr = dateStr;
+    
+    const selectedDate = new Date(dateStr);
+    const today = new Date();
+    today.setHours(0,0,0,0);
+    
+    const isPast = selectedDate.getTime() < today.getTime();
+
+    // Tính độ bận rộn
+    const busyPercent = calculateBusyPercentage(dateStr);
+    const isOverloaded = busyPercent >= 80; // Ngưỡng 80%
+
+    renderPublicCalendar(currentCalendarMonth); 
+
+    const focusList = document.getElementById('focus-list');
+    focusList.innerHTML = '';
+
+    const events = publicData.events.filter(e => e.date === dateStr);
+    const tasks = publicData.tasks.filter(t => t.dueDate === dateStr);
+    const [y, m, d] = dateStr.split('-');
+    const displayDate = `${d}/${m}/${y}`;
+
+    // Tiêu đề + Badge cảnh báo nếu bận
+    let statusHtml = '';
+    if (isOverloaded) statusHtml = `<span style="font-size:0.8rem; color:red; background:#ffe6e6; padding:2px 8px; border-radius:4px; margin-left:5px;">🔥 Rất bận (${Math.round(busyPercent)}%)</span>`;
+    
+    focusList.innerHTML = `<h4 style="margin:0 0 10px 0; color:#333;">📅 Lịch ngày ${displayDate}: ${statusHtml}</h4>`;
+
+    if (events.length === 0 && tasks.length === 0) {
+        if (isPast) {
+            focusList.innerHTML += '<p style="color:#999; font-style:italic;">Ngày này đã trôi qua.</p>';
+        } else {
+            focusList.innerHTML += '<p style="color:#28a745; font-style:italic;">✅ Ngày này đang trống. Rất thích hợp để hẹn!</p>';
+        }
+    } else {
+        events.forEach(e => {
+            focusList.innerHTML += `
+                <div class="focus-item" style="border-left:3px solid #2980b9; padding-left:10px;">
+                    <div style="font-weight:bold;">${e.startTime || 'Cả ngày'} - ${e.endTime || ''}</div>
+                    <div style="color:#666;">${e.title}</div>
+                </div>`;
+        });
+        tasks.forEach(t => {
+            focusList.innerHTML += `
+                <div class="focus-item" style="border-left:3px solid #d35400; padding-left:10px;">
+                    <div style="font-weight:bold; color:#d35400;">Deadline quan trọng</div>
+                    <div style="color:#666;">${t.name}</div>
+                </div>`;
+        });
+    }
+
+    // --- XỬ LÝ NÚT ĐẶT HẸN ---
+    const btnAppt = document.querySelector('.focus-panel .btn-submit');
+    if(btnAppt) {
+        // Trường hợp 1: Ngày quá khứ
+        if (isPast) {
+            btnAppt.innerHTML = `⛔ Ngày đã qua`;
+            btnAppt.disabled = true;
+            btnAppt.style.opacity = '0.6';
+            btnAppt.style.cursor = 'not-allowed';
+            btnAppt.style.background = '#666';
+            btnAppt.onclick = null;
+        } 
+        // Trường hợp 2: Quá tải (>80%)
+        else if (isOverloaded) {
+            btnAppt.innerHTML = `⚠️ Lịch đã kín (${Math.round(busyPercent)}%) - Không nhận hẹn`;
+            btnAppt.disabled = true;
+            btnAppt.style.opacity = '0.8';
+            btnAppt.style.cursor = 'not-allowed';
+            btnAppt.style.background = '#e74c3c'; // Màu đỏ cảnh báo
+            btnAppt.onclick = () => alert("Ngày này tôi đã quá bận, vui lòng chọn ngày khác!");
+        }
+        // Trường hợp 3: Trống lịch -> Cho phép
+        else {
+            btnAppt.innerHTML = `📅 Đặt hẹn vào ngày ${displayDate}`;
+            btnAppt.disabled = false;
+            btnAppt.removeAttribute('disabled');
+            btnAppt.style.opacity = '1';
+            btnAppt.style.cursor = 'pointer';
+            btnAppt.style.background = '#28a745';
+            btnAppt.onclick = () => window.openApptModal(dateStr);
+        }
+    }
 }
 
-function updateLightboxContent() {
-    const img = document.getElementById('lightbox-img');
-    const caption = document.getElementById('lightbox-caption');
-    
-    const photo = currentLightboxPhotos[currentLightboxIndex];
-    // photo có thể là string url hoặc object {url, caption}
-    const url = typeof photo === 'string' ? photo : photo.url;
-    const text = typeof photo === 'string' ? '' : photo.caption;
+// ==================================================================
+// 7. BOOKING SYSTEM & UTILS
+// ==================================================================
 
-    img.src = url;
-    if (caption) caption.textContent = text || `Ảnh ${currentLightboxIndex + 1} / ${currentLightboxPhotos.length}`;
+window.openApptModal = (dateStr) => {
+    if(dateStr) document.getElementById('appt-date').value = dateStr;
+    document.getElementById('appt-modal').style.display = 'flex';
+}
+window.closeApptModal = () => {
+    document.getElementById('appt-modal').style.display = 'none';
 }
 
-window.changeLightboxSlide = (offset) => {
-    let newIndex = currentLightboxIndex + offset;
-    if (newIndex < 0) newIndex = currentLightboxPhotos.length - 1;
-    if (newIndex >= currentLightboxPhotos.length) newIndex = 0;
+window.handleBookAppointment = async () => {
+    const name = document.getElementById('appt-name').value.trim();
+    const email = document.getElementById('appt-email').value.trim();
+    const date = document.getElementById('appt-date').value;
+    const time = document.getElementById('appt-time').value;
+    const reason = document.getElementById('appt-reason').value.trim();
+
+    if (!name || !email || !date || !time) return alert("Vui lòng nhập đủ thông tin!");
+
+    const btn = document.getElementById('btn-submit-appt');
+    btn.textContent = "Đang gửi...";
+    btn.disabled = true;
+
+    try {
+        await addDoc(collection(db, `users/${OWNER_UID}/appointment_requests`), {
+            guestName: name, guestEmail: email, date, time, reason,
+            status: 'pending', title: `Hẹn gặp: ${name}`,
+            createdAt: new Date().toISOString()
+        });
+        alert("✅ Đã gửi yêu cầu! Vui lòng chờ phản hồi qua email.");
+        window.closeApptModal();
+        document.getElementById('appt-name').value = '';
+        document.getElementById('appt-email').value = '';
+        document.getElementById('appt-reason').value = '';
+    } catch (e) {
+        alert("Lỗi: " + e.message);
+    } finally {
+        btn.textContent = "Gửi yêu cầu";
+        btn.disabled = false;
+    }
+}
+
+// Tab Switching
+window.switchTab = (tabId) => {
+    document.querySelectorAll('.pf-tab-content').forEach(el => el.classList.remove('active'));
+    document.querySelectorAll('.pf-tab-btn').forEach(el => el.classList.remove('active'));
+    document.getElementById(tabId).classList.add('active');
     
-    currentLightboxIndex = newIndex;
-    updateLightboxContent();
-};
+    const btns = document.querySelectorAll('.pf-tab-btn');
+    btns.forEach(btn => {
+        if(btn.getAttribute('onclick').includes(tabId)) btn.classList.add('active');
+    });
+    
+    if(window.scrollY > 300) document.querySelector('.pf-tabs').scrollIntoView({behavior: 'smooth'});
+}
 
-window.closeLightbox = () => {
-    document.getElementById('lightbox-modal').style.display = 'none';
-};
-
-// Đóng khi bấm ra ngoài ảnh
-document.getElementById('lightbox-modal')?.addEventListener('click', (e) => {
-    if (e.target.id === 'lightbox-modal') window.closeLightbox();
-});
-
-
-// ============================================================
-// MESSAGE BOARD (GUESTBOOK)
-// ============================================================
+// Guestbook
 function initMessageBoard() {
     const container = document.getElementById('message-wall');
     const btnSend = document.getElementById('btn-send-msg');
     if (!container || !btnSend) return;
 
     const q = query(collection(db, `users/${OWNER_UID}/public_messages`), orderBy('timestamp', 'desc'), limit(10));
-
     onSnapshot(q, (snapshot) => {
         container.innerHTML = '';
         if (snapshot.empty) {
-            container.innerHTML = '<p style="text-align:center; grid-column:1/-1; color:#999">Chưa có lời nhắn nào.</p>';
+            container.innerHTML = '<p style="color:#999; text-align:center;">Chưa có lời nhắn.</p>';
             return;
         }
-
         snapshot.forEach(doc => {
             const msg = doc.data();
-            const date = msg.timestamp ? new Date(msg.timestamp) : new Date();
-            const timeStr = `${date.getHours()}:${String(date.getMinutes()).padStart(2,'0')} - ${date.getDate()}/${date.getMonth() + 1}`;
-
             container.innerHTML += `
-                <div class="msg-card">
-                    <div class="msg-header">
-                        <strong>${msg.sender || 'Ẩn danh'}</strong>
-                        <span class="msg-time">${timeStr}</span>
-                    </div>
-                    <div class="msg-body">"${msg.content}"</div>
-                </div>
-            `;
+                <div style="background:#fff; padding:15px; border-radius:8px; border:1px solid #eee;">
+                    <div style="font-weight:bold; color:#005B96; margin-bottom:5px;">${msg.sender || 'Ẩn danh'}</div>
+                    <div style="color:#555;">"${msg.content}"</div>
+                </div>`;
         });
     });
 
     btnSend.addEventListener('click', async () => {
-        const nameInput = document.getElementById('guest-name');
-        const msgInput = document.getElementById('guest-msg');
-        const name = nameInput.value.trim() || 'Người bí ẩn';
-        const content = msgInput.value.trim();
-
-        if (!content) {
-            alert("Bạn chưa nhập lời nhắn!");
-            return;
-        }
-
-        const originalText = btnSend.innerText;
-        btnSend.innerText = "Đang gửi...";
-        btnSend.disabled = true;
-
-        try {
-            await addDoc(collection(db, `users/${OWNER_UID}/public_messages`), {
-                sender: name,
-                content: content,
-                timestamp: new Date().toISOString()
-            });
-
-            alert("Đã gửi lời nhắn thành công!");
-            msgInput.value = '';
-        } catch (error) {
-            console.error("Lỗi gửi tin:", error);
-            alert("Lỗi: Không thể gửi tin nhắn.");
-        } finally {
-            btnSend.innerText = originalText;
-            btnSend.disabled = false;
-        }
+        const name = document.getElementById('guest-name').value.trim() || 'Ẩn danh';
+        const content = document.getElementById('guest-msg').value.trim();
+        if (!content) return alert("Nhập nội dung!");
+        await addDoc(collection(db, `users/${OWNER_UID}/public_messages`), { sender: name, content, timestamp: new Date().toISOString() });
+        document.getElementById('guest-msg').value = '';
     });
 }
 
-// ============================================================
-// UTILS: QR & SCROLL
-// ============================================================
+// Lightbox & QR
 window.toggleQR = (show) => {
     const overlay = document.getElementById('qr-overlay');
-    if (overlay) overlay.style.display = show ? 'flex' : 'none';
+    if(overlay) overlay.style.display = show ? 'flex' : 'none';
 }
 
-const scrollBtn = document.getElementById('btn-scroll-top');
-if (scrollBtn) {
-    window.addEventListener('scroll', () => {
-        if (document.body.scrollTop > 300 || document.documentElement.scrollTop > 300) {
-            scrollBtn.classList.add('visible');
-        } else {
-            scrollBtn.classList.remove('visible');
-        }
-    });
-    scrollBtn.addEventListener('click', () => {
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-    });
+window.openLightbox = (photos, index) => {
+    currentLightboxPhotos = photos;
+    currentLightboxIndex = index;
+    const modal = document.getElementById('lightbox-modal');
+    const img = document.getElementById('lightbox-img');
+    const caption = document.getElementById('lightbox-caption');
+    
+    if(!modal || !img) return;
+    
+    const p = currentLightboxPhotos[currentLightboxIndex];
+    const url = typeof p === 'string' ? p : p.url;
+    const text = typeof p === 'string' ? '' : p.caption;
+
+    img.src = url;
+    if(caption) caption.textContent = text || `Ảnh ${currentLightboxIndex + 1}`;
+    modal.style.display = 'flex';
+}
+window.closeLightbox = () => document.getElementById('lightbox-modal').style.display = 'none';
+window.changeLightboxSlide = (n) => {
+    currentLightboxIndex = (currentLightboxIndex + n + currentLightboxPhotos.length) % currentLightboxPhotos.length;
+    window.openLightbox(currentLightboxPhotos, currentLightboxIndex);
 }
 
-// --- KHỞI CHẠY ---
-loadOwnerPortfolio();
-initMessageBoard();
+// --- INIT ---
+document.addEventListener('DOMContentLoaded', () => {
+    // Ẩn các modal mặc định
+    if(document.getElementById('qr-overlay')) document.getElementById('qr-overlay').style.display = 'none';
+    if(document.getElementById('lightbox-modal')) document.getElementById('lightbox-modal').style.display = 'none';
+    if(document.getElementById('appt-modal')) document.getElementById('appt-modal').style.display = 'none';
+
+    loadOwnerPortfolio();
+    initMessageBoard();
+    
+    const btnSubmit = document.getElementById('btn-submit-appt');
+    if(btnSubmit) {
+        const newBtn = btnSubmit.cloneNode(true);
+        btnSubmit.parentNode.replaceChild(newBtn, btnSubmit);
+        newBtn.addEventListener('click', handleBookAppointment);
+    }
+
+    const scrollBtn = document.getElementById('btn-scroll-top');
+    if(scrollBtn) {
+        window.addEventListener('scroll', () => {
+            scrollBtn.style.display = window.scrollY > 300 ? 'flex' : 'none';
+        });
+    }
+});
