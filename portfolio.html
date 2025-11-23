@@ -589,10 +589,204 @@
     line-height: 1.5;
     font-style: italic;
 }
+/* --- BỔ SUNG CSS CHO ALBUM TIMELINE & STORY --- */
+
+/* 1. Số Năm to bên trái (Timeline) */
+.album-timeline-year {
+    font-size: 2.5rem; font-weight: 900;
+    color: rgba(0,0,0,0.05);
+    position: relative; margin: 40px 0 10px 0; line-height: 1;
+}
+.album-timeline-year::before {
+    content: attr(data-year);
+    position: absolute; left: 5px; top: 50%; transform: translateY(-50%);
+    font-size: 1.5rem; color: var(--blue); font-weight: 800; opacity: 1;
+}
+
+/* 2. Tag địa điểm trên ảnh bìa */
+.album-cover-wrapper { position: relative; width: 100%; height: 200px; overflow: hidden; border-radius: 12px 12px 0 0; }
+.album-location-tag {
+    position: absolute; top: 10px; right: 10px;
+    background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(4px);
+    color: #fff; font-size: 0.75rem; font-weight: bold;
+    padding: 4px 10px; border-radius: 20px; display: flex; align-items: center; gap: 4px;
+}
+
+/* 3. Modal xem chi tiết Album (Story Mode) */
+.lightbox-story-container {
+    background: white; width: 95%; max-width: 1200px; max-height: 95vh;
+    border-radius: 12px; overflow-y: auto; display: flex; flex-direction: column; position: relative;
+}
+.story-header { padding: 30px; text-align: center; background: #f9f9f9; border-bottom: 1px solid #eee; }
+.story-title { font-size: 1.8rem; color: var(--blue); margin: 0 0 10px 0; }
+.story-meta { color: #777; font-size: 0.9rem; margin-bottom: 20px; }
+.story-intro { max-width: 700px; margin: 0 auto; font-style: italic; color: #555; line-height: 1.6; }
+
+/* --- [CẬP NHẬT] LƯỚI 5 CỘT & ZOOM --- */
+.story-gallery {
+    padding: 20px;
+    display: grid;
+    grid-template-columns: repeat(5, 1fr); /* 5 cột đều nhau */
+    gap: 10px;
+}
+
+/* Responsive */
+@media (max-width: 1024px) { .story-gallery { grid-template-columns: repeat(4, 1fr); } }
+@media (max-width: 768px) { .story-gallery { grid-template-columns: repeat(3, 1fr); } }
+@media (max-width: 480px) { .story-gallery { grid-template-columns: repeat(2, 1fr); } }
+
+.story-img-item {
+    position: relative;
+    aspect-ratio: 1 / 1; /* Hình vuông */
+    overflow: hidden;
+    border-radius: 8px;
+    cursor: zoom-in;
+    border: 1px solid #eee;
+    transition: all 0.3s ease;
+    background: #f0f0f0;
+}
+
+.story-img-item:hover {
+    transform: scale(1.05);
+    z-index: 1;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+}
+
+.story-img-item img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover; /* Cắt ảnh để lấp đầy ô vuông */
+    display: block;
+}
+
+/* --- TRẠNG THÁI ZOOM --- */
+.story-img-item.zoomed {
+    position: fixed; top: 0; left: 0;
+    width: 100vw; height: 100vh;
+    z-index: 9999;
+    background: rgba(0,0,0,0.95);
+    display: flex; align-items: center; justify-content: center;
+    cursor: zoom-out;
+    border-radius: 0; padding: 20px; box-sizing: border-box;
+    transform: none !important;
+}
+
+.story-img-item.zoomed img {
+    width: auto; height: auto;
+    max-width: 100%; max-height: 100%;
+    object-fit: contain; /* Hiển thị trọn vẹn ảnh gốc */
+    box-shadow: 0 0 30px rgba(0,0,0,0.5);
+    border-radius: 4px;
+}
+.story-header { padding: 30px; text-align: center; background: #f9f9f9; border-bottom: 1px solid #eee; }
+.story-title { font-size: 1.8rem; color: var(--blue); margin: 0 0 10px 0; }
+.story-meta { color: #777; font-size: 0.9rem; margin-bottom: 20px; }
+.story-intro { max-width: 700px; margin: 0 auto; font-style: italic; color: #555; line-height: 1.6; }
+
+.story-gallery { padding: 20px; column-count: 2; column-gap: 15px; }
+@media (max-width: 600px) { .story-gallery { column-count: 1; } }
+
+.story-img-item { margin-bottom: 15px; break-inside: avoid; }
+.story-img-item img { width: 100%; border-radius: 8px; display: block; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+    /* --- SỬA Z-INDEX CAO HƠN 2000 ĐỂ ĐÈ LÊN STORY MODAL --- */
+.lightbox-overlay {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: rgba(0, 0, 0, 0.95);
+    z-index: 3000; /* QUAN TRỌNG: Cao hơn Story Modal (2000) */
+    display: none;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    backdrop-filter: blur(5px);
+}
+
+/* Giữ nguyên các class lightbox khác... */
+.lightbox-content { max-width: 90%; max-height: 85vh; position: relative; display:flex; justify-content:center; }
+.lightbox-content img { max-width: 100%; max-height: 85vh; object-fit: contain; box-shadow: 0 0 20px rgba(255,255,255,0.1); }
+
+/* Nút điều hướng to rõ hơn */
+.lightbox-nav {
+    position: absolute; top: 50%; transform: translateY(-50%);
+    background: rgba(255, 255, 255, 0.15); color: white;
+    border: none; padding: 20px; font-size: 2rem;
+    cursor: pointer; transition: 0.2s; border-radius: 50%;
+    user-select: none;
+}
+.lightbox-nav:hover { background: rgba(255, 255, 255, 0.4); transform: translateY(-50%) scale(1.1); }
+.lightbox-nav.prev { left: 30px; }
+.lightbox-nav.next { right: 30px; }
+/* Dán đè hoặc thêm vào cuối thẻ <style> trong portfolio.html */
+.lightbox-overlay {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: rgba(0, 0, 0, 0.95);
+    /* QUAN TRỌNG: Số này phải lớn hơn Story Modal (thường là 2000) */
+    z-index: 3000 !important; 
+    display: none; /* JS sẽ đổi thành flex khi mở */
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    backdrop-filter: blur(5px);
+}
+/* --- NÚT TẢI ẢNH (DOWNLOAD BUTTON) --- */
+.btn-download-img {
+    position: absolute;
+    bottom: 10px;
+    right: 10px;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: rgba(0, 0, 0, 0.4); /* Nền đen mờ */
+    border: 1px solid rgba(255, 255, 255, 0.6);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    opacity: 0; /* Mặc định ẩn */
+    transition: all 0.3s ease;
+    z-index: 5; /* Nổi lên trên ảnh */
+    font-size: 1.2rem;
+    padding: 0;
+}
+
+/* Khi di chuột vào khung ảnh thì nút hiện lên mờ mờ */
+.story-img-item:hover .btn-download-img {
+    opacity: 0.7;
+    transform: translateY(0);
+}
+
+/* Khi di chuột vào chính cái nút thì nó sáng rõ lên */
+.btn-download-img:hover {
+    background: var(--orange) !important;
+    border-color: var(--orange) !important;
+    opacity: 1 !important;
+    transform: scale(1.1);
+}
+/* CSS NÚT TẢI ẢNH */
+.btn-download-img {
+    position: absolute; bottom: 10px; right: 10px;
+    width: 36px; height: 36px; border-radius: 50%;
+    background: rgba(0, 0, 0, 0.4); border: 1px solid rgba(255, 255, 255, 0.6);
+    color: white; display: flex; align-items: center; justify-content: center;
+    cursor: pointer; opacity: 0; transition: all 0.3s ease;
+    z-index: 5; font-size: 1.2rem; padding: 0;
+}
+.story-img-item:hover .btn-download-img { opacity: 0.7; }
+.btn-download-img:hover {
+    background: #FF7A00 !important; border-color: #FF7A00 !important;
+    opacity: 1 !important; transform: scale(1.1);
+}
     </style>
 </head>
 
-<body>
+<!-- [MỚI] MODAL: XEM CHI TIẾT ALBUM (STORY MODE) -->
+<div id="story-modal" class="appt-modal-overlay" onclick="document.getElementById('story-modal').style.display='none'">
+    <div id="story-content-wrapper" class="lightbox-story-container" onclick="event.stopPropagation()"></div>
+</div>
 
     <!-- Nút vào trang Admin -->
     <a href="baotri.html" class="btn-goto-app" title="Tìm hiểu trang">⚙️</a>
@@ -691,7 +885,8 @@
 
         <!-- TAB 5: ALBUM -->
         <div id="tab-album" class="pf-tab-content">
-            <div class="album-shelf" id="pf-album-shelf"></div>
+            <!-- JS sẽ tìm đúng ID này để vẽ timeline Năm -->
+            <div id="pf-album-container"></div> 
         </div>
 
         <!-- TAB 6: GUESTBOOK -->

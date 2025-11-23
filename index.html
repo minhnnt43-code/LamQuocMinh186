@@ -301,7 +301,12 @@
                     <div class="form-grid">
                         <div class="form-group"><label>Tên Album</label><input type="text" id="album-title" placeholder="VD: Mùa Hè Xanh 2024"></div>
                         <div class="form-group"><label>Ảnh bìa (Link)</label><input type="text" id="album-cover" placeholder="Link ảnh..."></div>
-                        <div class="form-group" style="grid-column:1/-1"><label>Mô tả</label><textarea id="album-desc"></textarea></div>
+                        
+                        <!-- [MỚI] THÊM NGÀY DIỄN RA & ĐỊA ĐIỂM -->
+                        <div class="form-group"><label>Thời gian diễn ra</label><input type="date" id="album-date"></div>
+                        <div class="form-group"><label>Địa điểm (Check-in)</label><input type="text" id="album-location" placeholder="VD: Đà Lạt, Lâm Đồng"></div>
+
+                        <div class="form-group" style="grid-column:1/-1"><label>Mô tả (Câu chuyện)</label><textarea id="album-desc"></textarea></div>
                         <div class="form-group" style="grid-column:1/-1">
                             <label>Danh sách link ảnh (Mỗi dòng 1 link)</label>
                             <textarea id="album-photos" style="height:150px; font-family:monospace;" placeholder="https://...&#10;https://..."></textarea>
@@ -433,10 +438,15 @@
                 <div id="calendar-section-container">
                     <div class="calendar-header">
                         <div class="calendar-header-controls">
-                            <!-- NÚT GOOGLE SYNC (MỚI) -->
-                            <button id="btn-google-sync" class="btn-google-sync" style="background:#fff; color:#333; border:1px solid #ddd; padding:5px 15px; border-radius:20px; font-size:0.9rem; font-weight:bold; cursor:pointer; margin-right:15px; display:flex; align-items:center; gap:5px;">
+                            <!-- NÚT GOOGLE SYNC -->
+                            <button id="btn-google-sync" class="btn-google-sync" style="background:#fff; color:#333; border:1px solid #ddd; padding:5px 15px; border-radius:20px; font-size:0.9rem; font-weight:bold; cursor:pointer; margin-right:5px; display:flex; align-items:center; gap:5px;">
                                 <svg width="16" height="16" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.24.81-.6z"/><path fill="#EA4335" d="M12 4.61c1.61 0 3.09.56 4.23 1.64l3.18-3.18C17.46 1.18 14.97 0 12 0 7.7 0 3.99 2.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
                                 Đồng bộ Google
+                            </button>
+
+                            <!-- [MỚI] NÚT XUẤT CSV -->
+                            <button id="btn-export-calendar-csv" class="btn-google-sync" style="background:#fff; color:#28a745; border:1px solid #28a745; padding:5px 15px; border-radius:20px; font-size:0.9rem; font-weight:bold; cursor:pointer; margin-right:15px; display:flex; align-items:center; gap:5px;">
+                                📥 Xuất Google CSV
                             </button>
 
                             <button id="cal-prev-btn">&lt;</button>
@@ -572,12 +582,18 @@
 
     <div id="event-modal" class="modal">
         <div class="modal-content">
-            <!-- SỬA DÒNG DƯỚI: Thêm id="event-modal-title" vào thẻ h2 -->
             <div class="modal-header"><h2 id="event-modal-title">Sự kiện</h2><button class="close-btn" id="close-event-modal">&times;</button></div>
             <div class="modal-body">
                 <input type="hidden" id="event-id">
                 <div class="form-group"><label>Tiêu đề</label><input type="text" id="event-title"></div>
                 <div class="form-group"><label>Liên kết Task</label><select id="event-task-link"></select></div>
+                
+                <!-- [MỚI] MÀU SẮC SỰ KIỆN -->
+                <div class="form-group">
+                    <label>Màu hiển thị</label>
+                    <input type="color" id="event-color" value="#3788d8" style="height:40px; cursor:pointer; width:100px;">
+                </div>
+
                 <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px;">
                     <div class="form-group"><label>Ngày</label><input type="date" id="event-date"></div>
                     <div class="form-group"><label>Bắt đầu</label><input type="time" id="event-start-time"></div>
