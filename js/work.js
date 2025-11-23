@@ -2,7 +2,8 @@
 
 import {
     escapeHTML, formatDate, toLocalISOString,
-    generateID, showNotification, openModal, closeModal
+    generateID, showNotification, openModal, closeModal,
+    toggleLoading
 } from './common.js';
 
 import { saveUserData } from './firebase.js';
@@ -80,7 +81,9 @@ function getMonday(d) {
     return new Date(d.setDate(diff));
 }
 
-// --- 2. LỊCH BIỂU ---
+// ============================================================
+// 2. LỊCH BIỂU (RENDER UI)
+// ============================================================
 const changeCalendarWeek = (offset) => {
     currentWeekStart.setDate(currentWeekStart.getDate() + (offset * 7));
     renderCalendar();
@@ -157,14 +160,15 @@ const renderCalendar = () => {
 };
 
 const openEventModal = (event = null, date = null, time = null) => {
-    const modalTitle = document.getElementById('event-modal-title');
+    // SỬA LỖI Ở ĐÂY: Lấy đúng ID mà bạn vừa thêm vào HTML
+    const modalTitle = document.getElementById('event-modal-title'); 
     const deleteBtn = document.getElementById('btn-delete-event');
     const taskSelect = document.getElementById('event-task-link');
     
     taskSelect.innerHTML = '<option value="">-- Không liên kết --</option>' + (globalData.tasks || []).map(t => `<option value="${t.id}">${escapeHTML(t.name)}</option>`).join('');
 
     if (event) {
-        modalTitle.textContent = 'Sửa sự kiện';
+        if(modalTitle) modalTitle.textContent = 'Sửa sự kiện';
         document.getElementById('event-id').value = event.id;
         document.getElementById('event-title').value = event.title;
         document.getElementById('event-date').value = event.date;
@@ -173,7 +177,7 @@ const openEventModal = (event = null, date = null, time = null) => {
         taskSelect.value = event.linkedTaskId || '';
         deleteBtn.style.display = 'inline-block';
     } else {
-        modalTitle.textContent = 'Thêm sự kiện mới';
+        if(modalTitle) modalTitle.textContent = 'Thêm sự kiện mới';
         document.getElementById('event-id').value = '';
         document.getElementById('event-title').value = '';
         document.getElementById('event-date').value = date || toLocalISOString(new Date());
@@ -197,12 +201,13 @@ const handleSaveEvent = async () => {
         date: document.getElementById('event-date').value,
         startTime: document.getElementById('event-start-time').value,
         endTime: document.getElementById('event-end-time').value,
-        linkedTaskId: document.getElementById('event-task-link').value
+        linkedTaskId: document.getElementById('event-task-link').value,
+        type: 'manual'
     };
     
     if (id) { 
         const index = globalData.calendarEvents.findIndex(e => e.id === id); 
-        if (index > -1) globalData.calendarEvents[index] = eventData; 
+        if (index > -1) globalData.calendarEvents[index] = { ...globalData.calendarEvents[index], ...eventData }; 
     } else { 
         globalData.calendarEvents.push(eventData); 
     }
@@ -234,7 +239,6 @@ const renderTasks = (filter = 'all') => {
     if (filter === 'important') tasks = tasks.filter(t => t.priority === 'high');
     if (filter === 'today') tasks = tasks.filter(t => t.dueDate === toLocalISOString(today));
 
-    // Sắp xếp: Chưa xong lên trước -> Ngày hết hạn gần nhất
     tasks.sort((a, b) => {
         if (a.status === 'Hoàn thành' && b.status !== 'Hoàn thành') return 1;
         if (a.status !== 'Hoàn thành' && b.status === 'Hoàn thành') return -1;
@@ -462,4 +466,5 @@ const renderDashboard = () => {
     const completedCount = (globalData.tasks || []).filter(t => t.status === 'Hoàn thành').length;
     const countEl = document.getElementById('stat-tasks-completed');
     if(countEl) countEl.textContent = completedCount;
+
 };
