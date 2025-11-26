@@ -1353,3 +1353,166 @@ body.dark-mode {
 body.dark-mode .pf-card:after, body.dark-mode .album-card:after {
     background: #1e1e1e; /* Đè nền tối lên */
 }
+/* =========================================
+   FIX GIAO DIỆN: THANH TAB ĐẸP HƠN
+   (Dán đè vào cuối file portfolio.css)
+   ========================================= */
+
+/* 1. Làm đẹp khung chứa (Container) */
+.pf-tabs {
+    background: rgba(255, 255, 255, 0.5) !important; /* Trong suốt hơn */
+    backdrop-filter: blur(20px) !important; /* Hiệu ứng kính mờ mạnh */
+    border: 1px solid rgba(255, 255, 255, 0.8); /* Viền trắng mờ */
+    box-shadow: 0 15px 35px rgba(0, 91, 150, 0.08); /* Bóng đổ mịn */
+    padding: 6px; /* Khoảng cách lề nhỏ gọn */
+    border-radius: 100px; /* Bo tròn hình viên thuốc */
+    gap: 5px; /* Khoảng cách giữa các nút */
+}
+
+/* 2. Nút bình thường (Chưa bấm) */
+.pf-tab-btn {
+    border-radius: 50px;
+    font-weight: 600;
+    color: #666;
+    transition: all 0.3s ease;
+    background: transparent;
+    border: none;
+}
+.pf-tab-btn:hover {
+    color: var(--blue);
+    background: rgba(255, 255, 255, 0.8);
+}
+
+/* 3. Nút Đang chọn (Active) - SỬA MÀU CHO SANG */
+.pf-tab-btn.active {
+    /* Dùng Gradient Xanh - Xanh nhạt để màu trong trẻo hơn */
+    background: linear-gradient(90deg, #005B96 0%, #48dbfb 100%) !important;
+    color: #fff !important;
+    
+    /* Bóng đổ phát sáng màu xanh */
+    box-shadow: 0 5px 15px rgba(0, 91, 150, 0.4);
+    
+    /* Hiệu ứng nổi lên nhẹ */
+    transform: translateY(-1px);
+}
+
+/* Dark Mode (Nếu dùng) */
+body.dark-mode .pf-tabs {
+    background: rgba(30, 30, 30, 0.6) !important;
+    border-color: rgba(255,255,255,0.1);
+}
+body.dark-mode .pf-tab-btn.active {
+    background: linear-gradient(90deg, #005B96 0%, #00a8ff 100%) !important;
+    color: #fff !important;
+}
+/* =========================================
+   MOBILE APP INTERFACE (Giao diện kiểu App)
+   ========================================= */
+
+/* Chỉ áp dụng cho màn hình nhỏ (Điện thoại) */
+@media (max-width: 768px) {
+
+    /* 1. TẮT GIAO DIỆN CŨ */
+    .pf-tabs { display: none !important; } /* Ẩn thanh tab cũ */
+    #custom-cursor, #cursor-dot { display: none !important; } /* Tắt trỏ chuột */
+    .project-bg-icon { display: none !important; } /* Tắt hình nền mờ gây rối */
+    
+    /* 2. CẤU TRÚC BODY KIỂU APP */
+    body {
+        padding-bottom: 80px !important; /* Chừa chỗ cho menu dưới */
+        background: #f8f9fa !important; /* Nền xám nhạt sạch sẽ */
+        cursor: default !important;
+    }
+
+    /* 3. THANH ĐIỀU HƯỚNG DƯỚI ĐÁY (BOTTOM NAV) */
+    .mobile-bottom-nav {
+        display: flex !important; /* Hiện lên */
+        position: fixed; bottom: 0; left: 0; width: 100%;
+        background: rgba(255, 255, 255, 0.98);
+        backdrop-filter: blur(10px);
+        border-top: 1px solid rgba(0,0,0,0.05);
+        box-shadow: 0 -5px 20px rgba(0,0,0,0.05);
+        z-index: 9999;
+        justify-content: space-around;
+        padding: 10px 5px 25px 5px; /* Padding dưới to hơn cho iPhone đời mới */
+    }
+
+    .nav-item {
+        display: flex; flex-direction: column; align-items: center;
+        justify-content: center; flex: 1;
+        color: #999; transition: 0.3s; cursor: pointer;
+        -webkit-tap-highlight-color: transparent; /* Bỏ màu highlight khi bấm */
+    }
+
+    .nav-icon { font-size: 1.4rem; margin-bottom: 2px; transition: 0.3s; }
+    .nav-label { font-size: 0.65rem; font-weight: 600; text-transform: uppercase; }
+
+    /* Hiệu ứng khi chọn tab */
+    .nav-item.active { color: var(--blue); }
+    .nav-item.active .nav-icon { 
+        transform: translateY(-5px); 
+        text-shadow: 0 5px 15px rgba(0, 91, 150, 0.4);
+    }
+
+    /* 4. HERO SECTION (TỐI GIẢN) */
+    .hero-section {
+        padding: 3rem 1rem 1rem 1rem !important;
+        background: #fff; margin-bottom: 15px;
+        border-radius: 0 0 30px 30px;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.03);
+    }
+    .hero-avatar { width: 100px; height: 100px; border-width: 3px; }
+    .hero-title { font-size: 1.8rem; margin-bottom: 5px; }
+    .uni-badge-wrapper { padding: 5px 12px; margin: 10px auto; }
+    .uni-text { font-size: 0.8rem; text-align: center; }
+    .uni-icon { display: none; } /* Ẩn icon trường cho gọn */
+    .status-pill { margin: 10px auto !important; padding: 5px 15px; font-size: 0.8rem; }
+    .social-bar { gap: 15px; margin-top: 10px; }
+    .social-icon { width: 38px; height: 38px; }
+
+    /* 5. CÁC THẺ CARD (DỰ ÁN, THÀNH TÍCH...) */
+    .pf-card, .album-card, .research-card {
+        margin-bottom: 15px;
+        border-radius: 16px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.03) !important;
+        border: none !important;
+    }
+    .pf-year-grid, .album-shelf {
+        display: flex; flex-direction: column; gap: 15px;
+    }
+    
+    /* Dự án */
+    .project-icon-box { width: 50px; height: 50px; font-size: 1.5rem; }
+    .project-header h3 { font-size: 1.1rem; }
+    .project-toolbar-wrapper {
+        top: 0; padding: 10px; border-radius: 0; border: none; border-bottom: 1px solid #eee;
+        margin: -20px -20px 20px -20px; /* Kéo tràn viền */
+        width: calc(100% + 40px);
+    }
+    .search-box input { font-size: 16px; /* Fix lỗi zoom input trên iOS */ }
+
+    /* 6. TIMELINE (CĂN TRÁI) */
+    .timeline-container { padding: 10px 0; }
+    .timeline-container::after { left: 20px; }
+    .timeline-node { width: 100%; padding-left: 50px; padding-right: 0; margin-bottom: 30px; text-align: left !important; }
+    .timeline-node::after { left: 11px !important; right: auto; }
+    .tl-logo { float: none; width: 40px; height: 40px; margin-bottom: 10px; }
+
+    /* 7. NÚT FAB & TOAST */
+    .fab-wrapper { bottom: 90px; right: 15px; } /* Đẩy lên trên thanh menu */
+    .fab-main-btn { width: 45px; height: 45px; font-size: 1.2rem; }
+    .toast-msg { width: 90%; left: 5%; bottom: 100px; top: auto; }
+
+    /* 8. TECH STACK */
+    .tech-grid { gap: 10px; }
+    .tech-item { width: 45%; padding: 10px; flex-direction: row; justify-content: flex-start; }
+    
+    /* 9. DARK MODE MOBILE */
+    body.dark-mode .mobile-bottom-nav {
+        background: rgba(30, 30, 30, 0.95); border-top-color: #333;
+    }
+    body.dark-mode .hero-section { background: #1e1e1e; }
+}
+
+/* Mặc định ẩn menu app trên PC */
+.mobile-bottom-nav { display: none; }
