@@ -144,6 +144,30 @@
     </style>
 </head>
 
+<!-- [MOBILE ONLY] THANH ĐIỀU HƯỚNG APP (BOTTOM NAV) -->
+    <div class="mobile-bottom-nav">
+        <div class="nav-item active" onclick="switchTabMobile('tab-projects', this)">
+            <div class="nav-icon">🚀</div>
+            <span class="nav-label">Dự án</span>
+        </div>
+        <div class="nav-item" onclick="switchTabMobile('tab-achievements', this)">
+            <div class="nav-icon">🏆</div>
+            <span class="nav-label">Thành tích</span>
+        </div>
+        <div class="nav-item" onclick="switchTabMobile('tab-timeline', this)">
+            <div class="nav-icon">🚩</div>
+            <span class="nav-label">Quá trình</span>
+        </div>
+        <div class="nav-item" onclick="switchTabMobile('tab-schedule', this)">
+            <div class="nav-icon">📅</div>
+            <span class="nav-label">Lịch</span>
+        </div>
+        <div class="nav-item" onclick="switchTabMobile('tab-guestbook', this)">
+            <div class="nav-icon">💬</div>
+            <span class="nav-label">Chia sẻ</span>
+        </div>
+    </div>
+
 <body>
     <!-- 1. ĐƯA CANVAS LÊN ĐẦU (Để làm nền, không bị lỗi JS) -->
     <canvas id="confetti-canvas"></canvas>
@@ -373,10 +397,10 @@
         </div>
 
         <!-- Copyright -->
-        <p style="color:#999; font-size:0.8rem; margin-top:30px;">&copy; Lâm Quốc Minh - Sinh viên Khoa Luật, Trường Đại học Kinh tế - Luật.</p>
+        <p style="color:#999; font-size:0.8rem; margin-top:30px;">&copy; Lâm Quốc Minh - Sinh viên Trường Đại học Kinh tế - Luật.</p>
         
         <!-- [QUAN TRỌNG] Credit Google AI Studio -->
-        <p class="ai-credit">✨ Portfolio trên do<span class="ai-highlight">Google AI Studio</span> thực hiện ✨</p>
+        <p class="ai-credit">✨ Toàn bộ cái này do <span class="ai-highlight">Google AI Studio</span> code ✨</p>
     </footer>
 
     <!-- MODAL: ĐẶT HẸN -->
@@ -1141,8 +1165,20 @@
     }
     // Gọi hàm này ngay khi web chạy
     updateWorkingStatus();
+    /* --- LOGIC MOBILE APP NAVIGATION --- */
+    function switchTabMobile(tabId, element) {
+        // 1. Chuyển nội dung (Dùng lại logic cũ)
+        switchTab(tabId); 
+        
+        // 2. Active icon ở menu dưới
+        document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+        element.classList.add('active');
+
+        // 3. Cuộn lên đầu phần nội dung (Trừ Hero ra cho đẹp)
+        const contentTop = document.querySelector('.pf-tabs').offsetTop || 400;
+        window.scrollTo({top: contentTop - 60, behavior: 'smooth'});
+    }
     </script>
     <!-- Canvas cho hiệu ứng pháo giấy -->
 </body>
 </html>
-
