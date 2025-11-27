@@ -1,561 +1,464 @@
-<!DOCTYPE html>
-<html lang="vi">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Quản Lý Điểm & GPA Pro</title>
-    <!-- Font chữ -->
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&family=Roboto:wght@400;500&display=swap" rel="stylesheet">
-    <!-- Thư viện xuất Excel (SheetJS) -->
-    <script src="https://cdn.sheetjs.com/xlsx-0.20.0/package/dist/xlsx.full.min.js"></script>
+    <!DOCTYPE html>
+    <html lang="vi">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Quản Lý Điểm GPA Toàn Diện</title>
+        <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&family=Roboto:wght@400;500&display=swap" rel="stylesheet">
+        <!-- Thư viện Xuất Excel -->
+        <script src="https://cdn.sheetjs.com/xlsx-0.20.0/package/dist/xlsx.full.min.js"></script>
 
-    <style>
-        :root {
-            --primary: #005B96;
-            --secondary: #FF7A00;
-            --success: #28a745;
-            --warning: #ffc107;
-            --danger: #dc3545;
-            --excel-color: #217346; /* Màu xanh Excel */
-            --light: #f8f9fa;
-            --dark: #343a40;
-            --shadow: 0 4px 15px rgba(0,0,0,0.1);
-        }
+        <style>
+            :root {
+                --primary: #005B96;
+                --secondary: #FF7A00;
+                --success: #28a745;
+                --warning: #ffc107;
+                --danger: #dc3545;
+                --term-bg: #e3f2fd;
+                --light: #f8f9fa;
+                --dark: #343a40;
+                --shadow: 0 4px 15px rgba(0,0,0,0.1);
+            }
 
-        * { box-sizing: border-box; }
-        body {
-            font-family: 'Roboto', sans-serif;
-            background-color: #f0f2f5;
-            color: var(--dark);
-            margin: 0;
-            padding: 20px;
-            display: flex;
-            justify-content: center;
-        }
-
-        .container {
-            width: 100%;
-            max-width: 1100px;
-            background: white;
-            border-radius: 15px;
-            box-shadow: var(--shadow);
-            overflow: hidden;
-        }
-
-        /* HEADER */
-        .header {
-            background: linear-gradient(135deg, var(--primary), #004a7c);
-            padding: 20px;
-            color: white;
-            text-align: center;
-        }
-        .header h1 { margin: 0; font-family: 'Montserrat', sans-serif; font-size: 1.8rem; }
-        .header p { margin: 5px 0 0; opacity: 0.9; font-size: 0.9rem; }
-
-        /* CONTENT LAYOUT */
-        .main-content {
-            padding: 20px;
-            display: grid;
-            grid-template-columns: 1fr 2fr; /* Cột nhập liệu nhỏ hơn cột bảng */
-            gap: 20px;
-        }
-
-        @media (max-width: 900px) {
-            .main-content { grid-template-columns: 1fr; }
-        }
-
-        /* --- LEFT: INPUT FORM --- */
-        .input-card {
-            background: #fff;
-            border: 1px solid #e9ecef;
-            border-radius: 10px;
-            padding: 20px;
-            height: fit-content;
-        }
-        .input-card.editing {
-            border: 2px solid var(--warning);
-            box-shadow: 0 0 10px rgba(255, 193, 7, 0.2);
-            position: relative;
-        }
-        .input-card.editing::before {
-            content: "ĐANG SỬA";
-            position: absolute; top: -10px; left: 20px;
-            background: var(--warning); color: #333;
-            font-size: 0.7rem; font-weight: bold; padding: 2px 8px; border-radius: 4px;
-        }
-
-        /* Student Info Section */
-        .student-info-box {
-            background: #e3f2fd;
-            padding: 15px;
-            border-radius: 8px;
-            border: 1px solid #bbdefb;
-            margin-bottom: 20px;
-        }
-        .section-title {
-            font-size: 0.9rem; font-weight: 700; color: var(--primary); 
-            margin-bottom: 10px; text-transform: uppercase; letter-spacing: 0.5px;
-        }
-
-        .form-group { margin-bottom: 15px; }
-        .form-group label {
-            display: block; font-weight: 600; margin-bottom: 5px; color: var(--dark); font-size: 0.9rem;
-        }
-        
-        input {
-            width: 100%; padding: 10px;
-            border: 1px solid #ced4da; border-radius: 5px; font-size: 0.95rem;
-        }
-        input:focus { outline: none; border-color: var(--secondary); }
-
-        /* Score Inputs */
-        .score-box {
-            background: #f8f9fa; padding: 10px; border-radius: 8px; border: 1px dashed #ccc;
-        }
-        .comp-row {
-            display: grid; grid-template-columns: 2fr 1fr 1fr;
-            gap: 10px; align-items: center; margin-bottom: 10px; padding-bottom: 10px; border-bottom: 1px dashed #eee;
-        }
-        .comp-row:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
-        .comp-label { font-size: 0.85rem; font-weight: 600; }
-        .percent-input { position: relative; }
-        .percent-input::after {
-            content: '%'; position: absolute; right: 8px; top: 50%; transform: translateY(-50%); color: #999; font-size: 0.8rem;
-        }
-
-        /* BUTTONS */
-        .btn {
-            width: 100%; padding: 12px; border: none; border-radius: 5px;
-            font-weight: bold; cursor: pointer; transition: 0.3s;
-            font-family: 'Montserrat', sans-serif; font-size: 0.95rem;
-        }
-        .btn-add { background: var(--secondary); color: white; margin-top: 15px; }
-        .btn-add:hover { background: #e06c00; }
-        .btn-update { background: var(--warning); color: #333; margin-top: 15px; display: none; }
-        .btn-update:hover { background: #d39e00; }
-        .btn-clear { background: #e9ecef; color: var(--dark); margin-top: 10px; }
-        .btn-excel { 
-            background: var(--excel-color); color: white; margin-top: 5px; 
-            display: flex; align-items: center; justify-content: center; gap: 8px;
-        }
-        .btn-excel:hover { background: #1a5c38; }
-
-        /* --- RIGHT: RESULT AREA --- */
-        .gpa-summary {
-            background: var(--light); border-radius: 10px; padding: 20px;
-            display: flex; justify-content: space-between; align-items: center;
-            margin-bottom: 20px; border-bottom: 4px solid var(--primary);
-            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-        }
-        .gpa-box { text-align: center; flex: 1; border-right: 1px solid #ddd; }
-        .gpa-box:last-child { border-right: none; }
-        .gpa-label { font-size: 0.75rem; color: #666; text-transform: uppercase; font-weight: bold; margin-bottom: 5px; }
-        .gpa-value { font-size: 2rem; font-weight: 800; color: var(--secondary); line-height: 1; }
-        .gpa-rank { font-size: 0.9rem; color: var(--primary); font-weight: bold; margin-top: 5px; }
-
-        /* TABLE */
-        .table-container { overflow-x: auto; }
-        table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
-        th { background: #f1f3f5; color: var(--dark); padding: 12px 8px; text-align: left; font-weight: 600; white-space: nowrap; border-bottom: 2px solid #ddd; }
-        td { padding: 12px 8px; border-bottom: 1px solid #eee; vertical-align: middle; }
-        
-        .badge { padding: 4px 8px; border-radius: 12px; font-weight: bold; font-size: 0.75rem; color: white; white-space: nowrap; }
-        .badge-A { background: #28a745; }
-        .badge-B { background: #17a2b8; }
-        .badge-C { background: #ffc107; color: #333; }
-        .badge-D { background: #fd7e14; }
-        .badge-F { background: #dc3545; }
-
-        .btn-icon { width: 30px; height: 30px; border: none; border-radius: 5px; cursor: pointer; margin-right: 5px; }
-        .btn-edit-row { background: #ffecb3; color: #f39c12; }
-        .btn-del-row { background: #ffcdd2; color: #c62828; }
-
-        .error-msg { color: #dc3545; font-size: 0.85rem; margin-top: 5px; display: none; }
-    </style>
-</head>
-<body>
-
-<div class="container">
-    <div class="header">
-        <h1>Hệ Thống Tính GPA & Xuất Excel</h1>
-        <p>Theo chuẩn tín chỉ Đại học (Hệ 4)</p>
-    </div>
-
-    <div class="main-content">
-        <!-- LEFT: FORM -->
-        <div class="input-card" id="inputCard">
-            <!-- 1. THÔNG TIN SINH VIÊN -->
-            <div class="student-info-box">
-                <div class="section-title">👤 Thông tin sinh viên</div>
-                <div class="form-group" style="margin-bottom: 10px;">
-                    <input type="text" id="studentName" placeholder="Họ và tên sinh viên">
-                </div>
-                <div class="form-group" style="margin-bottom: 0;">
-                    <input type="text" id="studentID" placeholder="Mã số sinh viên (MSSV)">
-                </div>
-            </div>
-
-            <!-- 2. NHẬP MÔN HỌC -->
-            <div class="section-title">📘 Nhập điểm môn học</div>
-            <input type="hidden" id="editIndex" value="-1">
-
-            <div class="form-group">
-                <label>Tên môn học</label>
-                <input type="text" id="subjectName" placeholder="VD: Kinh tế lượng">
-            </div>
+            * { box-sizing: border-box; }
+            body { font-family: 'Roboto', sans-serif; background: #f0f2f5; color: var(--dark); margin: 0; padding: 20px; display: flex; justify-content: center; }
             
-            <div class="form-group">
-                <label>Số tín chỉ</label>
-                <input type="number" id="credits" value="3" min="1" max="10">
-            </div>
+            .container { width: 100%; max-width: 1200px; background: white; border-radius: 15px; box-shadow: var(--shadow); overflow: hidden; display: flex; flex-direction: column; }
+            
+            /* HEADER */
+            .header { background: linear-gradient(135deg, var(--primary), #004a7c); padding: 20px; color: white; text-align: center; }
+            .header h1 { margin: 0; font-family: 'Montserrat', sans-serif; font-size: 1.8rem; }
 
-            <div class="score-box">
-                <label style="margin-bottom: 10px; display:block; color:#666; font-size:0.85rem;">Điểm thành phần (Điểm / Trọng số %)</label>
+            /* LAYOUT */
+            .main-content { padding: 20px; display: grid; grid-template-columns: 350px 1fr; gap: 20px; }
+            @media (max-width: 900px) { .main-content { grid-template-columns: 1fr; } }
+
+            /* --- LEFT: INPUT --- */
+            .input-card { background: #fff; border: 1px solid #e9ecef; border-radius: 10px; padding: 20px; height: fit-content; }
+            .input-card.editing { border: 2px solid var(--warning); position: relative; box-shadow: 0 0 15px rgba(255, 193, 7, 0.2); }
+            .input-card.editing::before { content: "ĐANG SỬA"; position: absolute; top: -10px; left: 20px; background: var(--warning); padding: 2px 10px; border-radius: 4px; font-weight: bold; font-size: 0.8rem; }
+
+            .form-group { margin-bottom: 15px; }
+            label { display: block; font-weight: 600; margin-bottom: 5px; color: var(--dark); font-size: 0.9rem; }
+            input { width: 100%; padding: 10px; border: 1px solid #ced4da; border-radius: 5px; font-size: 0.95rem; }
+            input:focus { outline: none; border-color: var(--secondary); }
+
+            /* Score Inputs */
+            .score-box { background: #f8f9fa; padding: 12px; border-radius: 8px; border: 1px dashed #ccc; margin-bottom: 15px; }
+            .comp-row { display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 8px; align-items: center; margin-bottom: 8px; }
+            .comp-row:last-child { margin-bottom: 0; }
+            .percent-input { position: relative; }
+            .percent-input::after { content: '%'; position: absolute; right: 8px; top: 50%; transform: translateY(-50%); color: #999; font-size: 0.8rem; }
+
+            /* Buttons */
+            .btn { width: 100%; padding: 12px; border: none; border-radius: 5px; font-weight: bold; cursor: pointer; margin-top: 10px; transition: 0.2s; }
+            .btn-add { background: var(--secondary); color: white; }
+            .btn-add:hover { background: #e06c00; }
+            .btn-update { background: var(--warning); display: none; }
+            .btn-clear { background: #e9ecef; color: #333; }
+
+            /* --- RIGHT: RESULT --- */
+            .result-area { display: flex; flex-direction: column; gap: 20px; }
+
+            /* Summary Cards */
+            .summary-header { display: flex; gap: 15px; flex-wrap: wrap; }
+            .stat-card { flex: 1; background: var(--term-bg); padding: 15px; border-radius: 10px; text-align: center; border-bottom: 3px solid var(--primary); min-width: 120px; }
+            .stat-label { font-size: 0.8rem; text-transform: uppercase; color: #555; font-weight: bold; }
+            .stat-value { font-size: 1.8rem; font-weight: 800; color: var(--primary); }
+            .stat-sub { font-size: 0.85rem; color: #666; margin-top: 5px; }
+
+            /* Term List (Cards) */
+            .term-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 10px; }
+            .term-card { background: white; border: 1px solid #ddd; border-radius: 8px; padding: 10px; text-align: center; transition: transform 0.2s; }
+            .term-card:hover { transform: translateY(-3px); border-color: var(--secondary); }
+            .term-title { font-weight: bold; color: var(--primary); margin-bottom: 5px; border-bottom: 1px dashed #eee; padding-bottom: 5px; }
+
+            /* Table */
+            .table-wrapper { overflow-x: auto; background: white; border-radius: 10px; border: 1px solid #eee; }
+            table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+            th { background: #f1f3f5; padding: 12px; text-align: center; white-space: nowrap; font-weight: 700; color: #444; }
+            td { padding: 10px; border-bottom: 1px solid #eee; text-align: center; vertical-align: middle; }
+            
+            /* Semester Header Row in Table */
+            .semester-row { background-color: #fff3e0; font-weight: bold; text-align: left; padding-left: 15px; color: var(--secondary); }
+
+            .badge { padding: 4px 8px; border-radius: 4px; color: white; font-size: 0.75rem; font-weight: bold; }
+            .badge-A { background: var(--success); } .badge-B { background: #17a2b8; } 
+            .badge-C { background: var(--warning); color: #333; } .badge-D { background: #fd7e14; } .badge-F { background: var(--danger); }
+
+            .btn-icon { width: 28px; height: 28px; border: none; border-radius: 4px; cursor: pointer; margin: 0 2px; }
+            .btn-edit { background: #ffecb3; color: #d39e00; }
+            .btn-del { background: #ffcdd2; color: #c62828; }
+            
+            .btn-excel { background: #217346; color: white; width: auto; padding: 10px 20px; display: inline-flex; align-items: center; gap: 5px; float: right; margin-bottom: 10px; }
+            .btn-excel:hover { background: #1a5c38; }
+        </style>
+    </head>
+    <body>
+
+    <div class="container">
+        <div class="header">
+            <h1>Hệ Thống Quản Lý Điểm GPA</h1>
+            <p>Chi tiết theo Học kỳ & Điểm thành phần</p>
+            <p>Hệ thống không lưu dữ liệu nên bạn cứ yên tâm sử dụng tính năng nhé</p>
+        </div>
+
+        <div class="main-content">
+            <!-- FORM NHẬP LIỆU -->
+            <div class="input-card" id="inputForm">
+                <!-- Thông tin SV -->
+                <div style="background:#e8f0fe; padding:15px; border-radius:8px; margin-bottom:20px;">
+                    <div style="font-weight:bold; color:#1967d2; margin-bottom:10px;">👤 SINH VIÊN</div>
+                    <div class="form-group"><input type="text" id="stdName" placeholder="Họ và tên"></div>
+                    <div class="form-group" style="margin-bottom:0;"><input type="text" id="stdID" placeholder="MSSV"></div>
+                </div>
+
+                <!-- Form Môn học -->
+                <div style="font-weight:bold; color:var(--primary); margin-bottom:10px; border-bottom:2px solid #eee; padding-bottom:5px;">📘 NHẬP ĐIỂM</div>
+                <input type="hidden" id="editIndex" value="-1">
+
+                <div style="display:flex; gap:10px; margin-bottom:15px;">
+                    <div style="flex:1;">
+                        <label>Học kỳ</label>
+                        <input type="number" id="semester" value="1" min="1">
+                    </div>
+                    <div style="flex:1.5;">
+                        <label>Số tín chỉ</label>
+                        <input type="number" id="credits" value="3" min="1">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Tên môn học</label>
+                    <input type="text" id="subject" placeholder="VD: Kinh tế vi mô">
+                </div>
+
+                <div class="score-box">
+                    <label style="font-size:0.8rem; color:#666; margin-bottom:10px; display:block;">Điểm số / Trọng số (%)</label>
+                    <div class="comp-row">
+                        <span>Quá trình</span>
+                        <input type="number" id="s1" placeholder="0-10" step="0.1"><div class="percent-input"><input type="number" id="w1" value="20"></div>
+                    </div>
+                    <div class="comp-row">
+                        <span>Giữa kỳ</span>
+                        <input type="number" id="s2" placeholder="0-10" step="0.1"><div class="percent-input"><input type="number" id="w2" value="30"></div>
+                    </div>
+                    <div class="comp-row">
+                        <span>Cuối kỳ</span>
+                        <input type="number" id="s3" placeholder="0-10" step="0.1"><div class="percent-input"><input type="number" id="w3" value="50"></div>
+                    </div>
+                </div>
                 
-                <div class="comp-row">
-                    <div class="comp-label">Quá trình</div>
-                    <input type="number" id="scoreProcess" placeholder="0-10" step="0.1">
-                    <div class="percent-input">
-                        <input type="number" id="weightProcess" value="20" placeholder="%">
-                    </div>
-                </div>
+                <div id="errorMsg" style="color:red; font-size:0.8rem; display:none; text-align:center; margin-bottom:10px;">Tổng % phải là 100!</div>
 
-                <div class="comp-row">
-                    <div class="comp-label">Giữa kỳ</div>
-                    <input type="number" id="scoreMid" placeholder="0-10" step="0.1">
-                    <div class="percent-input">
-                        <input type="number" id="weightMid" value="30" placeholder="%">
-                    </div>
-                </div>
-
-                <div class="comp-row">
-                    <div class="comp-label">Cuối kỳ</div>
-                    <input type="number" id="scoreFinal" placeholder="0-10" step="0.1">
-                    <div class="percent-input">
-                        <input type="number" id="weightFinal" value="50" placeholder="%">
-                    </div>
-                </div>
-            </div>
-            
-            <div id="errorMsg" class="error-msg">Tổng trọng số phải bằng 100%!</div>
-
-            <button id="btnAdd" class="btn btn-add" onclick="handleFormSubmit()">➕ Thêm môn học</button>
-            <button id="btnUpdate" class="btn btn-update" onclick="handleFormSubmit()">💾 Lưu thay đổi</button>
-            <button class="btn btn-clear" onclick="resetForm()">Làm mới</button>
-        </div>
-
-        <!-- RIGHT: TABLE & EXCEL -->
-        <div class="result-area">
-            <!-- SUMMARY -->
-            <div class="gpa-summary">
-                <div class="gpa-box">
-                    <div class="gpa-label">GPA Tích lũy</div>
-                    <div class="gpa-value" id="totalGPA">0.00</div>
-                    <div class="gpa-rank" id="totalRank">---</div>
-                </div>
-                <div class="gpa-box">
-                    <div class="gpa-label">Trung bình (10)</div>
-                    <div class="gpa-value" id="totalAvg10" style="color:var(--primary); font-size:1.5rem;">0.00</div>
-                </div>
-                <div class="gpa-box" style="flex: 0.8;">
-                    <div class="gpa-label">Tổng TC</div>
-                    <div class="gpa-value" id="totalCredits" style="color:#666; font-size:1.5rem;">0</div>
-                </div>
-                <div class="gpa-box" style="border:none; padding-left:15px;">
-                    <button class="btn btn-excel" onclick="exportToExcel()">
-                        <span>📥</span> Xuất Excel
-                    </button>
-                </div>
+                <button id="btnAdd" class="btn btn-add" onclick="saveSubject()">➕ Thêm môn học</button>
+                <button id="btnUpdate" class="btn btn-update" onclick="saveSubject()">💾 Lưu cập nhật</button>
+                <button class="btn btn-clear" onclick="resetForm()">Làm mới form</button>
             </div>
 
-            <!-- TABLE -->
-            <div class="table-container">
-                <table id="gpaTable">
-                    <thead>
-                        <tr>
-                            <th width="35%">Môn học</th>
-                            <th style="text-align:center">TC</th>
-                            <th style="text-align:center">Tổng (10)</th>
-                            <th style="text-align:center">Hệ 4</th>
-                            <th style="text-align:center">Chữ</th>
-                            <th style="text-align:center">Xếp loại</th>
-                            <th style="text-align:center">Thao tác</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <!-- Dữ liệu sẽ đổ vào đây -->
-                    </tbody>
-                </table>
-                <p id="emptyState" style="text-align:center; color:#999; margin-top:30px;">Chưa có dữ liệu điểm.</p>
+            <!-- KẾT QUẢ -->
+            <div class="result-area">
+                <!-- 1. Tổng quan -->
+                <div>
+                    <button class="btn btn-excel" onclick="exportExcel()">📥 Tải file Excel</button>
+                    <div style="clear:both;"></div>
+                </div>
+
+                <div class="summary-header">
+                    <div class="stat-card">
+                        <div class="stat-label">CPA Tích lũy</div>
+                        <div class="stat-value" id="cpa">0.00</div>
+                        <div class="stat-sub" id="cpaRank">---</div>
+                    </div>
+                    <div class="stat-card" style="background:#fff3e0; border-color:var(--secondary);">
+                        <div class="stat-label">Trung bình (10)</div>
+                        <div class="stat-value" id="avg10" style="color:var(--secondary)">0.00</div>
+                    </div>
+                    <div class="stat-card" style="background:#fff;">
+                        <div class="stat-label">Tổng tín chỉ</div>
+                        <div class="stat-value" id="totalCred" style="color:#666;">0</div>
+                    </div>
+                </div>
+
+                <!-- 2. Phân tích Kỳ -->
+                <div>
+                    <h4 style="margin:10px 0; color:#555;">📊 Kết quả theo từng Học kỳ:</h4>
+                    <div id="termList" class="term-list">
+                        <div style="grid-column:1/-1; text-align:center; color:#999; font-style:italic;">Chưa có dữ liệu.</div>
+                    </div>
+                </div>
+
+                <!-- 3. Bảng Chi tiết -->
+                <div class="table-wrapper">
+                    <table id="gradeTable">
+                        <thead>
+                            <tr>
+                                <th width="35%" style="text-align:left;">Môn học</th>
+                                <th>TC</th>
+                                <th>QT - GK - CK</th>
+                                <th>Tổng(10)</th>
+                                <th>Hệ 4</th>
+                                <th>Chữ</th>
+                                <th>Thao tác</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr><td colspan="7" style="padding:20px; text-align:center; color:#999;">Vui lòng nhập môn học bên trái</td></tr>
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
     </div>
-</div>
 
-<script>
-    let subjects = []; // Lưu trữ toàn bộ dữ liệu môn học
+    <script>
+        let subjects = []; // Lưu trữ dữ liệu
 
-    // 1. Logic Quy đổi Điểm (Hệ 10 -> Hệ 4 & Chữ)
-    function getGradeDetails(score10) {
-        const s = parseFloat(score10);
-        if (isNaN(s)) return { char: 'F', scale4: 0.0, rank: 'Kém', class: 'badge-F' };
-
-        if (s >= 9.0) return { char: 'A+', scale4: 4.0, rank: 'Xuất sắc', class: 'badge-A' };
-        if (s >= 8.0) return { char: 'A',  scale4: 3.5, rank: 'Giỏi',     class: 'badge-A' };
-        if (s >= 7.0) return { char: 'B+', scale4: 3.0, rank: 'Khá',      class: 'badge-B' };
-        if (s >= 6.0) return { char: 'B',  scale4: 2.5, rank: 'TB Khá',   class: 'badge-B' };
-        if (s >= 5.0) return { char: 'C',  scale4: 2.0, rank: 'Trung bình',class: 'badge-C' };
-        if (s >= 4.0) return { char: 'D+', scale4: 1.5, rank: 'Yếu',      class: 'badge-D' };
-        if (s >= 3.0) return { char: 'D',  scale4: 1.0, rank: 'Kém',      class: 'badge-D' };
-        return { char: 'F', scale4: 0.0, rank: 'Kém', class: 'badge-F' };
-    }
-
-    // 2. Xử lý Thêm / Sửa
-    function handleFormSubmit() {
-        const index = parseInt(document.getElementById('editIndex').value);
-        const isEditing = index !== -1;
-
-        // Lấy dữ liệu
-        const name = document.getElementById('subjectName').value || `Môn học ${subjects.length + 1}`;
-        const credits = parseInt(document.getElementById('credits').value) || 0;
-
-        const sProcess = parseFloat(document.getElementById('scoreProcess').value) || 0;
-        const sMid = parseFloat(document.getElementById('scoreMid').value) || 0;
-        const sFinal = parseFloat(document.getElementById('scoreFinal').value) || 0;
-
-        const wProcess = parseFloat(document.getElementById('weightProcess').value) || 0;
-        const wMid = parseFloat(document.getElementById('weightMid').value) || 0;
-        const wFinal = parseFloat(document.getElementById('weightFinal').value) || 0;
-
-        // Validate %
-        if (wProcess + wMid + wFinal !== 100) {
-            document.getElementById('errorMsg').style.display = 'block';
-            document.getElementById('errorMsg').textContent = `Tổng trọng số là ${wProcess + wMid + wFinal}%. Phải bằng 100%!`;
-            return;
-        }
-        document.getElementById('errorMsg').style.display = 'none';
-
-        // Tính điểm tổng kết 10
-        const total10 = (sProcess * wProcess + sMid * wMid + sFinal * wFinal) / 100;
-        const rounded10 = Math.round(total10 * 10) / 10;
-        const gradeInfo = getGradeDetails(rounded10);
-
-        const subjectData = {
-            id: isEditing ? subjects[index].id : Date.now(),
-            name, credits,
-            scores: { process: sProcess, mid: sMid, final: sFinal },
-            weights: { process: wProcess, mid: wMid, final: wFinal },
-            final10: rounded10,
-            scale4: gradeInfo.scale4,
-            char: gradeInfo.char,
-            rank: gradeInfo.rank,
-            badgeClass: gradeInfo.class
-        };
-
-        if (isEditing) {
-            subjects[index] = subjectData;
-            resetForm();
-        } else {
-            subjects.push(subjectData);
-            // Clear input điểm để nhập môn mới nhanh hơn
-            document.getElementById('scoreProcess').value = '';
-            document.getElementById('scoreMid').value = '';
-            document.getElementById('scoreFinal').value = '';
-            document.getElementById('subjectName').value = '';
-            document.getElementById('subjectName').focus();
+        // --- 1. LOGIC TÍNH ĐIỂM ---
+        function getGradeInfo(score10) {
+            const s = parseFloat(score10);
+            if (isNaN(s)) return { char: 'F', scale4: 0.0, rank: 'Kém', css: 'badge-F' };
+            if (s >= 9.0) return { char: 'A+', scale4: 4.0, rank: 'Xuất sắc', css: 'badge-A' };
+            if (s >= 8.0) return { char: 'A', scale4: 3.5, rank: 'Giỏi', css: 'badge-A' };
+            if (s >= 7.0) return { char: 'B+', scale4: 3.0, rank: 'Khá', css: 'badge-B' };
+            if (s >= 6.0) return { char: 'B', scale4: 2.5, rank: 'TB Khá', css: 'badge-B' };
+            if (s >= 5.0) return { char: 'C', scale4: 2.0, rank: 'TB', css: 'badge-C' };
+            if (s >= 4.0) return { char: 'D+', scale4: 1.5, rank: 'Yếu', css: 'badge-D' };
+            if (s >= 3.0) return { char: 'D', scale4: 1.0, rank: 'Kém', css: 'badge-D' };
+            return { char: 'F', scale4: 0.0, rank: 'Kém', css: 'badge-F' };
         }
 
-        renderTable();
-        updateSummary();
-    }
-
-    // 3. Render Bảng
-    function renderTable() {
-        const tbody = document.querySelector('#gpaTable tbody');
-        const emptyState = document.getElementById('emptyState');
-        tbody.innerHTML = '';
-
-        if (subjects.length === 0) {
-            emptyState.style.display = 'block';
-            return;
+        function getRank(gpa) {
+            if (gpa >= 3.6) return "Xuất sắc";
+            if (gpa >= 3.2) return "Giỏi";
+            if (gpa >= 2.5) return "Khá";
+            if (gpa >= 2.0) return "Trung bình";
+            return "Yếu/Kém";
         }
-        emptyState.style.display = 'none';
 
-        subjects.forEach((sub, idx) => {
-            const tr = document.createElement('tr');
-            tr.innerHTML = `
-                <td>
-                    <div style="font-weight:600; color:var(--primary);">${sub.name}</div>
-                    <div style="font-size:0.75rem; color:#888;">
-                        QT: ${sub.scores.process} (${sub.weights.process}%) | 
-                        GK: ${sub.scores.mid} (${sub.weights.mid}%) | 
-                        CK: ${sub.scores.final} (${sub.weights.final}%)
-                    </div>
-                </td>
-                <td style="text-align:center;">${sub.credits}</td>
-                <td style="text-align:center; font-weight:bold;">${sub.final10}</td>
-                <td style="text-align:center; font-weight:bold;">${sub.scale4}</td>
-                <td style="text-align:center;"><span class="badge ${sub.badgeClass}">${sub.char}</span></td>
-                <td style="text-align:center; font-size:0.85rem;">${sub.rank}</td>
-                <td style="text-align:center;">
-                    <button class="btn-icon btn-edit-row" onclick="startEdit(${idx})" title="Sửa">✏️</button>
-                    <button class="btn-icon btn-del-row" onclick="removeSubject(${idx})" title="Xóa">🗑️</button>
-                </td>
-            `;
-            tbody.appendChild(tr);
-        });
-    }
+        // --- 2. XỬ LÝ FORM ---
+        function saveSubject() {
+            const idx = parseInt(document.getElementById('editIndex').value);
+            
+            // Lấy dữ liệu
+            const semester = parseInt(document.getElementById('semester').value) || 1;
+            const name = document.getElementById('subject').value || `Môn học ${subjects.length+1}`;
+            const cred = parseInt(document.getElementById('credits').value) || 0;
+            
+            const s1 = parseFloat(document.getElementById('s1').value)||0, w1 = parseFloat(document.getElementById('w1').value)||0;
+            const s2 = parseFloat(document.getElementById('s2').value)||0, w2 = parseFloat(document.getElementById('w2').value)||0;
+            const s3 = parseFloat(document.getElementById('s3').value)||0, w3 = parseFloat(document.getElementById('w3').value)||0;
 
-    // 4. Chế độ Sửa
-    function startEdit(index) {
-        const sub = subjects[index];
-        document.getElementById('subjectName').value = sub.name;
-        document.getElementById('credits').value = sub.credits;
-        document.getElementById('scoreProcess').value = sub.scores.process;
-        document.getElementById('scoreMid').value = sub.scores.mid;
-        document.getElementById('scoreFinal').value = sub.scores.final;
-        document.getElementById('weightProcess').value = sub.weights.process;
-        document.getElementById('weightMid').value = sub.weights.mid;
-        document.getElementById('weightFinal').value = sub.weights.final;
+            if ((w1+w2+w3) !== 100) {
+                document.getElementById('errorMsg').style.display='block'; return;
+            }
+            document.getElementById('errorMsg').style.display='none';
 
-        document.getElementById('editIndex').value = index;
-        document.getElementById('btnAdd').style.display = 'none';
-        document.getElementById('btnUpdate').style.display = 'block';
-        document.getElementById('inputCard').classList.add('editing');
-        
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
+            const final10 = Math.round(((s1*w1 + s2*w2 + s3*w3)/100)*10)/10;
+            const grade = getGradeInfo(final10);
 
-    // 5. Xóa môn
-    function removeSubject(index) {
-        if(confirm('Xóa môn này?')) {
-            if (parseInt(document.getElementById('editIndex').value) === index) resetForm();
-            subjects.splice(index, 1);
-            // Fix bug index lệch khi đang sửa
-            if (document.getElementById('editIndex').value !== "-1") resetForm();
+            const data = {
+                id: idx !== -1 ? subjects[idx].id : Date.now(),
+                semester, name, cred,
+                scores: { s1, s2, s3 }, weights: { w1, w2, w3 },
+                final10, scale4: grade.scale4, char: grade.char, css: grade.css
+            };
+
+            if (idx !== -1) subjects[idx] = data;
+            else subjects.push(data);
+
+            // Sắp xếp: Theo Kỳ tăng dần -> Theo Tên
+            subjects.sort((a,b) => a.semester - b.semester || a.name.localeCompare(b.name));
+
+            if (idx === -1) {
+                // Nếu thêm mới, giữ lại Học kỳ và % để nhập tiếp cho nhanh
+                document.getElementById('subject').value = '';
+                document.getElementById('s1').value = ''; document.getElementById('s2').value = ''; document.getElementById('s3').value = '';
+                document.getElementById('subject').focus();
+            } else {
+                resetForm();
+            }
+            renderApp();
+        }
+
+        // --- 3. RENDER GIAO DIỆN ---
+        function renderApp() {
             renderTable();
-            updateSummary();
-        }
-    }
-
-    // 6. Reset Form
-    function resetForm() {
-        document.querySelectorAll('.input-card input:not(#studentName):not(#studentID)').forEach(i => i.value = '');
-        document.getElementById('credits').value = 3;
-        document.getElementById('weightProcess').value = 20;
-        document.getElementById('weightMid').value = 30;
-        document.getElementById('weightFinal').value = 50;
-        document.getElementById('errorMsg').style.display = 'none';
-
-        document.getElementById('editIndex').value = "-1";
-        document.getElementById('btnAdd').style.display = 'block';
-        document.getElementById('btnUpdate').style.display = 'none';
-        document.getElementById('inputCard').classList.remove('editing');
-    }
-
-    // 7. Tính tổng kết GPA
-    function updateSummary() {
-        let totalCredits = 0;
-        let totalPoint4 = 0;
-        let totalPoint10 = 0;
-
-        subjects.forEach(sub => {
-            totalCredits += sub.credits;
-            totalPoint4 += (sub.scale4 * sub.credits);
-            totalPoint10 += (sub.final10 * sub.credits);
-        });
-
-        const gpa4 = totalCredits > 0 ? (totalPoint4 / totalCredits).toFixed(2) : "0.00";
-        const avg10 = totalCredits > 0 ? (totalPoint10 / totalCredits).toFixed(2) : "0.00";
-
-        let rankText = "---";
-        const gpaNum = parseFloat(gpa4);
-        if (totalCredits > 0) {
-            if (gpaNum >= 3.6) rankText = "Xuất sắc";
-            else if (gpaNum >= 3.2) rankText = "Giỏi";
-            else if (gpaNum >= 2.5) rankText = "Khá";
-            else if (gpaNum >= 2.0) rankText = "Trung bình";
-            else rankText = "Yếu/Kém";
+            renderStats();
         }
 
-        document.getElementById('totalGPA').textContent = gpa4;
-        document.getElementById('totalAvg10').textContent = avg10;
-        document.getElementById('totalCredits').textContent = totalCredits;
-        document.getElementById('totalRank').textContent = rankText;
-    }
+        function renderTable() {
+            const tbody = document.querySelector('#gradeTable tbody');
+            tbody.innerHTML = '';
+            if (subjects.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" style="padding:20px; text-align:center; color:#999;">Chưa có dữ liệu</td></tr>';
+                return;
+            }
 
-    // ============================================================
-    // 8. XUẤT FILE EXCEL (CÔNG NGHỆ SHEETJS)
-    // ============================================================
-    function exportToExcel() {
-        if (subjects.length === 0) {
-            alert("Chưa có môn học nào để xuất!");
-            return;
+            let currentTerm = null;
+
+            subjects.forEach((s, i) => {
+                // Nếu chuyển sang kỳ mới -> Vẽ hàng tiêu đề kỳ
+                if (s.semester !== currentTerm) {
+                    currentTerm = s.semester;
+                    const rowHeader = document.createElement('tr');
+                    rowHeader.innerHTML = `<td colspan="7" class="semester-row">📌 HỌC KỲ ${currentTerm}</td>`;
+                    tbody.appendChild(rowHeader);
+                }
+
+                const tr = document.createElement('tr');
+                const details = `${s.scores.s1}(${s.weights.w1}%) - ${s.scores.s2}(${s.weights.w2}%) - ${s.scores.s3}(${s.weights.w3}%)`;
+                
+                tr.innerHTML = `
+                    <td style="text-align:left;">
+                        <div style="font-weight:600; color:var(--primary);">${s.name}</div>
+                    </td>
+                    <td>${s.cred}</td>
+                    <td style="font-size:0.8rem; color:#666;">${details}</td>
+                    <td style="font-weight:bold;">${s.final10}</td>
+                    <td>${s.scale4}</td>
+                    <td><span class="badge ${s.css}">${s.char}</span></td>
+                    <td>
+                        <button class="btn-icon btn-edit" onclick="editSub(${i})">✏️</button>
+                        <button class="btn-icon btn-del" onclick="delSub(${i})">🗑️</button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
         }
 
-        const name = document.getElementById('studentName').value || "Sinh viên";
-        const id = document.getElementById('studentID').value || "MSSV";
-        const gpa = document.getElementById('totalGPA').textContent;
-        const rank = document.getElementById('totalRank').textContent;
+        function renderStats() {
+            if (subjects.length === 0) {
+                ['cpa','avg10','totalCred','cpaRank'].forEach(id=>document.getElementById(id).textContent='0');
+                document.getElementById('termList').innerHTML = '<div style="grid-column:1/-1; text-align:center; color:#999;">Chưa có dữ liệu.</div>';
+                return;
+            }
 
-        // Chuẩn bị dữ liệu mảng (Array of Arrays)
-        const data = [
-            ["BẢNG ĐIỂM TỔNG HỢP GPA"],
-            [""], // Dòng trống
-            ["Họ và tên:", name],
-            ["MSSV:", id],
-            ["GPA Tích lũy:", gpa],
-            ["Xếp loại:", rank],
-            [""], // Dòng trống ngăn cách
-            // Header bảng
-            ["STT", "Môn học", "Tín chỉ", "Điểm Quá trình", "Điểm Giữa kỳ", "Điểm Cuối kỳ", "Tổng kết (10)", "Điểm Hệ 4", "Điểm Chữ", "Xếp loại môn"]
-        ];
+            let totalCred=0, totalP4=0, totalP10=0;
+            let termData = {};
 
-        // Đổ dữ liệu từng môn
-        subjects.forEach((sub, i) => {
-            const detailProcess = `${sub.scores.process} (${sub.weights.process}%)`;
-            const detailMid = `${sub.scores.mid} (${sub.weights.mid}%)`;
-            const detailFinal = `${sub.scores.final} (${sub.weights.final}%)`;
+            subjects.forEach(s => {
+                // Tích lũy
+                totalCred += s.cred;
+                totalP4 += s.scale4 * s.cred;
+                totalP10 += s.final10 * s.cred;
 
-            data.push([
-                i + 1,
-                sub.name,
-                sub.credits,
-                detailProcess,
-                detailMid,
-                detailFinal,
-                sub.final10,
-                sub.scale4,
-                sub.char,
-                sub.rank
-            ]);
-        });
+                // Theo kỳ
+                if (!termData[s.semester]) termData[s.semester] = { cred:0, p4:0 };
+                termData[s.semester].cred += s.cred;
+                termData[s.semester].p4 += s.scale4 * s.cred;
+            });
 
-        // Tạo Workbook & Worksheet
-        const wb = XLSX.utils.book_new();
-        const ws = XLSX.utils.aoa_to_sheet(data);
+            // Hiển thị Tổng
+            const cpa = (totalP4/totalCred).toFixed(2);
+            document.getElementById('cpa').textContent = cpa;
+            document.getElementById('avg10').textContent = (totalP10/totalCred).toFixed(2);
+            document.getElementById('totalCred').textContent = totalCred;
+            document.getElementById('cpaRank').textContent = getRank(cpa);
 
-        // Chỉnh độ rộng cột (để nhìn cho đẹp)
-        ws['!cols'] = [
-            { wch: 5 },  // STT
-            { wch: 30 }, // Tên môn
-            { wch: 10 }, // TC
-            { wch: 15 }, // QT
-            { wch: 15 }, // GK
-            { wch: 15 }, // CK
-            { wch: 15 }, // TK 10
-            { wch: 10 }, // TK 4
-            { wch: 10 }, // Chữ
-            { wch: 15 }  // Rank
-        ];
+            // Hiển thị Thẻ Kỳ
+            const termList = document.getElementById('termList');
+            termList.innerHTML = '';
+            Object.keys(termData).sort((a,b)=>a-b).forEach(k => {
+                const t = termData[k];
+                const gpa = (t.p4 / t.cred).toFixed(2);
+                termList.innerHTML += `
+                    <div class="term-card">
+                        <div class="term-title">Học kỳ ${k}</div>
+                        <div style="font-size:1.5rem; font-weight:800; color:#333;">${gpa}</div>
+                        <div style="font-size:0.8rem; font-weight:bold; color:${gpa>=3.2 ? 'green' : 'orange'}">${getRank(gpa)}</div>
+                        <div style="font-size:0.7rem; color:#888; margin-top:5px;">${t.cred} tín chỉ</div>
+                    </div>
+                `;
+            });
+        }
 
-        XLSX.utils.book_append_sheet(wb, ws, "BangDiem");
+        // --- 4. SỬA / XÓA ---
+        function editSub(index) {
+            const s = subjects[index];
+            document.getElementById('semester').value = s.semester;
+            document.getElementById('subject').value = s.name;
+            document.getElementById('credits').value = s.cred;
+            ['s1','s2','s3'].forEach(k => document.getElementById(k).value = s.scores[k]);
+            ['w1','w2','w3'].forEach(k => document.getElementById(k).value = s.weights[k]);
 
-        // Xuất file
-        const fileName = `BangDiem_${name.replace(/\s+/g, '')}_${id}.xlsx`;
-        XLSX.writeFile(wb, fileName);
-    }
-</script>
+            document.getElementById('editIndex').value = index;
+            document.getElementById('inputForm').classList.add('editing');
+            document.getElementById('btnAdd').style.display='none';
+            document.getElementById('btnUpdate').style.display='block';
+            window.scrollTo({top:0, behavior:'smooth'});
+        }
 
-</body>
-</html>
+        function delSub(index) {
+            if(confirm('Xóa môn này?')) {
+                if (parseInt(document.getElementById('editIndex').value) === index) resetForm();
+                subjects.splice(index, 1);
+                renderApp();
+            }
+        }
+
+        function resetForm() {
+            document.querySelectorAll('input:not(#stdName):not(#stdID)').forEach(i=>i.value='');
+            document.getElementById('semester').value=1; document.getElementById('credits').value=3;
+            document.getElementById('w1').value=20; document.getElementById('w2').value=30; document.getElementById('w3').value=50;
+            
+            document.getElementById('editIndex').value = -1;
+            document.getElementById('inputForm').classList.remove('editing');
+            document.getElementById('btnAdd').style.display='block';
+            document.getElementById('btnUpdate').style.display='none';
+            document.getElementById('errorMsg').style.display='none';
+        }
+
+        // --- 5. XUẤT EXCEL ---
+        function exportExcel() {
+            if (subjects.length === 0) return alert("Chưa có dữ liệu!");
+            const name = document.getElementById('stdName').value || "SinhVien";
+            const id = document.getElementById('stdID').value || "MSSV";
+
+            const data = [
+                ["BẢNG ĐIỂM CHI TIẾT & GPA"],
+                ["Họ tên:", name, "", "MSSV:", id],
+                ["CPA Tích lũy:", document.getElementById('cpa').textContent, "", "Tổng TC:", document.getElementById('totalCred').textContent],
+                [""], 
+                ["TỔNG KẾT THEO KỲ"],
+                ["Học kỳ", "GPA Kỳ", "Xếp loại", "Số tín chỉ"]
+            ];
+
+            // Dữ liệu từng kỳ
+            let termData = {};
+            subjects.forEach(s => {
+                if (!termData[s.semester]) termData[s.semester] = { cred:0, p4:0 };
+                termData[s.semester].cred += s.cred;
+                termData[s.semester].p4 += s.scale4 * s.cred;
+            });
+            Object.keys(termData).sort((a,b)=>a-b).forEach(k => {
+                const t = termData[k];
+                const gpa = (t.p4/t.cred).toFixed(2);
+                data.push([`Học kỳ ${k}`, gpa, getRank(gpa), t.cred]);
+            });
+
+            data.push([""]);
+            data.push(["CHI TIẾT MÔN HỌC"]);
+            data.push(["Học kỳ", "Môn học", "Tín chỉ", "Quá trình", "Giữa kỳ", "Cuối kỳ", "Tổng (10)", "Hệ 4", "Điểm chữ"]);
+
+            subjects.forEach(s => {
+                data.push([
+                    s.semester, s.name, s.cred,
+                    `${s.scores.s1} (${s.weights.w1}%)`,
+                    `${s.scores.s2} (${s.weights.w2}%)`,
+                    `${s.scores.s3} (${s.weights.w3}%)`,
+                    s.final10, s.scale4, s.char
+                ]);
+            });
+
+            const wb = XLSX.utils.book_new();
+            const ws = XLSX.utils.aoa_to_sheet(data);
+            ws['!cols'] = [{wch:10}, {wch:30}, {wch:8}, {wch:15}, {wch:15}, {wch:15}, {wch:10}, {wch:10}, {wch:10}];
+            XLSX.utils.book_append_sheet(wb, ws, "BangDiem");
+            XLSX.writeFile(wb, `BangDiem_${name.replace(/\s+/g,'')}.xlsx`);
+        }
+    </script>
+
+    </body>
+    </html>
