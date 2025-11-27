@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kiểm Tra Tình Yêu Đích Thực</title>
+    <!-- Fonts: Montserrat (Hiện đại) & Dancing Script (Lãng mạn) -->
+    <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&family=Montserrat:wght@400;600;800&display=swap" rel="stylesheet">
+    <!-- Thư viện hiệu ứng pháo giấy -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+    <style>
+        :root {
+            --pink-main: #ff7eb3;
+            --pink-dark: #ff758c;
+            --pink-light: #ffd1ff;
+            --white: #ffffff;
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Montserrat', sans-serif;
+            background: linear-gradient(135deg, #ff9a9e 0%, #fad0c4 99%, #fad0c4 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        /* Hiệu ứng tim bay nền */
+        .bg-heart {
+            position: absolute;
+            color: rgba(255, 255, 255, 0.3);
+            font-size: 2rem;
+            animation: floatUp 10s linear infinite;
+            z-index: 0;
+        }
+
+        @keyframes floatUp {
+            0% { transform: translateY(100vh) scale(0.5); opacity: 0; }
+            50% { opacity: 1; }
+            100% { transform: translateY(-10vh) scale(1.5); opacity: 0; }
+        }
+
+        /* Container chính */
+        .love-card {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 40px;
+            border-radius: 30px;
+            box-shadow: 0 20px 60px rgba(255, 117, 140, 0.4);
+            width: 90%;
+            max-width: 800px;
+            text-align: center;
+            position: relative;
+            z-index: 1;
+            border: 3px solid #fff;
+        }
+
+        h1 {
+            font-family: 'Dancing Script', cursive;
+            font-size: 3.5rem;
+            color: var(--pink-dark);
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 0px rgba(0,0,0,0.05);
+        }
+
+        .subtitle {
+            color: #888;
+            margin-bottom: 30px;
+            font-size: 1rem;
+        }
+
+        /* Layout 2 cột Nam - Nữ */
+        .couple-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        @media (max-width: 768px) {
+            .couple-container {
+                flex-direction: column;
+            }
+        }
+
+        .person-box {
+            flex: 1;
+            background: #fff0f5;
+            padding: 20px;
+            border-radius: 20px;
+            border: 2px dashed var(--pink-main);
+            width: 100%;
+        }
+
+        .person-title {
+            font-size: 1.2rem;
+            font-weight: 800;
+            color: var(--pink-dark);
+            margin-bottom: 15px;
+            text-transform: uppercase;
+        }
+
+        .heart-divider {
+            font-size: 3rem;
+            color: var(--pink-dark);
+            animation: heartbeat 1.5s infinite;
+        }
+
+        @keyframes heartbeat {
+            0% { transform: scale(1); }
+            15% { transform: scale(1.3); }
+            30% { transform: scale(1); }
+            45% { transform: scale(1.3); }
+            60% { transform: scale(1); }
+        }
+
+        /* Input Styles */
+        .form-group {
+            margin-bottom: 15px;
+            text-align: left;
+        }
+
+        label {
+            display: block;
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: #666;
+            margin-bottom: 5px;
+        }
+
+        input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ffc1e3;
+            border-radius: 10px;
+            font-family: 'Montserrat', sans-serif;
+            transition: 0.3s;
+            background: #fff;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: var(--pink-dark);
+            box-shadow: 0 0 10px rgba(255, 117, 140, 0.2);
+        }
+
+        /* Button */
+        .btn-calc {
+            background: linear-gradient(45deg, #ff7eb3, #ff758c);
+            color: white;
+            border: none;
+            padding: 15px 50px;
+            font-size: 1.2rem;
+            font-weight: 800;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: 0.3s;
+            box-shadow: 0 10px 20px rgba(255, 117, 140, 0.4);
+            font-family: 'Montserrat', sans-serif;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .btn-calc:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 30px rgba(255, 117, 140, 0.6);
+        }
+
+        /* Result Area */
+        #result-area {
+            display: none;
+            margin-top: 30px;
+            animation: popIn 0.5s ease;
+        }
+
+        @keyframes popIn {
+            0% { transform: scale(0.5); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        .score-circle {
+            width: 150px;
+            height: 150px;
+            background: white;
+            border: 5px solid var(--pink-dark);
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 0 auto 20px;
+            font-size: 3rem;
+            font-weight: 900;
+            color: var(--pink-dark);
+            box-shadow: 0 0 30px rgba(255, 117, 140, 0.5);
+        }
+
+        .final-msg {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .lam-quoc-minh-msg {
+            background: #fff0f5;
+            color: var(--pink-dark);
+            padding: 15px;
+            border-radius: 15px;
+            font-weight: 600;
+            font-size: 1.1rem;
+            border: 2px dashed var(--pink-dark);
+            display: inline-block;
+            margin-top: 10px;
+            line-height: 1.6;
+        }
+
+        .highlight-name {
+            font-weight: 900;
+            font-size: 1.3rem;
+            text-transform: uppercase;
+            text-decoration: underline;
+        }
+
+    </style>
+</head>
+<body>
+
+    <!-- Nền tim bay -->
+    <div id="bg-hearts"></div>
+
+    <div class="love-card">
+        <h1>🔮 Bói Tình Yêu 🔮</h1>
+        <p class="subtitle">Nhập thông tin để xem hai bạn hợp nhau đến mức nào nhé!</p>
+
+        <div class="couple-container">
+            <!-- Bạn Nam -->
+            <div class="person-box">
+                <div class="person-title">🤴 Bạn Nam</div>
+                <div class="form-group">
+                    <label>Họ và Tên</label>
+                    <input type="text" id="maleName" placeholder="Nhập tên bạn nam...">
+                </div>
+                <div class="form-group">
+                    <label>Ngày sinh</label>
+                    <input type="date" id="maleDob">
+                </div>
+                <div class="form-group">
+                    <label>Quê quán</label>
+                    <input type="text" id="maleHome" placeholder="Nhập quê quán...">
+                </div>
+            </div>
+
+            <!-- Trái tim ở giữa -->
+            <div class="heart-divider">❤️</div>
+
+            <!-- Bạn Nữ -->
+            <div class="person-box">
+                <div class="person-title">👸 Bạn Nữ</div>
+                <div class="form-group">
+                    <label>Họ và Tên</label>
+                    <input type="text" id="femaleName" placeholder="Nhập tên bạn nữ...">
+                </div>
+                <div class="form-group">
+                    <label>Ngày sinh</label>
+                    <input type="date" id="femaleDob">
+                </div>
+                <div class="form-group">
+                    <label>Quê quán</label>
+                    <input type="text" id="femaleHome" placeholder="Nhập quê quán...">
+                </div>
+            </div>
+        </div>
+
+        <button class="btn-calc" onclick="calculateLove()">💘 Xem Kết Quả 💘</button>
+
+        <!-- Khu vực hiển thị kết quả -->
+        <div id="result-area">
+            <div class="score-circle" id="scoreValue">0%</div>
+            <div class="final-msg" id="congratsMsg"></div>
+            <div class="lam-quoc-minh-msg">
+                💌 Nếu hai bạn có tổ chức đám cưới, đừng quên mời <span class="highlight-name">Lâm Quốc Minh</span> tham dự để chúc phúc nhé! 🎉
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Tạo hiệu ứng nền tim bay
+        function createHearts() {
+            const bg = document.getElementById('bg-hearts');
+            const hearts = ['❤️', '💖', '💕', '💘', '🌸'];
+            for(let i = 0; i < 20; i++) {
+                const el = document.createElement('div');
+                el.className = 'bg-heart';
+                el.innerText = hearts[Math.floor(Math.random() * hearts.length)];
+                el.style.left = Math.random() * 100 + 'vw';
+                el.style.animationDuration = (Math.random() * 5 + 5) + 's';
+                el.style.fontSize = (Math.random() * 2 + 1) + 'rem';
+                bg.appendChild(el);
+            }
+        }
+        createHearts();
+
+        // Hàm tính toán (Giả vờ tính nhưng luôn ra 100%)
+        function calculateLove() {
+            const mName = document.getElementById('maleName').value;
+            const fName = document.getElementById('femaleName').value;
+
+            if(!mName || !fName) {
+                alert("Vui lòng nhập tên của cả hai bạn nhé!");
+                return;
+            }
+
+            // Ẩn nút bấm để tạo cảm giác đang xử lý
+            const btn = document.querySelector('.btn-calc');
+            btn.innerText = "Đang phân tích...";
+            btn.disabled = true;
+            btn.style.opacity = "0.7";
+
+            // Giả lập thời gian chờ 2 giây
+            setTimeout(() => {
+                document.getElementById('result-area').style.display = 'block';
+                
+                // Hiệu ứng chạy số từ 0% lên 100%
+                let percentage = 0;
+                const scoreEl = document.getElementById('scoreValue');
+                
+                const interval = setInterval(() => {
+                    percentage++;
+                    scoreEl.innerText = percentage + "%";
+                    if(percentage >= 100) {
+                        clearInterval(interval);
+                        showFinalResult(mName, fName);
+                    }
+                }, 15); // Tốc độ chạy số
+
+            }, 1000);
+        }
+
+        function showFinalResult(mName, fName) {
+            // Hiển thị lời chúc
+            document.getElementById('congratsMsg').innerText = `Chúc mừng! ${mName} và ${fName} là cặp đôi hoàn hảo!`;
+            
+            // Bắn pháo hoa ăn mừng
+            confetti({
+                particleCount: 150,
+                spread: 70,
+                origin: { y: 0.6 },
+                colors: ['#ff7eb3', '#ff758c', '#ffffff']
+            });
+
+            // Reset nút bấm
+            const btn = document.querySelector('.btn-calc');
+            btn.innerText = "💘 Xem Kết Quả 💘";
+            btn.disabled = false;
+            btn.style.opacity = "1";
+            
+            // Cuộn xuống kết quả
+            document.getElementById('result-area').scrollIntoView({ behavior: 'smooth' });
+        }
+    </script>
+
+</body>
+</html>
