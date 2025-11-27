@@ -1,0 +1,256 @@
+/* 3. ADMIN DASHBOARD (MODAL) */
+#admin-modal .modal-content {
+    max-width: 900px;
+    /* Modal to hơn bình thường */
+    width: 95%;
+}
+
+#admin-user-list td {
+    vertical-align: middle;
+}
+
+#admin-user-list img {
+    /* Avatar nhỏ trong bảng */
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    vertical-align: middle;
+    margin-right: 10px;
+}
+
+/* =========================================
+BỔ SUNG CHO ADMIN PANEL (TIN NHẮN & ẢNH)
+========================================= */
+
+/* 1. Khung danh sách tin nhắn */
+#admin-msg-list {
+    max-height: 300px;
+    overflow-y: auto;
+    border: 1px solid #eee;
+    background-color: #f9f9f9;
+    padding: 10px;
+    border-radius: 8px;
+}
+
+/* Từng dòng tin nhắn */
+#admin-msg-list div {
+    background: white;
+    padding: 10px;
+    margin-bottom: 8px;
+    border-radius: 6px;
+    border-left: 3px solid #e74c3c;
+    /* Vạch đỏ cho nổi */
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+/* 2. Lưới hiển thị ảnh (Gallery Grid) */
+#admin-gallery-list {
+    display: grid;
+    /* Tự động chia cột: Điện thoại 2 cột, Máy tính 4 cột */
+    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+    gap: 10px;
+    margin-top: 15px;
+}
+
+/* Từng ô ảnh trong Admin */
+#admin-gallery-list div {
+    position: relative;
+    height: 100px;
+    border-radius: 8px;
+    overflow: hidden;
+    border: 1px solid #ddd;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+/* Nút xóa ảnh (Dấu X đỏ) */
+#admin-gallery-list button {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    width: 20px;
+    height: 20px;
+    background: rgba(255, 0, 0, 0.8);
+    color: white;
+    border: none;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 10px;
+    transition: 0.2s;
+}
+
+#admin-gallery-list button:hover {
+    background: red;
+    transform: scale(1.2);
+}
+
+/* 3. Các ô nhập liệu trong Admin Modal */
+#admin-modal input {
+
+    /* 3. ADMIN DASHBOARD (MODAL) */
+    #admin-modal .modal-content {
+        max-width: 900px;
+        /* Modal to hơn bình thường */
+        width: 95%;
+    }
+
+    #admin-user-list td {
+        vertical-align: middle;
+    }
+
+    #admin-user-list img {
+        /* Avatar nhỏ trong bảng */
+        width: 30px;
+        height: 30px;
+        border-radius: 50%;
+        vertical-align: middle;
+        margin-right: 10px;
+    }
+
+    /* =========================================
+BỔ SUNG CHO ADMIN PANEL (TIN NHẮN & ẢNH)
+========================================= */
+
+    /* 1. Khung danh sách tin nhắn */
+    #admin-msg-list {
+        max-height: 300px;
+        overflow-y: auto;
+        border: 1px solid #eee;
+        background-color: #f9f9f9;
+        padding: 10px;
+        border-radius: 8px;
+    }
+
+    /* Từng dòng tin nhắn */
+    #admin-msg-list div {
+        background: white;
+        padding: 10px;
+        margin-bottom: 8px;
+        border-radius: 6px;
+        border-left: 3px solid #e74c3c;
+        /* Vạch đỏ cho nổi */
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    /* 2. Lưới hiển thị ảnh (Gallery Grid) */
+    #admin-gallery-list {
+        display: grid;
+        /* Tự động chia cột: Điện thoại 2 cột, Máy tính 4 cột */
+        grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+        gap: 10px;
+        margin-top: 15px;
+    }
+
+    /* Từng ô ảnh trong Admin */
+    #admin-gallery-list div {
+        position: relative;
+        height: 100px;
+        border-radius: 8px;
+        overflow: hidden;
+        border: 1px solid #ddd;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    }
+
+    /* Nút xóa ảnh (Dấu X đỏ) */
+    #admin-gallery-list button {
+        position: absolute;
+        top: 5px;
+        right: 5px;
+        width: 20px;
+        height: 20px;
+        background: rgba(255, 0, 0, 0.8);
+        color: white;
+        border: none;
+        border-radius: 50%;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 10px;
+        transition: 0.2s;
+    }
+
+    #admin-gallery-list button:hover {
+        background: red;
+        transform: scale(1.2);
+    }
+
+    /* 3. Các ô nhập liệu trong Admin Modal */
+    #admin-modal input {
+        background: white;
+        border: 1px solid #ccc;
+        padding: 8px 12px;
+        font-size: 14px;
+    }
+
+    #admin-modal input:focus {
+        border-color: var(--primary);
+        box-shadow: 0 0 0 2px rgba(0, 91, 150, 0.1);
+    }
+
+    /* ===== PAGE HEADINGS ===== */
+    .content-section h1 {
+        font-size: 2rem;
+        font-weight: 700;
+        margin-bottom: 1.5rem;
+        background: linear-gradient(135deg, #003366 0%, #005B96 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        padding-bottom: 0.5rem;
+        border-bottom: 3px solid;
+        border-image: linear-gradient(135deg, #005B96 0%, #FF7A00 100%) 1;
+    }
+
+    /* ===== FILTER BUTTONS ===== */
+    .task-filter-controls {
+        display: flex;
+        gap: 0.5rem;
+        flex-wrap: wrap;
+    }
+
+    .filter-btn {
+        padding: 0.6rem 1.2rem;
+        border-radius: 10px;
+        border: 1px solid rgba(0, 91, 150, 0.2);
+        background: linear-gradient(135deg,
+                rgba(255, 255, 255, 0.8) 0%,
+                rgba(240, 247, 255, 0.6) 100%);
+        color: var(--text-color-primary);
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        font-size: 0.9rem;
+    }
+
+    .filter-btn:hover {
+        background: linear-gradient(135deg,
+                rgba(0, 91, 150, 0.12) 0%,
+                rgba(255, 122, 0, 0.08) 100%);
+        border-color: var(--aura-color-1);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 91, 150, 0.15);
+    }
+
+    .filter-btn.active {
+        background: var(--aura-gradient);
+        color: #ffffff;
+        border: none;
+        box-shadow: 0 6px 20px rgba(0, 91, 150, 0.3);
+    }
+
+    /* Calendar Range */
+    #current-view-range {
+        font-size: 1.3rem;
+        font-weight: 700;
+        color: var(--text-color-primary);
+        margin: 0 1rem;
+    }

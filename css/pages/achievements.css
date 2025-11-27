@@ -1,0 +1,726 @@
+.achievements-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.achievements-header h1 {
+    margin-bottom: 0;
+}
+
+#achievements-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1.5rem;
+}
+
+.achievement-card {
+    background-color: var(--card-background);
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, .08);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    transition: transform 0.3s, box-shadow 0.3s;
+    cursor: pointer;
+}
+
+.achievement-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, .12);
+}
+
+.achievement-preview {
+    width: 100%;
+    height: 200px;
+    background-color: var(--light-gray);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 3rem;
+    color: var(--text-color-secondary);
+    border-bottom: 1px solid var(--border-color);
+    overflow: hidden;
+}
+
+.achievement-preview img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.achievement-info {
+    padding: 1rem;
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.achievement-info h3 {
+    font-size: 1.2rem;
+    color: var(--primary-blue);
+    margin-bottom: 0.5rem;
+}
+
+.achievement-info p {
+    font-size: 0.9rem;
+    color: var(--text-color-secondary);
+    margin-bottom: 1rem;
+    flex-grow: 1;
+}
+
+.achievement-actions {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: auto;
+    border-top: 1px solid var(--border-color);
+    padding-top: 1rem;
+}
+
+.achievement-actions button {
+    flex-grow: 1;
+    padding: 0.6rem;
+    font-size: 0.9rem;
+}
+
+/* --- START: CSS CHO TIMELINE & BỘ LỌC THÀNH TÍCH (MỚI) --- */
+
+/* 1. Thanh Bộ Lọc (Filter Bar) */
+.ach-filter-bar {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin-bottom: 30px;
+    flex-wrap: wrap;
+}
+
+.ach-filter-btn {
+    padding: 8px 20px;
+    border: 1px solid #ddd;
+    background: white;
+    border-radius: 30px;
+    cursor: pointer;
+    font-weight: 600;
+    color: #555;
+    transition: all 0.3s ease;
+    font-family: var(--font-body);
+    font-size: 0.9rem;
+}
+
+.ach-filter-btn:hover {
+    background: #f0f0f0;
+    transform: translateY(-2px);
+}
+
+/* Nút đang được chọn */
+.ach-filter-btn.active {
+    background: var(--primary-blue);
+    color: white;
+    border-color: var(--primary-blue);
+    box-shadow: 0 4px 10px rgba(0, 91, 150, 0.3);
+}
+
+/* Dark mode cho nút */
+body.dark-mode .ach-filter-btn {
+    background: var(--card-background);
+    border-color: var(--medium-gray);
+    color: var(--text-color-primary);
+}
+
+body.dark-mode .ach-filter-btn.active {
+    background: var(--primary-orange);
+    /* Dùng màu cam cho nổi trên nền tối */
+    border-color: var(--primary-orange);
+    color: white;
+}
+
+/* 2. Dòng thời gian (Timeline Container) */
+.ach-timeline-container {
+    max-width: 900px;
+    margin: 0 auto;
+    position: relative;
+}
+
+/* Tiêu đề Năm */
+.ach-year-label {
+    font-size: 1.5rem;
+    font-weight: 900;
+    color: #ddd;
+    /* Màu xám nhạt tạo nền */
+    margin: 30px 0 15px 0;
+    border-bottom: 2px solid #f0f0f0;
+    padding-bottom: 5px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+body.dark-mode .ach-year-label {
+    color: #444;
+    border-color: #333;
+}
+
+/* 3. Từng thẻ Thành tích (Item) */
+.ach-item {
+    display: flex;
+    gap: 20px;
+    background: white;
+    border: 1px solid #eee;
+    border-radius: 16px;
+    padding: 20px;
+    margin-bottom: 15px;
+    transition: transform 0.2s, box-shadow 0.2s, border-left 0.2s;
+    align-items: flex-start;
+    border-left: 5px solid transparent;
+    /* Chuẩn bị cho hiệu ứng màu */
+}
+
+.ach-item:hover {
+    transform: translateX(5px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+    border-left-color: var(--primary-orange);
+}
+
+body.dark-mode .ach-item {
+    background: var(--card-background);
+    border-color: var(--medium-gray);
+}
+
+/* Ảnh Thumbnail bên trái */
+.ach-image {
+    width: 90px;
+    height: 90px;
+    flex-shrink: 0;
+    border-radius: 12px;
+    overflow: hidden;
+    background: #f8f9fa;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border: 1px solid #eee;
+}
+
+.ach-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.3s;
+}
+
+.ach-image:hover img {
+    transform: scale(1.1);
+    /* Phóng to nhẹ khi di chuột vào ảnh */
+}
+
+.ach-image span {
+    font-size: 2.5rem;
+    /* Icon cúp nếu không có ảnh */
+}
+
+/* Phần nội dung bên phải */
+.ach-info {
+    flex-grow: 1;
+}
+
+/* Dòng chứa Tag và Ngày */
+.ach-meta {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    margin-bottom: 8px;
+    flex-wrap: wrap;
+}
+
+.ach-date {
+    font-size: 0.85rem;
+    color: #888;
+    font-style: italic;
+}
+
+/* Tên thành tích */
+.ach-name {
+    font-size: 1.15rem;
+    margin: 0 0 8px 0;
+    color: var(--primary-blue);
+    font-weight: 700;
+    line-height: 1.4;
+}
+
+body.dark-mode .ach-name {
+    color: #e0e0e0;
+}
+
+/* Mô tả */
+.ach-desc {
+    font-size: 0.95rem;
+    color: #555;
+    line-height: 1.6;
+}
+
+body.dark-mode .ach-desc {
+    color: #aaa;
+}
+
+/* 4. Nhãn phân loại (Tag Styles) */
+.ach-tag {
+    font-size: 0.75rem;
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    display: inline-block;
+}
+
+/* Màu sắc cho từng loại */
+.ach-tag.academic {
+    background: #e3f2fd;
+    color: #1565c0;
+    border: 1px solid #bbdefb;
+}
+
+.ach-tag.social {
+    background: #ffebee;
+    color: #c62828;
+    border: 1px solid #ffcdd2;
+}
+
+.ach-tag.award {
+    background: #fff3e0;
+    color: #ef6c00;
+    border: 1px solid #ffe0b2;
+}
+
+.ach-tag.other {
+    background: #f5f5f5;
+    color: #616161;
+    border: 1px solid #e0e0e0;
+}
+
+/* Dark mode cho Tag */
+body.dark-mode .ach-tag.academic {
+    background: rgba(21, 101, 192, 0.2);
+    color: #90caf9;
+    border-color: #1e88e5;
+}
+
+body.dark-mode .ach-tag.social {
+    background: rgba(198, 40, 40, 0.2);
+    color: #ef9a9a;
+    border-color: #e57373;
+}
+
+body.dark-mode .ach-tag.award {
+    background: rgba(239, 108, 0, 0.2);
+    color: #ffcc80;
+    border-color: #ffa726;
+}
+
+body.dark-mode .ach-tag.other {
+    background: rgba(97, 97, 97, 0.2);
+    color: #bdbdbd;
+    border-color: #757575;
+}
+
+/* Responsive: Điện thoại */
+@media (max-width: 600px) {
+    .ach-item {
+        flex-direction: column;
+        /* Xếp dọc trên điện thoại */
+        gap: 15px;
+    }
+
+    .ach-image {
+        width: 100%;
+        /* Ảnh to full chiều ngang */
+        height: 150px;
+    }
+
+    .ach-filter-bar {
+        gap: 5px;
+    }
+
+    .ach-filter-btn {
+        padding: 6px 12px;
+        font-size: 0.8rem;
+    }
+}
+
+/* --- NÚT XEM THÊM (CHO TIMELINE) --- */
+.ach-show-more-btn {
+    width: 100%;
+    padding: 12px;
+    background: transparent;
+    border: 1px dashed #ccc;
+    border-radius: 12px;
+    color: #888;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    margin-bottom: 30px;
+    transition: all 0.3s ease;
+    font-family: var(--font-body);
+}
+
+.ach-show-more-btn:hover {
+    background: #f9f9f9;
+    color: var(--primary-blue);
+    border-color: var(--primary-blue);
+    transform: translateY(-2px);
+}
+
+/* Dark mode cho nút */
+body.dark-mode .ach-show-more-btn {
+    border-color: #555;
+    color: #aaa;
+}
+
+body.dark-mode .ach-show-more-btn:hover {
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--primary-orange);
+    border-color: var(--primary-orange);
+}
+
+/* Hiệu ứng hiện ra từ từ */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* --- END: CSS CHO TIMELINE --- */
+
+/* ==========================================================================
+[MỚI] TÍNH NĂNG NÂNG CAO: ALBUM & TIMELINE (BẮT BUỘC PHẢI CÓ)
+========================================================================== */
+
+/* --- 1. SMART ALBUM SHELF (KỆ ALBUM) --- */
+.album-shelf {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 30px;
+    padding: 10px;
+}
+
+.album-card {
+    background: #fff;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    position: relative;
+    /* Hiệu ứng xếp chồng (Stacked Effect) */
+    box-shadow:
+        0 5px 15px rgba(0, 0, 0, 0.1),
+        5px 5px 0px #eee,
+        10px 10px 0px #ddd;
+    border: 1px solid #f0f0f0;
+}
+
+.album-card:hover {
+    transform: translateY(-5px) translateX(-5px);
+    box-shadow:
+        0 15px 30px rgba(0, 91, 150, 0.2),
+        5px 5px 0px #eee,
+        10px 10px 0px #ddd;
+}
+
+.album-cover {
+    width: 100%;
+    height: 200px;
+    object-fit: cover;
+    border-radius: 12px 12px 0 0;
+    display: block;
+}
+
+.album-info {
+    padding: 15px;
+}
+
+.album-title {
+    font-weight: 700;
+    color: #333;
+    font-size: 1.1rem;
+    margin-bottom: 5px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.album-meta {
+    font-size: 0.85rem;
+    color: #777;
+    display: flex;
+    justify-content: space-between;
+}
+
+/* --- 2. LIGHTBOX (XEM ẢNH) --- */
+.lightbox-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.95);
+    z-index: 9999;
+    display: none;
+    /* Mặc định ẩn */
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+.lightbox-content {
+    max-width: 90%;
+    max-height: 80vh;
+    position: relative;
+}
+
+#lightbox-img {
+    max-width: 100%;
+    max-height: 80vh;
+    border-radius: 4px;
+    box-shadow: 0 0 20px rgba(255, 255, 255, 0.1);
+}
+
+.lightbox-caption {
+    color: #fff;
+    margin-top: 15px;
+    text-align: center;
+    font-size: 1.1rem;
+    font-weight: 500;
+}
+
+.lightbox-close {
+    position: absolute;
+    top: 20px;
+    right: 30px;
+    font-size: 3rem;
+    color: #fff;
+    background: none;
+    border: none;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+.lightbox-close:hover {
+    color: var(--primary-orange);
+}
+
+.lightbox-nav {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+    border: none;
+    padding: 20px 15px;
+    font-size: 2rem;
+    cursor: pointer;
+    transition: 0.2s;
+    border-radius: 5px;
+}
+
+.lightbox-nav:hover {
+    background: rgba(255, 255, 255, 0.3);
+}
+
+.lightbox-nav.prev {
+    left: 20px;
+}
+
+.lightbox-nav.next {
+    right: 20px;
+}
+
+/* --- 3. CAREER TIMELINE (SNAKE LAYOUT - VERTICAL ZIGZAG) --- */
+.timeline-container {
+    position: relative;
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 20px 0;
+}
+
+/* Đường kẻ dọc ở giữa */
+.timeline-container::after {
+    content: '';
+    position: absolute;
+    width: 4px;
+    background-color: #e0e0e0;
+    top: 0;
+    bottom: 0;
+    left: 50%;
+    margin-left: -2px;
+    border-radius: 2px;
+}
+
+.timeline-node {
+    padding: 10px 40px;
+    position: relative;
+    background-color: inherit;
+    width: 50%;
+    box-sizing: border-box;
+    animation: fadeInUp 0.5s ease forwards;
+    opacity: 0;
+}
+
+/* Node bên trái */
+.timeline-node.left {
+    left: 0;
+    text-align: right;
+}
+
+/* Node bên phải */
+.timeline-node.right {
+    left: 50%;
+    text-align: left;
+}
+
+/* Dấu chấm tròn ở giữa */
+.timeline-node::after {
+    content: '';
+    position: absolute;
+    width: 20px;
+    height: 20px;
+    right: -14px;
+    background-color: #fff;
+    border: 4px solid var(--primary-blue);
+    top: 20px;
+    border-radius: 50%;
+    z-index: 1;
+    transition: 0.3s;
+}
+
+.timeline-node.right::after {
+    left: -14px;
+}
+
+.timeline-node:hover::after {
+    background-color: var(--primary-orange);
+    transform: scale(1.2);
+}
+
+/* Nội dung bên trong Node */
+.timeline-content {
+    padding: 20px;
+    background-color: white;
+    position: relative;
+    border-radius: 12px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+    border: 1px solid #f0f0f0;
+    transition: 0.3s;
+}
+
+.timeline-node:hover .timeline-content {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 25px rgba(0, 91, 150, 0.15);
+    border-color: var(--primary-blue);
+}
+
+.tl-time {
+    font-size: 0.85rem;
+    font-weight: bold;
+    color: #999;
+    margin-bottom: 5px;
+    display: block;
+}
+
+.tl-title {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: var(--primary-blue);
+    margin-bottom: 5px;
+}
+
+.tl-role {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 10px;
+}
+
+.tl-desc {
+    font-size: 0.9rem;
+    color: #555;
+    line-height: 1.5;
+}
+
+.tl-logo {
+    width: 50px;
+    height: 50px;
+    object-fit: contain;
+    margin-bottom: 10px;
+    background: #fff;
+    padding: 2px;
+    border-radius: 50%;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+/* Tag loại hình */
+.tl-tag {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 15px;
+    font-size: 0.75rem;
+    font-weight: bold;
+    color: white;
+    margin-bottom: 10px;
+}
+
+.tl-tag.academic {
+    background: #3498db;
+}
+
+.tl-tag.work {
+    background: #e67e22;
+}
+
+.tl-tag.activity {
+    background: #2ecc71;
+}
+
+/* --- RESPONSIVE TIMELINE (MOBILE) --- */
+@media screen and (max-width: 768px) {
+    .timeline-container::after {
+        left: 31px;
+    }
+
+    .timeline-node {
+        width: 100%;
+        padding-left: 70px;
+        padding-right: 25px;
+    }
+
+    .timeline-node.left,
+    .timeline-node.right {
+        left: 0;
+        text-align: left;
+    }
+
+    .timeline-node::after {
+        left: 21px;
+    }
+
+    .timeline-node.right::after {
+        left: 21px;
+    }
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
