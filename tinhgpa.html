@@ -3,8 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Công cụ Tính GPA Pro</title>
+    <title>Quản Lý Điểm & GPA Pro</title>
+    <!-- Font chữ -->
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&family=Roboto:wght@400;500&display=swap" rel="stylesheet">
+    <!-- Thư viện xuất Excel (SheetJS) -->
+    <script src="https://cdn.sheetjs.com/xlsx-0.20.0/package/dist/xlsx.full.min.js"></script>
+
     <style>
         :root {
             --primary: #005B96;
@@ -12,7 +16,7 @@
             --success: #28a745;
             --warning: #ffc107;
             --danger: #dc3545;
-            --info: #17a2b8;
+            --excel-color: #217346; /* Màu xanh Excel */
             --light: #f8f9fa;
             --dark: #343a40;
             --shadow: 0 4px 15px rgba(0,0,0,0.1);
@@ -31,7 +35,7 @@
 
         .container {
             width: 100%;
-            max-width: 1000px; /* Mở rộng chiều ngang một chút */
+            max-width: 1100px;
             background: white;
             border-radius: 15px;
             box-shadow: var(--shadow);
@@ -45,14 +49,14 @@
             color: white;
             text-align: center;
         }
-        .header h1 { margin: 0; font-family: 'Montserrat', sans-serif; }
+        .header h1 { margin: 0; font-family: 'Montserrat', sans-serif; font-size: 1.8rem; }
         .header p { margin: 5px 0 0; opacity: 0.9; font-size: 0.9rem; }
 
         /* CONTENT LAYOUT */
         .main-content {
             padding: 20px;
             display: grid;
-            grid-template-columns: 1fr 1.8fr; /* Cột bảng rộng hơn */
+            grid-template-columns: 1fr 2fr; /* Cột nhập liệu nhỏ hơn cột bảng */
             gap: 20px;
         }
 
@@ -60,63 +64,60 @@
             .main-content { grid-template-columns: 1fr; }
         }
 
-        /* FORM INPUT */
+        /* --- LEFT: INPUT FORM --- */
         .input-card {
             background: #fff;
             border: 1px solid #e9ecef;
             border-radius: 10px;
             padding: 20px;
             height: fit-content;
-            position: relative;
         }
-        /* Hiệu ứng khi đang sửa */
         .input-card.editing {
             border: 2px solid var(--warning);
             box-shadow: 0 0 10px rgba(255, 193, 7, 0.2);
+            position: relative;
         }
         .input-card.editing::before {
-            content: "ĐANG CHẾ ĐỘ SỬA";
-            position: absolute;
-            top: -10px;
-            left: 20px;
-            background: var(--warning);
-            color: #333;
-            font-size: 0.7rem;
-            font-weight: bold;
-            padding: 2px 8px;
-            border-radius: 4px;
+            content: "ĐANG SỬA";
+            position: absolute; top: -10px; left: 20px;
+            background: var(--warning); color: #333;
+            font-size: 0.7rem; font-weight: bold; padding: 2px 8px; border-radius: 4px;
+        }
+
+        /* Student Info Section */
+        .student-info-box {
+            background: #e3f2fd;
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid #bbdefb;
+            margin-bottom: 20px;
+        }
+        .section-title {
+            font-size: 0.9rem; font-weight: 700; color: var(--primary); 
+            margin-bottom: 10px; text-transform: uppercase; letter-spacing: 0.5px;
         }
 
         .form-group { margin-bottom: 15px; }
         .form-group label {
-            display: block;
-            font-weight: 600;
-            margin-bottom: 5px;
-            color: var(--primary);
-            font-size: 0.9rem;
+            display: block; font-weight: 600; margin-bottom: 5px; color: var(--dark); font-size: 0.9rem;
         }
         
         input {
-            width: 100%;
-            padding: 10px;
-            border: 1px solid #ced4da;
-            border-radius: 5px;
-            font-size: 1rem;
+            width: 100%; padding: 10px;
+            border: 1px solid #ced4da; border-radius: 5px; font-size: 0.95rem;
         }
         input:focus { outline: none; border-color: var(--secondary); }
 
-        /* COMPONENT ROWS */
-        .comp-row {
-            display: grid;
-            grid-template-columns: 2fr 1fr 1fr;
-            gap: 10px;
-            align-items: center;
-            margin-bottom: 10px;
-            padding-bottom: 10px;
-            border-bottom: 1px dashed #eee;
+        /* Score Inputs */
+        .score-box {
+            background: #f8f9fa; padding: 10px; border-radius: 8px; border: 1px dashed #ccc;
         }
-        .comp-row:last-child { border-bottom: none; }
-        .comp-label { font-size: 0.9rem; font-weight: 500; }
+        .comp-row {
+            display: grid; grid-template-columns: 2fr 1fr 1fr;
+            gap: 10px; align-items: center; margin-bottom: 10px; padding-bottom: 10px; border-bottom: 1px dashed #eee;
+        }
+        .comp-row:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+        .comp-label { font-size: 0.85rem; font-weight: 600; }
         .percent-input { position: relative; }
         .percent-input::after {
             content: '%'; position: absolute; right: 8px; top: 50%; transform: translateY(-50%); color: #999; font-size: 0.8rem;
@@ -126,58 +127,48 @@
         .btn {
             width: 100%; padding: 12px; border: none; border-radius: 5px;
             font-weight: bold; cursor: pointer; transition: 0.3s;
-            font-family: 'Montserrat', sans-serif;
+            font-family: 'Montserrat', sans-serif; font-size: 0.95rem;
         }
-        .btn-add { background: var(--secondary); color: white; margin-top: 10px; }
+        .btn-add { background: var(--secondary); color: white; margin-top: 15px; }
         .btn-add:hover { background: #e06c00; }
-        
-        .btn-update { background: var(--warning); color: #333; margin-top: 10px; display: none; } /* Mặc định ẩn */
+        .btn-update { background: var(--warning); color: #333; margin-top: 15px; display: none; }
         .btn-update:hover { background: #d39e00; }
-
         .btn-clear { background: #e9ecef; color: var(--dark); margin-top: 10px; }
+        .btn-excel { 
+            background: var(--excel-color); color: white; margin-top: 5px; 
+            display: flex; align-items: center; justify-content: center; gap: 8px;
+        }
+        .btn-excel:hover { background: #1a5c38; }
 
-        /* RESULT AREA */
+        /* --- RIGHT: RESULT AREA --- */
         .gpa-summary {
-            background: var(--light);
-            border-radius: 10px;
-            padding: 15px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-            border: 2px solid var(--primary);
+            background: var(--light); border-radius: 10px; padding: 20px;
+            display: flex; justify-content: space-between; align-items: center;
+            margin-bottom: 20px; border-bottom: 4px solid var(--primary);
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
         }
         .gpa-box { text-align: center; flex: 1; border-right: 1px solid #ddd; }
         .gpa-box:last-child { border-right: none; }
         .gpa-label { font-size: 0.75rem; color: #666; text-transform: uppercase; font-weight: bold; margin-bottom: 5px; }
-        .gpa-value { font-size: 1.8rem; font-weight: 800; color: var(--secondary); line-height: 1; }
+        .gpa-value { font-size: 2rem; font-weight: 800; color: var(--secondary); line-height: 1; }
         .gpa-rank { font-size: 0.9rem; color: var(--primary); font-weight: bold; margin-top: 5px; }
 
         /* TABLE */
         .table-container { overflow-x: auto; }
         table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
-        th { background: #f1f3f5; color: var(--dark); padding: 12px 8px; text-align: left; font-weight: 600; white-space: nowrap; }
+        th { background: #f1f3f5; color: var(--dark); padding: 12px 8px; text-align: left; font-weight: 600; white-space: nowrap; border-bottom: 2px solid #ddd; }
         td { padding: 12px 8px; border-bottom: 1px solid #eee; vertical-align: middle; }
         
-        .badge {
-            padding: 4px 8px; border-radius: 12px; font-weight: bold; font-size: 0.75rem; color: white; white-space: nowrap;
-        }
+        .badge { padding: 4px 8px; border-radius: 12px; font-weight: bold; font-size: 0.75rem; color: white; white-space: nowrap; }
         .badge-A { background: #28a745; }
         .badge-B { background: #17a2b8; }
         .badge-C { background: #ffc107; color: #333; }
         .badge-D { background: #fd7e14; }
         .badge-F { background: #dc3545; }
 
-        /* ACTION BUTTONS IN TABLE */
-        .action-btns { display: flex; gap: 5px; justify-content: center; }
-        .btn-icon {
-            width: 30px; height: 30px; border: none; border-radius: 5px;
-            cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 1rem;
-        }
+        .btn-icon { width: 30px; height: 30px; border: none; border-radius: 5px; cursor: pointer; margin-right: 5px; }
         .btn-edit-row { background: #ffecb3; color: #f39c12; }
-        .btn-edit-row:hover { background: #ffe082; }
         .btn-del-row { background: #ffcdd2; color: #c62828; }
-        .btn-del-row:hover { background: #ef9a9a; }
 
         .error-msg { color: #dc3545; font-size: 0.85rem; margin-top: 5px; display: none; }
     </style>
@@ -186,24 +177,31 @@
 
 <div class="container">
     <div class="header">
-        <h1>Tính GPA Chi Tiết</h1>
-        <p>Hệ thống tính điểm, xếp loại và quy đổi tín chỉ</p>
+        <h1>Hệ Thống Tính GPA & Xuất Excel</h1>
+        <p>Theo chuẩn tín chỉ Đại học (Hệ 4)</p>
     </div>
 
     <div class="main-content">
         <!-- LEFT: FORM -->
         <div class="input-card" id="inputCard">
-            <h3 style="margin-top:0; color:var(--primary); display:flex; justify-content:space-between;">
-                <span>Thông tin</span>
-                <span id="modeLabel" style="font-size:0.8rem; color:#999; font-weight:normal;">Chế độ thêm mới</span>
-            </h3>
-            
-            <!-- Hidden input để lưu index khi sửa -->
+            <!-- 1. THÔNG TIN SINH VIÊN -->
+            <div class="student-info-box">
+                <div class="section-title">👤 Thông tin sinh viên</div>
+                <div class="form-group" style="margin-bottom: 10px;">
+                    <input type="text" id="studentName" placeholder="Họ và tên sinh viên">
+                </div>
+                <div class="form-group" style="margin-bottom: 0;">
+                    <input type="text" id="studentID" placeholder="Mã số sinh viên (MSSV)">
+                </div>
+            </div>
+
+            <!-- 2. NHẬP MÔN HỌC -->
+            <div class="section-title">📘 Nhập điểm môn học</div>
             <input type="hidden" id="editIndex" value="-1">
 
             <div class="form-group">
                 <label>Tên môn học</label>
-                <input type="text" id="subjectName" placeholder="VD: Kinh tế vi mô">
+                <input type="text" id="subjectName" placeholder="VD: Kinh tế lượng">
             </div>
             
             <div class="form-group">
@@ -211,8 +209,8 @@
                 <input type="number" id="credits" value="3" min="1" max="10">
             </div>
 
-            <div style="background: #f8f9fa; padding: 10px; border-radius: 8px; border: 1px dashed #ccc;">
-                <label style="margin-bottom: 10px; display:block; color:#666;">Điểm thành phần (Điểm / %)</label>
+            <div class="score-box">
+                <label style="margin-bottom: 10px; display:block; color:#666; font-size:0.85rem;">Điểm thành phần (Điểm / Trọng số %)</label>
                 
                 <div class="comp-row">
                     <div class="comp-label">Quá trình</div>
@@ -239,61 +237,65 @@
                 </div>
             </div>
             
-            <div id="errorMsg" class="error-msg">Tổng tỷ lệ % phải bằng 100%!</div>
+            <div id="errorMsg" class="error-msg">Tổng trọng số phải bằng 100%!</div>
 
-            <!-- Nút thêm mới -->
             <button id="btnAdd" class="btn btn-add" onclick="handleFormSubmit()">➕ Thêm môn học</button>
-            <!-- Nút cập nhật (ẩn mặc định) -->
-            <button id="btnUpdate" class="btn btn-update" onclick="handleFormSubmit()">💾 Lưu cập nhật</button>
-            
-            <button class="btn btn-clear" onclick="resetForm()">Làm mới / Hủy sửa</button>
+            <button id="btnUpdate" class="btn btn-update" onclick="handleFormSubmit()">💾 Lưu thay đổi</button>
+            <button class="btn btn-clear" onclick="resetForm()">Làm mới</button>
         </div>
 
-        <!-- RIGHT: TABLE -->
+        <!-- RIGHT: TABLE & EXCEL -->
         <div class="result-area">
+            <!-- SUMMARY -->
             <div class="gpa-summary">
                 <div class="gpa-box">
-                    <div class="gpa-label">GPA (Hệ 4)</div>
+                    <div class="gpa-label">GPA Tích lũy</div>
                     <div class="gpa-value" id="totalGPA">0.00</div>
                     <div class="gpa-rank" id="totalRank">---</div>
                 </div>
                 <div class="gpa-box">
                     <div class="gpa-label">Trung bình (10)</div>
-                    <div class="gpa-value" id="totalAvg10" style="color:var(--primary)">0.00</div>
+                    <div class="gpa-value" id="totalAvg10" style="color:var(--primary); font-size:1.5rem;">0.00</div>
                 </div>
-                <div class="gpa-box">
-                    <div class="gpa-label">Tín chỉ</div>
-                    <div class="gpa-value" id="totalCredits" style="color:#666">0</div>
+                <div class="gpa-box" style="flex: 0.8;">
+                    <div class="gpa-label">Tổng TC</div>
+                    <div class="gpa-value" id="totalCredits" style="color:#666; font-size:1.5rem;">0</div>
+                </div>
+                <div class="gpa-box" style="border:none; padding-left:15px;">
+                    <button class="btn btn-excel" onclick="exportToExcel()">
+                        <span>📥</span> Xuất Excel
+                    </button>
                 </div>
             </div>
 
+            <!-- TABLE -->
             <div class="table-container">
                 <table id="gpaTable">
                     <thead>
                         <tr>
-                            <th width="30%">Môn học</th>
+                            <th width="35%">Môn học</th>
                             <th style="text-align:center">TC</th>
                             <th style="text-align:center">Tổng (10)</th>
                             <th style="text-align:center">Hệ 4</th>
-                            <th style="text-align:center">Điểm chữ</th>
+                            <th style="text-align:center">Chữ</th>
                             <th style="text-align:center">Xếp loại</th>
                             <th style="text-align:center">Thao tác</th>
                         </tr>
                     </thead>
                     <tbody>
-                        <!-- Rows -->
+                        <!-- Dữ liệu sẽ đổ vào đây -->
                     </tbody>
                 </table>
-                <p id="emptyState" style="text-align:center; color:#999; margin-top:20px;">Chưa có dữ liệu.</p>
+                <p id="emptyState" style="text-align:center; color:#999; margin-top:30px;">Chưa có dữ liệu điểm.</p>
             </div>
         </div>
     </div>
 </div>
 
 <script>
-    let subjects = []; // Mảng lưu trữ dữ liệu
+    let subjects = []; // Lưu trữ toàn bộ dữ liệu môn học
 
-    // 1. Logic Quy đổi Điểm & Xếp loại
+    // 1. Logic Quy đổi Điểm (Hệ 10 -> Hệ 4 & Chữ)
     function getGradeDetails(score10) {
         const s = parseFloat(score10);
         if (isNaN(s)) return { char: 'F', scale4: 0.0, rank: 'Kém', class: 'badge-F' };
@@ -308,16 +310,15 @@
         return { char: 'F', scale4: 0.0, rank: 'Kém', class: 'badge-F' };
     }
 
-    // 2. Xử lý Submit (Thêm mới HOẶC Cập nhật)
+    // 2. Xử lý Thêm / Sửa
     function handleFormSubmit() {
         const index = parseInt(document.getElementById('editIndex').value);
         const isEditing = index !== -1;
 
-        // Lấy dữ liệu từ form
-        const name = document.getElementById('subjectName').value || `Môn học ${isEditing ? index + 1 : subjects.length + 1}`;
+        // Lấy dữ liệu
+        const name = document.getElementById('subjectName').value || `Môn học ${subjects.length + 1}`;
         const credits = parseInt(document.getElementById('credits').value) || 0;
 
-        // Điểm & Trọng số
         const sProcess = parseFloat(document.getElementById('scoreProcess').value) || 0;
         const sMid = parseFloat(document.getElementById('scoreMid').value) || 0;
         const sFinal = parseFloat(document.getElementById('scoreFinal').value) || 0;
@@ -326,22 +327,21 @@
         const wMid = parseFloat(document.getElementById('weightMid').value) || 0;
         const wFinal = parseFloat(document.getElementById('weightFinal').value) || 0;
 
-        // Validate
+        // Validate %
         if (wProcess + wMid + wFinal !== 100) {
             document.getElementById('errorMsg').style.display = 'block';
-            document.getElementById('errorMsg').textContent = `Tổng tỷ lệ là ${wProcess + wMid + wFinal}%. Phải bằng 100%!`;
+            document.getElementById('errorMsg').textContent = `Tổng trọng số là ${wProcess + wMid + wFinal}%. Phải bằng 100%!`;
             return;
         }
         document.getElementById('errorMsg').style.display = 'none';
 
-        // Tính toán
+        // Tính điểm tổng kết 10
         const total10 = (sProcess * wProcess + sMid * wMid + sFinal * wFinal) / 100;
         const rounded10 = Math.round(total10 * 10) / 10;
         const gradeInfo = getGradeDetails(rounded10);
 
-        // Object dữ liệu môn học
         const subjectData = {
-            id: isEditing ? subjects[index].id : Date.now(), // Giữ ID cũ nếu sửa
+            id: isEditing ? subjects[index].id : Date.now(),
             name, credits,
             scores: { process: sProcess, mid: sMid, final: sFinal },
             weights: { process: wProcess, mid: wMid, final: wFinal },
@@ -353,13 +353,11 @@
         };
 
         if (isEditing) {
-            // Cập nhật
             subjects[index] = subjectData;
-            resetForm(); // Thoát chế độ sửa
+            resetForm();
         } else {
-            // Thêm mới
             subjects.push(subjectData);
-            // Xóa điểm nhập để nhập môn tiếp theo nhanh hơn, nhưng giữ lại Tỷ lệ %
+            // Clear input điểm để nhập môn mới nhanh hơn
             document.getElementById('scoreProcess').value = '';
             document.getElementById('scoreMid').value = '';
             document.getElementById('scoreFinal').value = '';
@@ -399,86 +397,63 @@
                 <td style="text-align:center; font-weight:bold;">${sub.scale4}</td>
                 <td style="text-align:center;"><span class="badge ${sub.badgeClass}">${sub.char}</span></td>
                 <td style="text-align:center; font-size:0.85rem;">${sub.rank}</td>
-                <td>
-                    <div class="action-btns">
-                        <button class="btn-icon btn-edit-row" onclick="startEdit(${idx})" title="Sửa">✏️</button>
-                        <button class="btn-icon btn-del-row" onclick="removeSubject(${idx})" title="Xóa">🗑️</button>
-                    </div>
+                <td style="text-align:center;">
+                    <button class="btn-icon btn-edit-row" onclick="startEdit(${idx})" title="Sửa">✏️</button>
+                    <button class="btn-icon btn-del-row" onclick="removeSubject(${idx})" title="Xóa">🗑️</button>
                 </td>
             `;
             tbody.appendChild(tr);
         });
     }
 
-    // 4. Chế độ Sửa (Edit Mode)
+    // 4. Chế độ Sửa
     function startEdit(index) {
         const sub = subjects[index];
-        
-        // Đổ dữ liệu lại form
         document.getElementById('subjectName').value = sub.name;
         document.getElementById('credits').value = sub.credits;
-        
         document.getElementById('scoreProcess').value = sub.scores.process;
         document.getElementById('scoreMid').value = sub.scores.mid;
         document.getElementById('scoreFinal').value = sub.scores.final;
-
         document.getElementById('weightProcess').value = sub.weights.process;
         document.getElementById('weightMid').value = sub.weights.mid;
         document.getElementById('weightFinal').value = sub.weights.final;
 
-        // Bật trạng thái sửa
         document.getElementById('editIndex').value = index;
         document.getElementById('btnAdd').style.display = 'none';
         document.getElementById('btnUpdate').style.display = 'block';
-        
-        // UI feedback
         document.getElementById('inputCard').classList.add('editing');
-        document.getElementById('modeLabel').textContent = "Đang sửa: " + sub.name;
-        document.querySelector('.btn-clear').textContent = "Hủy bỏ sửa";
         
-        // Scroll lên form
-        document.querySelector('.container').scrollIntoView({ behavior: 'smooth' });
+        window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
     // 5. Xóa môn
     function removeSubject(index) {
-        if(confirm('Bạn có chắc muốn xóa môn này?')) {
-            // Nếu đang sửa môn này mà bấm xóa thì reset form luôn
-            if (parseInt(document.getElementById('editIndex').value) === index) {
-                resetForm();
-            }
+        if(confirm('Xóa môn này?')) {
+            if (parseInt(document.getElementById('editIndex').value) === index) resetForm();
             subjects.splice(index, 1);
-            // Nếu xóa môn phía trên môn đang sửa, index sẽ bị lệch, nên tốt nhất reset form nếu đang sửa bất kỳ môn nào
+            // Fix bug index lệch khi đang sửa
             if (document.getElementById('editIndex').value !== "-1") resetForm();
-            
             renderTable();
             updateSummary();
         }
     }
 
-    // 6. Reset Form & Thoát chế độ sửa
+    // 6. Reset Form
     function resetForm() {
-        document.getElementById('subjectName').value = '';
-        document.getElementById('scoreProcess').value = '';
-        document.getElementById('scoreMid').value = '';
-        document.getElementById('scoreFinal').value = '';
-        // Reset về default credits và weight
+        document.querySelectorAll('.input-card input:not(#studentName):not(#studentID)').forEach(i => i.value = '');
         document.getElementById('credits').value = 3;
         document.getElementById('weightProcess').value = 20;
         document.getElementById('weightMid').value = 30;
         document.getElementById('weightFinal').value = 50;
         document.getElementById('errorMsg').style.display = 'none';
 
-        // Reset trạng thái Edit
         document.getElementById('editIndex').value = "-1";
         document.getElementById('btnAdd').style.display = 'block';
         document.getElementById('btnUpdate').style.display = 'none';
         document.getElementById('inputCard').classList.remove('editing');
-        document.getElementById('modeLabel').textContent = "Chế độ thêm mới";
-        document.querySelector('.btn-clear').textContent = "Làm mới";
     }
 
-    // 7. Tính tổng kết
+    // 7. Tính tổng kết GPA
     function updateSummary() {
         let totalCredits = 0;
         let totalPoint4 = 0;
@@ -493,7 +468,6 @@
         const gpa4 = totalCredits > 0 ? (totalPoint4 / totalCredits).toFixed(2) : "0.00";
         const avg10 = totalCredits > 0 ? (totalPoint10 / totalCredits).toFixed(2) : "0.00";
 
-        // Xếp loại tổng kết dựa trên GPA hệ 4 (Quy chế thường gặp)
         let rankText = "---";
         const gpaNum = parseFloat(gpa4);
         if (totalCredits > 0) {
@@ -508,6 +482,78 @@
         document.getElementById('totalAvg10').textContent = avg10;
         document.getElementById('totalCredits').textContent = totalCredits;
         document.getElementById('totalRank').textContent = rankText;
+    }
+
+    // ============================================================
+    // 8. XUẤT FILE EXCEL (CÔNG NGHỆ SHEETJS)
+    // ============================================================
+    function exportToExcel() {
+        if (subjects.length === 0) {
+            alert("Chưa có môn học nào để xuất!");
+            return;
+        }
+
+        const name = document.getElementById('studentName').value || "Sinh viên";
+        const id = document.getElementById('studentID').value || "MSSV";
+        const gpa = document.getElementById('totalGPA').textContent;
+        const rank = document.getElementById('totalRank').textContent;
+
+        // Chuẩn bị dữ liệu mảng (Array of Arrays)
+        const data = [
+            ["BẢNG ĐIỂM TỔNG HỢP GPA"],
+            [""], // Dòng trống
+            ["Họ và tên:", name],
+            ["MSSV:", id],
+            ["GPA Tích lũy:", gpa],
+            ["Xếp loại:", rank],
+            [""], // Dòng trống ngăn cách
+            // Header bảng
+            ["STT", "Môn học", "Tín chỉ", "Điểm Quá trình", "Điểm Giữa kỳ", "Điểm Cuối kỳ", "Tổng kết (10)", "Điểm Hệ 4", "Điểm Chữ", "Xếp loại môn"]
+        ];
+
+        // Đổ dữ liệu từng môn
+        subjects.forEach((sub, i) => {
+            const detailProcess = `${sub.scores.process} (${sub.weights.process}%)`;
+            const detailMid = `${sub.scores.mid} (${sub.weights.mid}%)`;
+            const detailFinal = `${sub.scores.final} (${sub.weights.final}%)`;
+
+            data.push([
+                i + 1,
+                sub.name,
+                sub.credits,
+                detailProcess,
+                detailMid,
+                detailFinal,
+                sub.final10,
+                sub.scale4,
+                sub.char,
+                sub.rank
+            ]);
+        });
+
+        // Tạo Workbook & Worksheet
+        const wb = XLSX.utils.book_new();
+        const ws = XLSX.utils.aoa_to_sheet(data);
+
+        // Chỉnh độ rộng cột (để nhìn cho đẹp)
+        ws['!cols'] = [
+            { wch: 5 },  // STT
+            { wch: 30 }, // Tên môn
+            { wch: 10 }, // TC
+            { wch: 15 }, // QT
+            { wch: 15 }, // GK
+            { wch: 15 }, // CK
+            { wch: 15 }, // TK 10
+            { wch: 10 }, // TK 4
+            { wch: 10 }, // Chữ
+            { wch: 15 }  // Rank
+        ];
+
+        XLSX.utils.book_append_sheet(wb, ws, "BangDiem");
+
+        // Xuất file
+        const fileName = `BangDiem_${name.replace(/\s+/g, '')}_${id}.xlsx`;
+        XLSX.writeFile(wb, fileName);
     }
 </script>
 
