@@ -3,14 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Công cụ Tính GPA Chi tiết</title>
+    <title>Công cụ Tính GPA Pro</title>
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&family=Roboto:wght@400;500&display=swap" rel="stylesheet">
     <style>
         :root {
             --primary: #005B96;
             --secondary: #FF7A00;
             --success: #28a745;
+            --warning: #ffc107;
             --danger: #dc3545;
+            --info: #17a2b8;
             --light: #f8f9fa;
             --dark: #343a40;
             --shadow: 0 4px 15px rgba(0,0,0,0.1);
@@ -29,7 +31,7 @@
 
         .container {
             width: 100%;
-            max-width: 900px;
+            max-width: 1000px; /* Mở rộng chiều ngang một chút */
             background: white;
             border-radius: 15px;
             box-shadow: var(--shadow);
@@ -50,11 +52,11 @@
         .main-content {
             padding: 20px;
             display: grid;
-            grid-template-columns: 1fr 1.5fr; /* Cột nhập liệu nhỏ hơn cột bảng */
+            grid-template-columns: 1fr 1.8fr; /* Cột bảng rộng hơn */
             gap: 20px;
         }
 
-        @media (max-width: 768px) {
+        @media (max-width: 900px) {
             .main-content { grid-template-columns: 1fr; }
         }
 
@@ -65,6 +67,24 @@
             border-radius: 10px;
             padding: 20px;
             height: fit-content;
+            position: relative;
+        }
+        /* Hiệu ứng khi đang sửa */
+        .input-card.editing {
+            border: 2px solid var(--warning);
+            box-shadow: 0 0 10px rgba(255, 193, 7, 0.2);
+        }
+        .input-card.editing::before {
+            content: "ĐANG CHẾ ĐỘ SỬA";
+            position: absolute;
+            top: -10px;
+            left: 20px;
+            background: var(--warning);
+            color: #333;
+            font-size: 0.7rem;
+            font-weight: bold;
+            padding: 2px 8px;
+            border-radius: 4px;
         }
 
         .form-group { margin-bottom: 15px; }
@@ -75,7 +95,6 @@
             color: var(--primary);
             font-size: 0.9rem;
         }
-        .form-row { display: flex; gap: 10px; }
         
         input {
             width: 100%;
@@ -86,10 +105,10 @@
         }
         input:focus { outline: none; border-color: var(--secondary); }
 
-        /* COMPONENT ROWS (Điểm thành phần) */
+        /* COMPONENT ROWS */
         .comp-row {
             display: grid;
-            grid-template-columns: 2fr 1fr 1fr; /* Label - Điểm - % */
+            grid-template-columns: 2fr 1fr 1fr;
             gap: 10px;
             align-items: center;
             margin-bottom: 10px;
@@ -100,64 +119,48 @@
         .comp-label { font-size: 0.9rem; font-weight: 500; }
         .percent-input { position: relative; }
         .percent-input::after {
-            content: '%';
-            position: absolute;
-            right: 8px;
-            top: 50%;
-            transform: translateY(-50%);
-            color: #999;
-            font-size: 0.8rem;
+            content: '%'; position: absolute; right: 8px; top: 50%; transform: translateY(-50%); color: #999; font-size: 0.8rem;
         }
 
         /* BUTTONS */
         .btn {
-            width: 100%;
-            padding: 12px;
-            border: none;
-            border-radius: 5px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: 0.3s;
+            width: 100%; padding: 12px; border: none; border-radius: 5px;
+            font-weight: bold; cursor: pointer; transition: 0.3s;
             font-family: 'Montserrat', sans-serif;
         }
         .btn-add { background: var(--secondary); color: white; margin-top: 10px; }
         .btn-add:hover { background: #e06c00; }
+        
+        .btn-update { background: var(--warning); color: #333; margin-top: 10px; display: none; } /* Mặc định ẩn */
+        .btn-update:hover { background: #d39e00; }
+
         .btn-clear { background: #e9ecef; color: var(--dark); margin-top: 10px; }
 
-        /* TABLE & RESULTS */
-        .result-area {
-            display: flex;
-            flex-direction: column;
-        }
-
-        /* TOTAL SUMMARY CARD */
+        /* RESULT AREA */
         .gpa-summary {
             background: var(--light);
             border-radius: 10px;
             padding: 15px;
             display: flex;
-            justify-content: space-around;
+            justify-content: space-between;
             align-items: center;
             margin-bottom: 20px;
             border: 2px solid var(--primary);
         }
-        .gpa-box { text-align: center; }
-        .gpa-label { font-size: 0.85rem; color: #666; text-transform: uppercase; font-weight: bold; }
-        .gpa-value { font-size: 2rem; font-weight: 800; color: var(--secondary); }
-        .gpa-value.blue { color: var(--primary); }
+        .gpa-box { text-align: center; flex: 1; border-right: 1px solid #ddd; }
+        .gpa-box:last-child { border-right: none; }
+        .gpa-label { font-size: 0.75rem; color: #666; text-transform: uppercase; font-weight: bold; margin-bottom: 5px; }
+        .gpa-value { font-size: 1.8rem; font-weight: 800; color: var(--secondary); line-height: 1; }
+        .gpa-rank { font-size: 0.9rem; color: var(--primary); font-weight: bold; margin-top: 5px; }
 
-        /* TABLE STYLES */
+        /* TABLE */
         .table-container { overflow-x: auto; }
         table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
-        th { background: #f1f3f5; color: var(--dark); padding: 12px 8px; text-align: left; font-weight: 600; }
-        td { padding: 12px 8px; border-bottom: 1px solid #eee; }
+        th { background: #f1f3f5; color: var(--dark); padding: 12px 8px; text-align: left; font-weight: 600; white-space: nowrap; }
+        td { padding: 12px 8px; border-bottom: 1px solid #eee; vertical-align: middle; }
         
         .badge {
-            padding: 4px 8px;
-            border-radius: 12px;
-            font-weight: bold;
-            font-size: 0.8rem;
-            color: white;
+            padding: 4px 8px; border-radius: 12px; font-weight: bold; font-size: 0.75rem; color: white; white-space: nowrap;
         }
         .badge-A { background: #28a745; }
         .badge-B { background: #17a2b8; }
@@ -165,11 +168,17 @@
         .badge-D { background: #fd7e14; }
         .badge-F { background: #dc3545; }
 
-        .btn-del {
-            background: none; border: none; color: #dc3545; cursor: pointer; font-size: 1.1rem;
+        /* ACTION BUTTONS IN TABLE */
+        .action-btns { display: flex; gap: 5px; justify-content: center; }
+        .btn-icon {
+            width: 30px; height: 30px; border: none; border-radius: 5px;
+            cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 1rem;
         }
+        .btn-edit-row { background: #ffecb3; color: #f39c12; }
+        .btn-edit-row:hover { background: #ffe082; }
+        .btn-del-row { background: #ffcdd2; color: #c62828; }
+        .btn-del-row:hover { background: #ef9a9a; }
 
-        /* Error msg */
         .error-msg { color: #dc3545; font-size: 0.85rem; margin-top: 5px; display: none; }
     </style>
 </head>
@@ -177,15 +186,21 @@
 
 <div class="container">
     <div class="header">
-        <h1>Tính Điểm GPA & Thành Phần</h1>
-        <p>Quy đổi Hệ 10 sang Hệ 4 chuẩn Đại học</p>
+        <h1>Tính GPA Chi Tiết</h1>
+        <p>Hệ thống tính điểm, xếp loại và quy đổi tín chỉ</p>
     </div>
 
     <div class="main-content">
-        <!-- LEFT: INPUT FORM -->
-        <div class="input-card">
-            <h3 style="margin-top:0; color:var(--primary);">Nhập thông tin môn học</h3>
+        <!-- LEFT: FORM -->
+        <div class="input-card" id="inputCard">
+            <h3 style="margin-top:0; color:var(--primary); display:flex; justify-content:space-between;">
+                <span>Thông tin</span>
+                <span id="modeLabel" style="font-size:0.8rem; color:#999; font-weight:normal;">Chế độ thêm mới</span>
+            </h3>
             
+            <!-- Hidden input để lưu index khi sửa -->
+            <input type="hidden" id="editIndex" value="-1">
+
             <div class="form-group">
                 <label>Tên môn học</label>
                 <input type="text" id="subjectName" placeholder="VD: Kinh tế vi mô">
@@ -197,29 +212,26 @@
             </div>
 
             <div style="background: #f8f9fa; padding: 10px; border-radius: 8px; border: 1px dashed #ccc;">
-                <label style="margin-bottom: 10px; display:block; color:#666;">Điểm thành phần (Điểm / Tỷ lệ %)</label>
+                <label style="margin-bottom: 10px; display:block; color:#666;">Điểm thành phần (Điểm / %)</label>
                 
-                <!-- 1. QUÁ TRÌNH -->
                 <div class="comp-row">
-                    <div class="comp-label">Quá trình (GV)</div>
+                    <div class="comp-label">Quá trình</div>
                     <input type="number" id="scoreProcess" placeholder="0-10" step="0.1">
                     <div class="percent-input">
                         <input type="number" id="weightProcess" value="20" placeholder="%">
                     </div>
                 </div>
 
-                <!-- 2. GIỮA KỲ -->
                 <div class="comp-row">
-                    <div class="comp-label">Giữa kỳ (GV)</div>
+                    <div class="comp-label">Giữa kỳ</div>
                     <input type="number" id="scoreMid" placeholder="0-10" step="0.1">
                     <div class="percent-input">
                         <input type="number" id="weightMid" value="30" placeholder="%">
                     </div>
                 </div>
 
-                <!-- 3. CUỐI KỲ -->
                 <div class="comp-row">
-                    <div class="comp-label">Cuối kỳ (Trường)</div>
+                    <div class="comp-label">Cuối kỳ</div>
                     <input type="number" id="scoreFinal" placeholder="0-10" step="0.1">
                     <div class="percent-input">
                         <input type="number" id="weightFinal" value="50" placeholder="%">
@@ -229,126 +241,137 @@
             
             <div id="errorMsg" class="error-msg">Tổng tỷ lệ % phải bằng 100%!</div>
 
-            <button class="btn btn-add" onclick="addSubject()">➕ Tính & Thêm vào bảng</button>
-            <button class="btn btn-clear" onclick="resetForm()">Làm mới</button>
+            <!-- Nút thêm mới -->
+            <button id="btnAdd" class="btn btn-add" onclick="handleFormSubmit()">➕ Thêm môn học</button>
+            <!-- Nút cập nhật (ẩn mặc định) -->
+            <button id="btnUpdate" class="btn btn-update" onclick="handleFormSubmit()">💾 Lưu cập nhật</button>
+            
+            <button class="btn btn-clear" onclick="resetForm()">Làm mới / Hủy sửa</button>
         </div>
 
-        <!-- RIGHT: RESULT TABLE -->
+        <!-- RIGHT: TABLE -->
         <div class="result-area">
-            <!-- Summary Box -->
             <div class="gpa-summary">
                 <div class="gpa-box">
                     <div class="gpa-label">GPA (Hệ 4)</div>
                     <div class="gpa-value" id="totalGPA">0.00</div>
+                    <div class="gpa-rank" id="totalRank">---</div>
                 </div>
                 <div class="gpa-box">
-                    <div class="gpa-label">Điểm TB (Hệ 10)</div>
-                    <div class="gpa-value blue" id="totalAvg10">0.00</div>
+                    <div class="gpa-label">Trung bình (10)</div>
+                    <div class="gpa-value" id="totalAvg10" style="color:var(--primary)">0.00</div>
                 </div>
                 <div class="gpa-box">
-                    <div class="gpa-label">Tổng tín chỉ</div>
-                    <div class="gpa-value" id="totalCredits" style="color:#666;">0</div>
+                    <div class="gpa-label">Tín chỉ</div>
+                    <div class="gpa-value" id="totalCredits" style="color:#666">0</div>
                 </div>
             </div>
 
-            <!-- List -->
             <div class="table-container">
                 <table id="gpaTable">
                     <thead>
                         <tr>
-                            <th>Môn học</th>
+                            <th width="30%">Môn học</th>
                             <th style="text-align:center">TC</th>
                             <th style="text-align:center">Tổng (10)</th>
                             <th style="text-align:center">Hệ 4</th>
+                            <th style="text-align:center">Điểm chữ</th>
                             <th style="text-align:center">Xếp loại</th>
-                            <th></th>
+                            <th style="text-align:center">Thao tác</th>
                         </tr>
                     </thead>
                     <tbody>
-                        <!-- Rows inserted by JS -->
+                        <!-- Rows -->
                     </tbody>
                 </table>
-                <p id="emptyState" style="text-align:center; color:#999; margin-top:20px;">Chưa có môn học nào được thêm.</p>
+                <p id="emptyState" style="text-align:center; color:#999; margin-top:20px;">Chưa có dữ liệu.</p>
             </div>
         </div>
     </div>
 </div>
 
 <script>
-    // Dữ liệu danh sách môn học
-    let subjects = [];
+    let subjects = []; // Mảng lưu trữ dữ liệu
 
-    // 1. Hàm tính điểm hệ 4 và điểm chữ (Logic y hệt hệ thống cũ)
+    // 1. Logic Quy đổi Điểm & Xếp loại
     function getGradeDetails(score10) {
         const s = parseFloat(score10);
-        if (isNaN(s)) return { char: 'F', scale4: 0.0, class: 'badge-F' };
+        if (isNaN(s)) return { char: 'F', scale4: 0.0, rank: 'Kém', class: 'badge-F' };
 
-        if (s >= 9.0) return { char: 'A+', scale4: 4.0, class: 'badge-A' };
-        if (s >= 8.0) return { char: 'A',  scale4: 3.5, class: 'badge-A' };
-        if (s >= 7.0) return { char: 'B+', scale4: 3.0, class: 'badge-B' };
-        if (s >= 6.0) return { char: 'B',  scale4: 2.5, class: 'badge-B' };
-        if (s >= 5.0) return { char: 'C',  scale4: 2.0, class: 'badge-C' };
-        if (s >= 4.0) return { char: 'D+', scale4: 1.5, class: 'badge-D' };
-        if (s >= 3.0) return { char: 'D',  scale4: 1.0, class: 'badge-D' }; // Lưu ý: 3.0 là D
-        return { char: 'F', scale4: 0.0, class: 'badge-F' };
+        if (s >= 9.0) return { char: 'A+', scale4: 4.0, rank: 'Xuất sắc', class: 'badge-A' };
+        if (s >= 8.0) return { char: 'A',  scale4: 3.5, rank: 'Giỏi',     class: 'badge-A' };
+        if (s >= 7.0) return { char: 'B+', scale4: 3.0, rank: 'Khá',      class: 'badge-B' };
+        if (s >= 6.0) return { char: 'B',  scale4: 2.5, rank: 'TB Khá',   class: 'badge-B' };
+        if (s >= 5.0) return { char: 'C',  scale4: 2.0, rank: 'Trung bình',class: 'badge-C' };
+        if (s >= 4.0) return { char: 'D+', scale4: 1.5, rank: 'Yếu',      class: 'badge-D' };
+        if (s >= 3.0) return { char: 'D',  scale4: 1.0, rank: 'Kém',      class: 'badge-D' };
+        return { char: 'F', scale4: 0.0, rank: 'Kém', class: 'badge-F' };
     }
 
-    // 2. Hàm thêm môn học
-    function addSubject() {
-        const name = document.getElementById('subjectName').value || `Môn học ${subjects.length + 1}`;
+    // 2. Xử lý Submit (Thêm mới HOẶC Cập nhật)
+    function handleFormSubmit() {
+        const index = parseInt(document.getElementById('editIndex').value);
+        const isEditing = index !== -1;
+
+        // Lấy dữ liệu từ form
+        const name = document.getElementById('subjectName').value || `Môn học ${isEditing ? index + 1 : subjects.length + 1}`;
         const credits = parseInt(document.getElementById('credits').value) || 0;
 
-        // Lấy điểm
+        // Điểm & Trọng số
         const sProcess = parseFloat(document.getElementById('scoreProcess').value) || 0;
         const sMid = parseFloat(document.getElementById('scoreMid').value) || 0;
         const sFinal = parseFloat(document.getElementById('scoreFinal').value) || 0;
 
-        // Lấy trọng số
         const wProcess = parseFloat(document.getElementById('weightProcess').value) || 0;
         const wMid = parseFloat(document.getElementById('weightMid').value) || 0;
         const wFinal = parseFloat(document.getElementById('weightFinal').value) || 0;
 
-        // Validate tổng %
+        // Validate
         if (wProcess + wMid + wFinal !== 100) {
             document.getElementById('errorMsg').style.display = 'block';
-            document.getElementById('errorMsg').textContent = `Tổng tỷ lệ hiện tại là ${wProcess + wMid + wFinal}%. Phải bằng 100%!`;
+            document.getElementById('errorMsg').textContent = `Tổng tỷ lệ là ${wProcess + wMid + wFinal}%. Phải bằng 100%!`;
             return;
         }
         document.getElementById('errorMsg').style.display = 'none';
 
-        // Tính điểm tổng kết hệ 10 (Weighted Average)
-        // Công thức: (Điểm * Tỷ lệ) / 100
+        // Tính toán
         const total10 = (sProcess * wProcess + sMid * wMid + sFinal * wFinal) / 100;
-        // Làm tròn 1 chữ số thập phân (quy tắc thường gặp)
         const rounded10 = Math.round(total10 * 10) / 10;
-
-        // Quy đổi sang hệ 4
         const gradeInfo = getGradeDetails(rounded10);
 
-        const subject = {
-            id: Date.now(),
-            name,
-            credits,
-            score10: rounded10,
+        // Object dữ liệu môn học
+        const subjectData = {
+            id: isEditing ? subjects[index].id : Date.now(), // Giữ ID cũ nếu sửa
+            name, credits,
+            scores: { process: sProcess, mid: sMid, final: sFinal },
+            weights: { process: wProcess, mid: wMid, final: wFinal },
+            final10: rounded10,
             scale4: gradeInfo.scale4,
             char: gradeInfo.char,
-            badgeClass: gradeInfo.class,
-            details: `QT: ${sProcess} (${wProcess}%) - GK: ${sMid} (${wMid}%) - CK: ${sFinal} (${wFinal}%)`
+            rank: gradeInfo.rank,
+            badgeClass: gradeInfo.class
         };
 
-        subjects.push(subject);
+        if (isEditing) {
+            // Cập nhật
+            subjects[index] = subjectData;
+            resetForm(); // Thoát chế độ sửa
+        } else {
+            // Thêm mới
+            subjects.push(subjectData);
+            // Xóa điểm nhập để nhập môn tiếp theo nhanh hơn, nhưng giữ lại Tỷ lệ %
+            document.getElementById('scoreProcess').value = '';
+            document.getElementById('scoreMid').value = '';
+            document.getElementById('scoreFinal').value = '';
+            document.getElementById('subjectName').value = '';
+            document.getElementById('subjectName').focus();
+        }
+
         renderTable();
         updateSummary();
-        
-        // Reset điểm nhập nhưng giữ lại Tỷ lệ % (để nhập môn khác cùng cấu trúc cho nhanh)
-        document.getElementById('scoreProcess').value = '';
-        document.getElementById('scoreMid').value = '';
-        document.getElementById('scoreFinal').value = '';
-        document.getElementById('subjectName').value = '';
-        document.getElementById('subjectName').focus();
     }
 
-    // 3. Hàm render bảng
+    // 3. Render Bảng
     function renderTable() {
         const tbody = document.querySelector('#gpaTable tbody');
         const emptyState = document.getElementById('emptyState');
@@ -360,35 +383,102 @@
         }
         emptyState.style.display = 'none';
 
-        subjects.forEach((sub, index) => {
+        subjects.forEach((sub, idx) => {
             const tr = document.createElement('tr');
             tr.innerHTML = `
                 <td>
-                    <div style="font-weight:600;">${sub.name}</div>
-                    <div style="font-size:0.75rem; color:#888;">${sub.details}</div>
+                    <div style="font-weight:600; color:var(--primary);">${sub.name}</div>
+                    <div style="font-size:0.75rem; color:#888;">
+                        QT: ${sub.scores.process} (${sub.weights.process}%) | 
+                        GK: ${sub.scores.mid} (${sub.weights.mid}%) | 
+                        CK: ${sub.scores.final} (${sub.weights.final}%)
+                    </div>
                 </td>
                 <td style="text-align:center;">${sub.credits}</td>
-                <td style="text-align:center; font-weight:bold; color:var(--primary);">${sub.score10}</td>
+                <td style="text-align:center; font-weight:bold;">${sub.final10}</td>
                 <td style="text-align:center; font-weight:bold;">${sub.scale4}</td>
-                <td style="text-align:center;">
-                    <span class="badge ${sub.badgeClass}">${sub.char}</span>
-                </td>
-                <td style="text-align:center;">
-                    <button class="btn-del" onclick="removeSubject(${index})">×</button>
+                <td style="text-align:center;"><span class="badge ${sub.badgeClass}">${sub.char}</span></td>
+                <td style="text-align:center; font-size:0.85rem;">${sub.rank}</td>
+                <td>
+                    <div class="action-btns">
+                        <button class="btn-icon btn-edit-row" onclick="startEdit(${idx})" title="Sửa">✏️</button>
+                        <button class="btn-icon btn-del-row" onclick="removeSubject(${idx})" title="Xóa">🗑️</button>
+                    </div>
                 </td>
             `;
             tbody.appendChild(tr);
         });
     }
 
-    // 4. Hàm xóa môn
-    function removeSubject(index) {
-        subjects.splice(index, 1);
-        renderTable();
-        updateSummary();
+    // 4. Chế độ Sửa (Edit Mode)
+    function startEdit(index) {
+        const sub = subjects[index];
+        
+        // Đổ dữ liệu lại form
+        document.getElementById('subjectName').value = sub.name;
+        document.getElementById('credits').value = sub.credits;
+        
+        document.getElementById('scoreProcess').value = sub.scores.process;
+        document.getElementById('scoreMid').value = sub.scores.mid;
+        document.getElementById('scoreFinal').value = sub.scores.final;
+
+        document.getElementById('weightProcess').value = sub.weights.process;
+        document.getElementById('weightMid').value = sub.weights.mid;
+        document.getElementById('weightFinal').value = sub.weights.final;
+
+        // Bật trạng thái sửa
+        document.getElementById('editIndex').value = index;
+        document.getElementById('btnAdd').style.display = 'none';
+        document.getElementById('btnUpdate').style.display = 'block';
+        
+        // UI feedback
+        document.getElementById('inputCard').classList.add('editing');
+        document.getElementById('modeLabel').textContent = "Đang sửa: " + sub.name;
+        document.querySelector('.btn-clear').textContent = "Hủy bỏ sửa";
+        
+        // Scroll lên form
+        document.querySelector('.container').scrollIntoView({ behavior: 'smooth' });
     }
 
-    // 5. Hàm tính tổng kết (Summary)
+    // 5. Xóa môn
+    function removeSubject(index) {
+        if(confirm('Bạn có chắc muốn xóa môn này?')) {
+            // Nếu đang sửa môn này mà bấm xóa thì reset form luôn
+            if (parseInt(document.getElementById('editIndex').value) === index) {
+                resetForm();
+            }
+            subjects.splice(index, 1);
+            // Nếu xóa môn phía trên môn đang sửa, index sẽ bị lệch, nên tốt nhất reset form nếu đang sửa bất kỳ môn nào
+            if (document.getElementById('editIndex').value !== "-1") resetForm();
+            
+            renderTable();
+            updateSummary();
+        }
+    }
+
+    // 6. Reset Form & Thoát chế độ sửa
+    function resetForm() {
+        document.getElementById('subjectName').value = '';
+        document.getElementById('scoreProcess').value = '';
+        document.getElementById('scoreMid').value = '';
+        document.getElementById('scoreFinal').value = '';
+        // Reset về default credits và weight
+        document.getElementById('credits').value = 3;
+        document.getElementById('weightProcess').value = 20;
+        document.getElementById('weightMid').value = 30;
+        document.getElementById('weightFinal').value = 50;
+        document.getElementById('errorMsg').style.display = 'none';
+
+        // Reset trạng thái Edit
+        document.getElementById('editIndex').value = "-1";
+        document.getElementById('btnAdd').style.display = 'block';
+        document.getElementById('btnUpdate').style.display = 'none';
+        document.getElementById('inputCard').classList.remove('editing');
+        document.getElementById('modeLabel').textContent = "Chế độ thêm mới";
+        document.querySelector('.btn-clear').textContent = "Làm mới";
+    }
+
+    // 7. Tính tổng kết
     function updateSummary() {
         let totalCredits = 0;
         let totalPoint4 = 0;
@@ -397,26 +487,27 @@
         subjects.forEach(sub => {
             totalCredits += sub.credits;
             totalPoint4 += (sub.scale4 * sub.credits);
-            totalPoint10 += (sub.score10 * sub.credits);
+            totalPoint10 += (sub.final10 * sub.credits);
         });
 
         const gpa4 = totalCredits > 0 ? (totalPoint4 / totalCredits).toFixed(2) : "0.00";
         const avg10 = totalCredits > 0 ? (totalPoint10 / totalCredits).toFixed(2) : "0.00";
 
+        // Xếp loại tổng kết dựa trên GPA hệ 4 (Quy chế thường gặp)
+        let rankText = "---";
+        const gpaNum = parseFloat(gpa4);
+        if (totalCredits > 0) {
+            if (gpaNum >= 3.6) rankText = "Xuất sắc";
+            else if (gpaNum >= 3.2) rankText = "Giỏi";
+            else if (gpaNum >= 2.5) rankText = "Khá";
+            else if (gpaNum >= 2.0) rankText = "Trung bình";
+            else rankText = "Yếu/Kém";
+        }
+
         document.getElementById('totalGPA').textContent = gpa4;
         document.getElementById('totalAvg10').textContent = avg10;
         document.getElementById('totalCredits').textContent = totalCredits;
-    }
-
-    // 6. Hàm reset form hoàn toàn
-    function resetForm() {
-        document.querySelectorAll('input').forEach(i => i.value = '');
-        // Set lại default weight
-        document.getElementById('weightProcess').value = 20;
-        document.getElementById('weightMid').value = 30;
-        document.getElementById('weightFinal').value = 50;
-        document.getElementById('credits').value = 3;
-        document.getElementById('errorMsg').style.display = 'none';
+        document.getElementById('totalRank').textContent = rankText;
     }
 </script>
 
