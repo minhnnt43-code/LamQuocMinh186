@@ -1,0 +1,451 @@
+/* ============================================================
+GIAO DIỆN MOBILE (MÀN HÌNH < 768PX)
+============================================================ */
+@media screen and (max-width: 768px) {
+
+    /* 1. Hiện Header Mobile */
+    .mobile-top-bar {
+        display: flex !important;
+        justify-content: space-between;
+        align-items: center;
+        padding: 10px 15px;
+        background: white;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        z-index: 1000;
+        height: 60px;
+    }
+
+    #btn-toggle-sidebar {
+        background: none;
+        border: none;
+        font-size: 1.8rem;
+        color: var(--primary-blue);
+        cursor: pointer;
+    }
+
+    /* 2. Sidebar dạng trượt */
+    .sidebar {
+        position: fixed;
+        top: 0;
+        left: 0;
+        height: 100vh;
+        width: 280px;
+        background: var(--primary-blue);
+        z-index: 2000;
+        flex-direction: column;
+        align-items: stretch;
+        padding: 20px 10px;
+        transition: transform 0.3s ease-in-out;
+        transform: translateX(-100%);
+        /* Mặc định ẩn sang trái */
+        box-shadow: 5px 0 15px rgba(0, 0, 0, 0.2);
+        display: flex;
+    }
+
+    /* Khi mở menu */
+    .sidebar.active {
+        transform: translateX(0);
+    }
+
+    /* Trong menu mobile, vẫn hiện avatar to cho đẹp */
+    .sidebar-header,
+    .welcome-message {
+        display: flex !important;
+    }
+
+    /* 3. Ẩn/Hiện các thành phần khác */
+    .info-widget {
+        margin-bottom: 20px;
+    }
+
+    .sidebar-footer {
+        display: block;
+        /* Hiện nút đăng xuất */
+        margin-top: auto;
+    }
+
+    /* 4. Overlay đen mờ */
+    #mobile-menu-overlay {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.5);
+        z-index: 1500;
+        backdrop-filter: blur(2px);
+    }
+
+    #mobile-menu-overlay.active {
+        display: block;
+    }
+
+    /* 5. Đẩy nội dung chính xuống */
+    .main-content {
+        width: 100%;
+        margin-top: 60px;
+        height: calc(100vh - 60px);
+        border-radius: 0;
+        margin-left: 0;
+    }
+
+    /* 6. Fix các bảng biểu */
+    .form-grid,
+    #dashboard-grid,
+    .settings-grid {
+        grid-template-columns: 1fr !important;
+    }
+
+    .calendar-table {
+        min-width: 600px;
+    }
+}
+
+@media (max-width: 768px) {
+    .sidebar {
+        width: 100%;
+        height: auto;
+        position: relative;
+        flex-direction: row;
+        align-items: center;
+        padding: .5rem;
+        flex-wrap: wrap;
+        z-index: 200
+    }
+
+    .sidebar-header,
+    .welcome-message {
+        display: none
+    }
+
+    .info-widget {
+        display: none
+    }
+
+    .nav-menu {
+        display: flex;
+        flex-grow: 1;
+        margin-bottom: 0;
+        overflow-x: auto
+    }
+
+    .nav-btn {
+        font-size: .9rem;
+        padding: .7rem;
+        white-space: nowrap
+    }
+
+    .nav-group-toggle {
+        padding: 0.7rem;
+    }
+
+    .nav-submenu {
+        position: absolute;
+        top: 100%;
+        left: 0;
+        background-color: var(--primary-blue);
+        z-index: 101;
+        width: 200px;
+        box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
+    }
+
+    .main-content {
+        margin-left: 0;
+        width: 100%;
+        height: calc(100vh - 110px)
+    }
+
+    .sidebar-footer {
+        width: 100%
+    }
+
+    .data-actions {
+        margin-bottom: .5rem
+    }
+
+    .content-section {
+        padding: 1rem
+    }
+
+    h1 {
+        font-size: 2rem
+    }
+
+    .form-grid {
+        grid-template-columns: 1fr
+    }
+
+    .task-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: .5rem
+    }
+
+    .task-actions {
+        margin-top: 1rem;
+        width: 100%;
+        display: flex;
+        justify-content: flex-end
+    }
+
+    .sv5t-side-panel {
+        max-width: 95%;
+        right: -100%
+    }
+
+    .sv5t-side-panel.open {
+        right: 0
+    }
+
+    .calendar-header {
+        padding: 1rem
+    }
+
+    .calendar-table .time-col {
+        width: 60px;
+        font-size: .7rem
+    }
+
+    #dashboard-grid,
+    #statistics-overview,
+    #project-list-container {
+        grid-template-columns: 1fr;
+    }
+
+    .calendar-header-controls {
+        justify-content: center;
+    }
+
+    .calendar-view-toggle {
+        margin-top: 0.5rem;
+        margin-left: 0;
+        width: 100%;
+        justify-content: center;
+    }
+
+    #focus-mode-section h1 {
+        font-size: 1.8rem;
+    }
+
+    #pomodoro-timer {
+        font-size: 4rem;
+        padding: 1.5rem 2rem;
+        min-width: 200px;
+    }
+
+    .focus-control-buttons button {
+        padding: 0.8rem 1.5rem;
+        font-size: 1rem;
+    }
+
+    .personal-info-detail {
+        grid-template-columns: 1fr;
+        text-align: center;
+    }
+
+    .personal-info-detail dt {
+        margin-bottom: 0.25rem;
+    }
+
+    .personal-info-card {
+        padding: 1rem;
+    }
+
+    .library-toolbar {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .composer-main-container {
+        flex-direction: column;
+        height: auto;
+    }
+
+    .task-controls {
+        flex-direction: column;
+    }
+}
+
+/* ============================================================
+   1. GIAO DIỆN MOBILE (ĐIỆN THOẠI < 768PX) - Bổ sung
+   ============================================================ */
+@media screen and (max-width: 768px) {
+
+    /* --- A. THANH HEADER TRÊN CÙNG --- */
+    .mobile-top-bar {
+        display: flex !important;
+        justify-content: space-between;
+        align-items: center;
+        padding: 10px 15px;
+        background: white;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 60px;
+        z-index: 1000;
+    }
+
+    #btn-toggle-sidebar {
+        background: none;
+        border: none;
+        font-size: 1.8rem;
+        color: var(--primary-blue);
+        cursor: pointer;
+        padding: 5px;
+    }
+
+    /* --- B. MENU TRƯỢT (SIDEBAR) --- */
+    .sidebar {
+        position: fixed;
+        top: 0;
+        left: 0;
+        height: 100vh;
+        width: 280px;
+        background: var(--primary-blue);
+        z-index: 2000;
+        /* Cao hơn mọi thứ */
+        flex-direction: column;
+        align-items: stretch;
+        padding: 20px 10px;
+        transition: transform 0.3s ease-in-out;
+        transform: translateX(-100%);
+        /* Mặc định ẩn sang trái */
+        box-shadow: 5px 0 15px rgba(0, 0, 0, 0.2);
+        display: flex;
+    }
+
+    /* Class này được JS thêm vào để hiện menu */
+    .sidebar.active {
+        transform: translateX(0);
+    }
+
+    /* Hiện Avatar trong menu mobile */
+    .sidebar-header,
+    .welcome-message {
+        display: flex !important;
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .profile-picture {
+        display: block !important;
+        width: 70px;
+        height: 70px;
+        border: 2px solid white;
+        border-radius: 50%;
+        margin-bottom: 10px;
+    }
+
+    /* Reset Menu dọc */
+    .nav-menu {
+        display: block;
+        overflow-y: auto;
+        overflow-x: hidden;
+        padding: 0;
+        margin-top: 10px;
+    }
+
+    .nav-btn {
+        padding: 12px;
+        font-size: 1rem;
+        text-align: left;
+        border-radius: 8px;
+        width: 100%;
+    }
+
+    /* --- C. CÁC THÀNH PHẦN KHÁC --- */
+    .info-widget {
+        margin-bottom: 20px;
+        display: block !important;
+    }
+
+    .sidebar-footer {
+        display: block;
+        margin-top: auto;
+    }
+
+    /* Đẩy nội dung chính xuống dưới Header */
+    .main-content {
+        width: 100%;
+        margin-top: 60px;
+        height: calc(100vh - 60px);
+        border-radius: 0;
+        margin-left: 0;
+        padding: 15px;
+        padding-bottom: 80px;
+    }
+
+    /* Fix bảng biểu */
+    .form-grid,
+    #dashboard-grid,
+    .settings-grid,
+    #admin-album-list {
+        grid-template-columns: 1fr !important;
+    }
+
+    .calendar-table {
+        min-width: 600px;
+    }
+
+    /* Overlay đen mờ */
+    #mobile-menu-overlay {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.5);
+        z-index: 1500;
+        backdrop-filter: blur(2px);
+    }
+
+    #mobile-menu-overlay.active {
+        display: block !important;
+    }
+}
+
+/* ============================================================
+   2. GIAO DIỆN MÁY TÍNH (MÀN HÌNH > 769PX)
+   ============================================================ */
+@media screen and (min-width: 769px) {
+
+    /* Ẩn thanh Header của Mobile */
+    .mobile-top-bar {
+        display: none !important;
+    }
+
+    /* Sidebar máy tính đứng yên */
+    .sidebar {
+        transform: none !important;
+        position: relative !important;
+        width: 260px !important;
+        height: 100% !important;
+        display: flex !important;
+        flex-direction: column !important;
+    }
+
+    /* Avatar máy tính */
+    .sidebar-header {
+        display: block !important;
+        text-align: center;
+    }
+
+    .profile-picture {
+        width: 80px;
+        height: 80px;
+        margin: 0 auto 10px auto;
+        display: inline-block !important;
+    }
+
+    .welcome-message {
+        display: block !important;
+    }
+}
