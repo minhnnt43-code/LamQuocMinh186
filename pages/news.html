@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bảng tin - Cổng Thanh Niên</title>
+
+    <link rel="stylesheet" href="../css/hsv-design.css">
+    <link rel="stylesheet" href="../css/hsv-layout.css">
+    <link rel="stylesheet" href="../css/hsv-components.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+
+<body>
+    <header class="header">
+        <div class="header-container">
+            <a href="../dashboard-user.html" class="header-logo">
+                <i class="fas fa-flag"></i>
+                <span>Cổng Thanh Niên</span>
+            </a>
+
+            <nav class="header-nav">
+                <a href="../dashboard-user.html" class="nav-link">Dashboard</a>
+                <a href="news.html" class="nav-link active">Bảng tin</a>
+            </nav>
+
+            <div class="header-user">
+                <img src="https://ui-avatars.com/api/?name=User&background=0056B3&color=fff" alt="User"
+                    class="user-avatar">
+            </div>
+        </div>
+    </header>
+
+    <main class="main">
+        <div class="container">
+            <div class="page-header">
+                <h1 class="page-title">📢 Bảng tin Thông báo</h1>
+                <p class="page-subtitle">Thông tin, công văn, thông báo từ Ban Thanh niên</p>
+            </div>
+
+            <!-- Filter -->
+            <div class="card card-white mb-lg">
+                <div class="flex gap-md items-center">
+                    <div style="flex: 1;">
+                        <input type="text" class="form-input" placeholder="🔍 Tìm kiếm thông báo...">
+                    </div>
+                    <select class="form-select" style="width: 200px;">
+                        <option value="all">Tất cả</option>
+                        <option value="urgent">Khẩn cấp</option>
+                        <option value="important">Quan trọng</option>
+                        <option value="normal">Thường</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- News List -->
+            <div class="news-list">
+                <div class="news-item">
+                    <div class="news-icon urgent">
+                        <i class="fas fa-bullhorn"></i>
+                    </div>
+                    <div class="news-content">
+                        <div class="news-item-title">
+                            [KHẨN CẤP] Thông báo điều chỉnh lịch họp Ban Chấp hành
+                            <span class="news-badge">MỚI</span>
+                        </div>
+                        <div class="news-item-time">
+                            <i class="far fa-clock"></i> 28/11/2024 - 14:30
+                        </div>
+                        <p style="margin-top: var(--spacing-sm); color: var(--color-text-secondary);">
+                            Kính gửi các đồng chí trong Ban Chấp hành. Do lịch công tác đột xuất của Ban Thường vụ Đoàn
+                            trường, cuộc họp dự kiến ngày 28/11 sẽ được dời sang ngày 29/11/2024...
+                        </p>
+                        <button class="btn btn-sm btn-accent mt-md">
+                            Xem chi tiết
+                        </button>
+                    </div>
+                </div>
+
+                <div class="news-item">
+                    <div class="news-icon important">
+                        <i class="fas fa-file-alt"></i>
+                    </div>
+                    <div class="news-content">
+                        <div class="news-item-title">
+                            Kế hoạch Tháng Thanh niên 2024
+                        </div>
+                        <div class="news-item-time">
+                            <i class="far fa-clock"></i> 27/11/2024 - 09:00
+                        </div>
+                        <p style="margin-top: var(--spacing-sm); color: var(--color-text-secondary);">
+                            Ban Thanh niên - Hội Sinh viên trường công bố Kế hoạch tổ chức các hoạt động trong Thánh
+                            Thanh niên năm 2024. Các đơn vị vui lòng nghiên cứu và triển khai...
+                        </p>
+                        <button class="btn btn-sm btn-primary mt-md">
+                            Xem chi tiết
+                        </button>
+                    </div>
+                </div>
+
+                <div class="news-item">
+                    <div class="news-icon normal">
+                        <i class="fas fa-award"></i>
+                    </div>
+                    <div class="news-content">
+                        <div class="news-item-title">
+                            Danh sách Đoàn viên ưu tú Quý 3/2024
+                        </div>
+                        <div class="news-item-time">
+                            <i class="far fa-clock"></i> 25/11/2024 - 16:00
+                        </div>
+                        <p style="margin-top: var(--spacing-sm); color: var(--color-text-secondary);">
+                            Căn cứ kết quả hoạt động Đoàn - Hội trong Quý 3 năm 2024, Ban Thường vụ Đoàn trường quyết
+                            định công nhận danh sách 50 Đoàn viên ưu tú...
+                        </p>
+                        <button class="btn btn-sm btn-outline mt-md">
+                            Xem chi tiết
+                        </button>
+                    </div>
+                </div>
+
+                <div class="news-item">
+                    <div class="news-icon important">
+                        <i class="fas fa-calendar-check"></i>
+                    </div>
+                    <div class="news-content">
+                        <div class="news-item-title">
+                            Thông báo đăng ký tham gia Chiến dịch Tình nguyện Hè 2025
+                        </div>
+                        <div class="news-item-time">
+                            <i class="far fa-clock"></i> 22/11/2024 - 10:15
+                        </div>
+                        <p style="margin-top: var(--spacing-sm); color: var(--color-text-secondary);">
+                            Nhằm tạo điều kiện cho các bạn sinh viên tham gia các hoạt động tình nguyện có ý nghĩa, Ban
+                            Thanh niên thông báo mở đăng ký Chiến dịch Mùa Hè Xanh 2025...
+                        </p>
+                        <button class="btn btn-sm btn-primary mt-md">
+                            Xem chi tiết
+                        </button>
+                    </div>
+                </div>
+
+                <div class="news-item">
+                    <div class="news-icon normal">
+                        <i class="fas fa-graduation-cap"></i>
+                    </div>
+                    <div class="news-content">
+                        <div class="news-item-title">
+                            Hội thảo "Định hướng nghề nghiệp cho sinh viên năm cuối"
+                        </div>
+                        <div class="news-item-time">
+                            <i class="far fa-clock"></i> 20/11/2024 - 08:30
+                        </div>
+                        <p style="margin-top: var(--spacing-sm); color: var(--color-text-secondary);">
+                            Chương trình Hội thảo với sự tham gia của các chuyên gia tư vấn nghề nghiệp và đại diện từ
+                            các doanh nghiệp lớn sẽ diễn ra vào ngày 25/11/2024...
+                        </p>
+                        <button class="btn btn-sm btn-outline mt-md">
+                            Xem chi tiết
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Pagination -->
+            <div class="pagination">
+                <button class="pagination-btn" disabled>
+                    <i class="fas fa-chevron-left"></i>
+                </button>
+                <button class="pagination-btn active">1</button>
+                <button class="pagination-btn">2</button>
+                <button class="pagination-btn">3</button>
+                <button class="pagination-btn">4</button>
+                <button class="pagination-btn">5</button>
+                <button class="pagination-btn">
+                    <i class="fas fa-chevron-right"></i>
+                </button>
+            </div>
+        </div>
+    </main>
+</body>
+
+</html>

@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tạo Avatar Frame - Cổng Thanh Niên</title>
+
+    <link rel="stylesheet" href="../css/hsv-design.css">
+    <link rel="stylesheet" href="../css/hsv-layout.css">
+    <link rel="stylesheet" href="../css/hsv-components.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+
+<body>
+    <header class="header">
+        <div class="header-container">
+            <a href="../dashboard-user.html" class="header-logo">
+                <i class="fas fa-flag"></i>
+                <span>Cổng Thanh Niên</span>
+            </a>
+
+            <nav class="header-nav">
+                <a href="../dashboard-user.html" class="nav-link">Dashboard</a>
+                <a href="frame-maker.html" class="nav-link active">Avatar Frame</a>
+            </nav>
+
+            <div class="header-user">
+                <img src="https://ui-avatars.com/api/?name=User&background=0056B3&color=fff" alt="User"
+                    class="user-avatar">
+            </div>
+        </div>
+    </header>
+
+    <main class="main">
+        <div class="container">
+            <div class="page-header">
+                <h1 class="page-title">🖼️ Tạo Avatar Frame Sự kiện</h1>
+                <p class="page-subtitle">Tạo ảnh đại diện với khung sự kiện chuyên nghiệp</p>
+            </div>
+
+            <div class="canvas-editor">
+                <!-- Step 1: Upload Image -->
+                <div class="control-group mb-lg">
+                    <h3 style="color: var(--color-primary); margin-bottom: var(--spacing-md);">
+                        📤 Bước 1: Tải ảnh của bạn lên
+                    </h3>
+                    <div class="upload-zone" id="uploadZone">
+                        <i class="fas fa-cloud-upload-alt"
+                            style="font-size: 3rem; color: var(--color-accent); margin-bottom: var(--spacing-md);"></i>
+                        <p
+                            style="font-size: var(--font-size-lg); font-weight: var(--font-weight-semibold); margin-bottom: var(--spacing-sm);">
+                            Kéo thả ảnh vào đây
+                        </p>
+                        <p style="color: var(--color-text-secondary); margin-bottom: var(--spacing-md);">
+                            hoặc click để chọn file
+                        </p>
+                        <input type="file" id="imageInput" accept="image/*" style="display: none;">
+                        <button class="btn btn-accent" onclick="document.getElementById('imageInput').click()">
+                            <i class="fas fa-folder-open"></i>
+                            Chọn ảnh từ máy
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Step 2: Select Frame -->
+                <div class="control-group mb-lg">
+                    <h3 style="color: var(--color-primary); margin-bottom: var(--spacing-md);">
+                        🎨 Bước 2: Chọn khung sự kiện
+                    </h3>
+                    <div class="frame-selector" id="frameSelector">
+                        <!-- Dynamic frames will be added here -->
+                        <div class="frame-option active" data-frame="frame1">
+                            <div
+                                style="width: 100%; height: 100%; background: linear-gradient(135deg, #0056B3, #00A8FF); display:flex; align-items: center; justify-content: center; color: white; font-weight: bold; font-size: 12px;">
+                                Thanh niên 2024
+                            </div>
+                        </div>
+                        <div class="frame-option" data-frame="frame2">
+                            <div
+                                style="width: 100%; height: 100%; background: linear-gradient(135deg, #FF6B00, #FFD700); display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; font-size: 12px;">
+                                Tình nguyện
+                            </div>
+                        </div>
+                        <div class="frame-option" data-frame="frame3">
+                            <div
+                                style="width: 100%; height: 100%; background: linear-gradient(135deg, #28a745, #20c997); display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; font-size: 12px;">
+                                Mùa hè xanh
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Step 3: Preview & Edit -->
+                <div class="control-group mb-lg">
+                    <h3 style="color: var(--color-primary); margin-bottom: var(--spacing-md);">
+                        ✨ Bước 3: Chỉnh sửa và xem trước
+                    </h3>
+                    <div class="canvas-preview-area">
+                        <canvas id="previewCanvas" class="canvas-preview" width="1080" height="1080"></canvas>
+                    </div>
+
+                    <!-- Controls -->
+                    <div class="canvas-controls">
+                        <div class="control-group">
+                            <label class="control-label">
+                                <i class="fas fa-search-plus"></i>
+                                Phóng to / Thu nhỏ
+                            </label>
+                            <input type="range" class="slider" id="zoomSlider" min="50" max="200" value="100">
+                            <div
+                                style="text-align: center; font-size: var(--font-size-sm); color: var(--color-text-secondary);">
+                                <span id="zoomValue">100</span>%
+                            </div>
+                        </div>
+
+                        <div class="control-group">
+                            <label class="control-label">
+                                <i class="fas fa-arrows-alt"></i>
+                                Vị trí ảnh
+                            </label>
+                            <p style="font-size: var(--font-size-sm); color: var(--color-text-secondary);">
+                                Kéo thả ảnh trên canvas để điều chỉnh vị trí
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Download Button -->
+                <div class="text-center">
+                    <button class="btn btn-accent btn-lg" id="downloadBtn" style="min-width: 300px;">
+                        <i class="fas fa-download"></i>
+                        Tải về PNG (Chất lượng Cao)
+                    </button>
+                    <p
+                        style="margin-top: var(--spacing-sm); font-size: var(--font-size-sm); color: var(--color-text-secondary);">
+                        Kích thước: 1080x1080px · Định dạng: PNG
+                    </p>
+                </div>
+            </div>
+
+            <!-- Tips -->
+            <div class="card card-white mt-xl">
+                <div class="card-header">
+                    <h3 class="card-title">💡 Mẹo sử dụng</h3>
+                </div>
+                <div class="card-body">
+                    <ul style="list-style: none; padding: 0;">
+                        <li style="padding: var(--spacing-sm) 0; display: flex; gap: var(--spacing-sm);">
+                            <i class="fas fa-check-circle" style="color: var(--color-success);"></i>
+                            <span>Sử dụng ảnh chân dung, khuôn mặt ở chính giữa để đẹp nhất</span>
+                        </li>
+                        <li style="padding: var(--spacing-sm) 0; display: flex; gap: var(--spacing-sm);">
+                            <i class="fas fa-check-circle" style="color: var(--color-success);"></i>
+                            <span>Ảnh nên có độ phân giải cao (từ 1000x1000px trở lên)</span>
+                        </li>
+                        <li style="padding: var(--spacing-sm) 0; display: flex; gap: var(--spacing-sm);">
+                            <i class="fas fa-check-circle" style="color: var(--color-success);"></i>
+                            <span>Kéo thả và zoom để căn chỉnh vị trí ảnh vừa khung</span>
+                        </li>
+                        <li style="padding: var(--spacing-sm) 0; display: flex; gap: var(--spacing-sm);">
+                            <i class="fas fa-check-circle" style="color: var(--color-success);"></i>
+                            <span>File PNG xuất ra chất lượng cao, không vỡ hạt</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script src="../js/hsv-frame.js"></script>
+</body>
+
+</html>

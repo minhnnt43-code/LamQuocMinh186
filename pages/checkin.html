@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Điểm danh - Cổng Thanh Niên</title>
+
+    <link rel="stylesheet" href="../css/hsv-design.css">
+    <link rel="stylesheet" href="../css/hsv-layout.css">
+    <link rel="stylesheet" href="../css/hsv-components.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+
+<body>
+    <header class="header">
+        <div class="header-container">
+            <a href="../dashboard-user.html" class="header-logo">
+                <i class="fas fa-flag"></i>
+                <span>Cổng Thanh Niên</span>
+            </a>
+
+            <nav class="header-nav">
+                <a href="../dashboard-user.html" class="nav-link">Dashboard</a>
+                <a href="checkin.html" class="nav-link active">Điểm danh</a>
+            </nav>
+
+            <div class="header-user">
+                <img src="https://ui-avatars.com/api/?name=User&background=0056B3&color=fff" alt="User"
+                    class="user-avatar">
+            </div>
+        </div>
+    </header>
+
+    <main class="main">
+        <div class="container">
+            <div class="page-header">
+                <h1 class="page-title">🔎 Điểm danh Sự kiện</h1>
+                <p class="page-subtitle">Quét QR Code để điểm danh tham gia</p>
+            </div>
+
+            <!-- Event Selector -->
+            <div class="card card-white mb-lg">
+                <div class="card-header">
+                    <h3 class="card-title">Chọn sự kiện</h3>
+                </div>
+                <div class="form-group">
+                    <select class="form-select" id="eventSelector" style="font-size: var(--font-size-lg);">
+                        <option value="event1">Ngày Hội Tình nguyện - Mùa Đông Ấm (21/11/2024)</option>
+                        <option value="event2">Hội thảo Kỹ năng mềm (08/11/2024)</option>
+                        <option value="event3">Chiến dịch Mùa Hè Xanh 2024 (25/10/2024)</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="grid grid-2 gap-lg">
+                <!-- QR Code Widget -->
+                <div class="qr-widget">
+                    <div class="qr-header">
+                        <h3 class="qr-title">Mã QR Điểm danh</h3>
+                        <p style="color: var(--color-text-secondary); font-size: var(--font-size-sm);">
+                            Hiển thị QR trên màn hình lớn để sinh viên quét
+                        </p>
+                    </div>
+
+                    <div class="qr-container">
+                        <iframe src="../qrcode.html" class="qr-iframe"></iframe>
+                    </div>
+
+                    <p class="qr-note">
+                        <i class="fas fa-info-circle"></i>
+                        Mã QR tự động thay đổi mỗi 10 giây để chống gian lận
+                    </p>
+
+                    <div class="qr-counter">
+                        <div class="counter-value">
+                            <i class="fas fa-check-circle"></i>
+                            <span id="checkinCount">245</span>
+                        </div>
+                        <div class="counter-label">người đã điểm danh</div>
+                    </div>
+                </div>
+
+                <!-- Recent Check-ins -->
+                <div class="card card-white">
+                    <div class="card-header">
+                        <h3 class="card-title">📋 Vừa điểm danh (Real-time)</h3>
+                    </div>
+
+                    <div id="recentCheckins" style="max-height: 600px; overflow-y: auto;">
+                        <div class="checkin-item"
+                            style="padding: var(--spacing-md); border-bottom: 1px solid var(--color-border-light);">
+                            <div style="display: flex; align-items: center; gap: var(--spacing-sm);">
+                                <i class="fas fa-check-circle" style="color: var(--color-success);"></i>
+                                <div style="flex: 1;">
+                                    <strong>Nguyễn Văn A</strong> - CNTT K18
+                                </div>
+                                <span
+                                    style="font-size: var(--font-size-sm); color: var(--color-text-light);">23:35:12</span>
+                            </div>
+                        </div>
+
+                        <div class="checkin-item"
+                            style="padding: var(--spacing-md); border-bottom: 1px solid var(--color-border-light);">
+                            <div style="display: flex; align-items: center; gap: var(--spacing-sm);">
+                                <i class="fas fa-check-circle" style="color: var(--color-success);"></i>
+                                <div style="flex: 1;">
+                                    <strong>Trần Thị B</strong> - QTKD K19
+                                </div>
+                                <span
+                                    style="font-size: var(--font-size-sm); color: var(--color-text-light);">23:35:08</span>
+                            </div>
+                        </div>
+
+                        <div class="checkin-item"
+                            style="padding: var(--spacing-md); border-bottom: 1px solid var(--color-border-light);">
+                            <div style="display: flex; align-items: center; gap: var(--spacing-sm);">
+                                <i class="fas fa-check-circle" style="color: var(--color-success);"></i>
+                                <div style="flex: 1;">
+                                    <strong>Lê Văn C</strong> - CNTT K17
+                                </div>
+                                <span
+                                    style="font-size: var(--font-size-sm); color: var(--color-text-light);">23:34:55</span>
+                            </div>
+                        </div>
+
+                        <div class="checkin-item"
+                            style="padding: var(--spacing-md); border-bottom: 1px solid var(--color-border-light);">
+                            <div style="display: flex; align-items: center; gap: var(--spacing-sm);">
+                                <i class="fas fa-check-circle" style="color: var(--color-success);"></i>
+                                <div style="flex: 1;">
+                                    <strong>Phạm Thị D</strong> - Luật K18
+                                </div>
+                                <span
+                                    style="font-size: var(--font-size-sm); color: var(--color-text-light);">23:34:42</span>
+                            </div>
+                        </div>
+
+                        <div class="checkin-item"
+                            style="padding: var(--spacing-md); border-bottom: 1px solid var(--color-border-light);">
+                            <div style="display: flex; align-items: center; gap: var(--spacing-sm);">
+                                <i class="fas fa-check-circle" style="color: var(--color-success);"></i>
+                                <div style="flex: 1;">
+                                    <strong>Hoàng Văn E</strong> - QTKD K18
+                                </div>
+                                <span
+                                    style="font-size: var(--font-size-sm); color: var(--color-text-light);">23:34:30</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <button class="btn btn-outline w-full mt-md">
+                        <i class="fas fa-download"></i>
+                        Xuất danh sách Excel
+                    </button>
+                </div>
+            </div>
+
+            <!-- Stats -->
+            <div class="stats-grid mt-xl">
+                <div class="stat-card">
+                    <div class="stat-icon success">
+                        <i class="fas fa-user-check"></i>
+                    </div>
+                    <div class="stat-content">
+                        <div class="stat-label">Đã điểm danh</div>
+                        <div class="stat-value">245</div>
+                    </div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-icon primary">
+                        <i class="fas fa-users"></i>
+                    </div>
+                    <div class="stat-content">
+                        <div class="stat-label">Tổng đăng ký</div>
+                        <div class="stat-value">300</div>
+                    </div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-icon accent">
+                        <i class="fas fa-percent"></i>
+                    </div>
+                    <div class="stat-content">
+                        <div class="stat-label">Tỷ lệ tham gia</div>
+                        <div class="stat-value">81.7%</div>
+                    </div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-icon primary">
+                        <i class="fas fa-clock"></i>
+                    </div>
+                    <div class="stat-content">
+                        <div class="stat-label">Còn lại</div>
+                        <div class="stat-value">55</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // Simple demo - real app would use WebSocket
+        setInterval(() => {
+            const count = document.getElementById('checkinCount');
+            if (count && Math.random() > 0.7) {
+                count.textContent = parseInt(count.textContent) + 1;
+            }
+        }, 5000);
+    </script>
+</body>
+
+</html>

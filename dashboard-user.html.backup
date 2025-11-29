@@ -1,0 +1,523 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<div class="header-container">
+    <a href="dashboard-user.html" class="header-logo">
+        <i class="fas fa-flag"></i>
+        <span>Cổng Thanh Niên</span>
+    </a>
+
+    <nav class="header-nav">
+        <a href="dashboard-user.html" class="nav-link active">Dashboard</a>
+        <a href="pages/checkin.html" class="nav-link">Điểm danh</a>
+        <a href="pages/documents.html" class="nav-link">Văn bản</a>
+        <a href="pages/profile.html" class="nav-link">Hồ sơ</a>
+        <div class="nav-link user-dropdown">
+            Tiện ích
+            <i class="fas fa-chevron-down"></i>
+        </div>
+    </nav>
+
+    <div class="header-user">
+        <div class="user-dropdown">
+            <img src="https://ui-avatars.com/api/?name=User&background=0056B3&color=fff" alt="User Avatar"
+                class="user-avatar" id="userAvatarBtn">
+            <div class="dropdown-menu" id="userDropdown">
+                <div class="dropdown-item">
+                    <i class="fas fa-user"></i>
+                    Hồ sơ cá nhân
+                </div>
+                <div class="dropdown-item">
+                    <i class="fas fa-cog"></i>
+                    Cài đặt
+                </div>
+                <div class="dropdown-divider"></div>
+                <div class="dropdown-item">
+                    <i class="fas fa-sign-out-alt"></i>
+                    Đăng xuất
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</header>
+
+<!-- Main Content -->
+<main class="main">
+    <div class="container">
+        <!-- Page Header -->
+        <div class="page-header">
+            <h1 class="page-title">🏠 Dashboard</h1>
+            <p class="page-subtitle">Chào mừng bạn đến với Cổng Thanh Niên!</p>
+        </div>
+
+        <!-- Stats Cards -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-icon accent">
+                    <i class="fas fa-calendar-check"></i>
+                </div>
+                <div class="stat-content">
+                    <div class="stat-label">Tổng sự kiện tham gia</div>
+                    <div class="stat-value">24</div>
+                    <div class="stat-change positive">+3 tháng này</div>
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-icon primary">
+                    <i class="fas fa-clock"></i>
+                </div>
+                <div class="stat-content">
+                    <div class="stat-label">Giờ hoạt động tích lũy</div>
+                    <div class="stat-value">120h</div>
+                    <div class="stat-change positive">+15h tháng này</div>
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-icon success">
+                    <i class="fas fa-file-check"></i>
+                </div>
+                <div class="stat-content">
+                    <div class="stat-label">Văn bản đã duyệt</div>
+                    <div class="stat-value">12</div>
+                    <div class="stat-change">2 đang chờ</div>
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-icon primary">
+                    <i class="fas fa-trophy"></i>
+                </div>
+                <div class="stat-content">
+                    <div class="stat-label">Xếp hạng</div>
+                    <div class="stat-value">Top 15</div>
+                    <div class="stat-change positive">+5 hạng</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Dashboard Grid -->
+        <div class="dashboard-grid">
+            <!-- QR Check-in Widget -->
+            <div class="widget widget-md">
+                <div class="qr-widget">
+                    <div class="qr-header">
+                        <h3 class="qr-title">🔎 Điểm danh Sự kiện</h3>
+                        <p style="color: var(--color-text-secondary); font-size: var(--font-size-sm);">
+                            Quét mã QR để điểm danh
+                        </p>
+                    </div>
+
+                    <div class="qr-container">
+                        <iframe src="qrcode.html" class="qr-iframe"></iframe>
+                    </div>
+
+                    <p class="qr-note">
+                        <i class="fas fa-info-circle"></i>
+                        Mã QR tự động thay đổi mỗi 10 giây để đảm bảo an toàn
+                    </p>
+
+                    <div class="qr-counter">
+                        <div class="counter-value">
+                            <i class="fas fa-check-circle"></i>
+                            <span id="checkinCount">245</span>
+                        </div>
+                        <div class="counter-label">người đã điểm danh</div>
+                    </div>
+
+                    <a href="pages/checkin.html" class="btn btn-accent w-full mt-md">
+                        <i class="fas fa-qrcode"></i>
+                        Xem chi tiết điểm danh
+                    </a>
+                </div>
+            </div>
+
+            <!-- Calendar Widget -->
+            <div class="widget widget-lg">
+                <div class="calendar-widget">
+                    <div class="calendar-header">
+                        <h3 class="calendar-title">📅 Lịch Công tác Tháng 11</h3>
+                        <div class="calendar-nav">
+                            <button class="calendar-nav-btn">
+                                <i class="fas fa-chevron-left"></i>
+                            </button>
+                            <button class="calendar-nav-btn">
+                                Hôm nay
+                            </button>
+                            <button class="calendar-nav-btn">
+                                <i class="fas fa-chevron-right"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="calendar-grid">
+                        <div class="calendar-day-label">T2</div>
+                        <div class="calendar-day-label">T3</div>
+                        <div class="calendar-day-label">T4</div>
+                        <div class="calendar-day-label">T5</div>
+                        <div class="calendar-day-label">T6</div>
+                        <div class="calendar-day-label">T7</div>
+                        <div class="calendar-day-label">CN</div>
+
+                        <!-- Week 1 -->
+                        <div class="calendar-day inactive"></div>
+                        <div class="calendar-day inactive"></div>
+                        <div class="calendar-day inactive"></div>
+                        <div class="calendar-day">1</div>
+                        <div class="calendar-day">2</div>
+                        <div class="calendar-day">3</div>
+                        <div class="calendar-day">4</div>
+
+                        <!-- Week 2 -->
+                        <div class="calendar-day">5</div>
+                        <div class="calendar-day">6</div>
+                        <div class="calendar-day">7</div>
+                        <div class="calendar-day has-event event-upcoming">8</div>
+                        <div class="calendar-day">9</div>
+                        <div class="calendar-day">10</div>
+                        <div class="calendar-day">11</div>
+
+                        <!-- Week 3 -->
+                        <div class="calendar-day">12</div>
+                        <div class="calendar-day">13</div>
+                        <div class="calendar-day">14</div>
+                        <div class="calendar-day">15</div>
+                        <div class="calendar-day">16</div>
+                        <div class="calendar-day">17</div>
+                        <div class="calendar-day">18</div>
+
+                        <!-- Week 4 -->
+                        <div class="calendar-day">19</div>
+                        <div class="calendar-day">20</div>
+                        <div class="calendar-day has-event event-ongoing today">21</div>
+                        <div class="calendar-day">22</div>
+                        <div class="calendar-day">23</div>
+                        <div class="calendar-day">24</div>
+                        <div class="calendar-day">25</div>
+
+                        <!-- Week 5 -->
+                        <div class="calendar-day">26</div>
+                        <div class="calendar-day">27</div>
+                        <div class="calendar-day has-event event-upcoming">28</div>
+                        <div class="calendar-day">29</div>
+                        <div class="calendar-day">30</div>
+                        <div class="calendar-day inactive"></div>
+                        <div class="calendar-day inactive"></div>
+                    </div>
+
+                    <div
+                        style="margin-top: var(--spacing-lg); padding: var(--spacing-md); background: var(--color-card); border-radius: var(--radius-md);">
+                        <div style="display: flex; gap: var(--spacing-lg); font-size: var(--font-size-sm);">
+                            <div style="display: flex; align-items: center; gap: var(--spacing-xs);">
+                                <span
+                                    style="width: 12px; height: 12px; background: var(--color-accent); border-radius: 50%;"></span>
+                                Sắp diễn ra
+                            </div>
+                            <div style="display: flex; align-items: center; gap: var(--spacing-xs);">
+                                <span
+                                    style="width: 12px; height: 12px; background: var(--color-success); border-radius: 50%;"></span>
+                                Đang diễn ra
+                            </div>
+                        </div>
+                    </div>
+
+                    <a href="pages/calendar.html" class="btn btn-primary w-full mt-md">
+                        <i class="fas fa-calendar"></i>
+                        Xem lịch đầy đủ
+                    </a>
+                </div>
+            </div>
+
+            <!-- News Widget -->
+            <div class="widget widget-full">
+                <div class="news-widget">
+                    <div class="news-header">
+                        <h3 class="news-title">📢 Bảng tin Thông báo</h3>
+                        <a href="pages/news.html" class="btn btn-sm btn-outline">
+                            Xem tất cả
+                        </a>
+                    </div>
+
+                    <div class="news-list">
+                        <div class="news-item">
+                            <div class="news-icon urgent">
+                                <i class="fas fa-bullhorn"></i>
+                            </div>
+                            <div class="news-content">
+                                <div class="news-item-title">
+                                    [KHẨN CẤP] Thông báo điều chỉnh lịch họp
+                                    <span class="news-badge">MỚI</span>
+                                </div>
+                                <div class="news-item-time">
+                                    <i class="far fa-clock"></i>
+                                    28/11/2024 - 14:30
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="news-item">
+                            <div class="news-icon important">
+                                <i class="fas fa-file-alt"></i>
+                            </div>
+                            <div class="news-content">
+                                <div class="news-item-title">
+                                    Kế hoạch Tháng Thanh niên 2024
+                                </div>
+                                <div class="news-item-time">
+                                    <i class="far fa-clock"></i>
+                                    27/11/2024 - 09:00
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="news-item">
+                            <div class="news-icon normal">
+                                <i class="fas fa-award"></i>
+                            </div>
+                            <div class="news-content">
+                                <div class="news-item-title">
+                                    Danh sách Đoàn viên ưu tú Quý 3
+                                </div>
+                                <div class="news-item-time">
+                                    <i class="far fa-clock"></i>
+                                    25/11/2024 - 16:00
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Links -->
+            <div class="widget widget-full">
+                <div class="card card-white">
+                    <div class="card-header">
+                        <h3 class="card-title">⚡ Truy cập nhanh</h3>
+                    </div>
+                    <div class="grid grid-4 gap-md">
+                        <a href="pages/frame-maker.html" class="btn btn-accent">
+                            <i class="fas fa-image"></i>
+                            Tạo Avatar Frame
+                        </a>
+                        <a href="pages/voting.html" class="btn btn-primary">
+                            <i class="fas fa-poll"></i>
+                            Khảo sát/Bỏ phiếu
+                        </a>
+                        <a href="pages/org-chart.html" class="btn btn-primary">
+                            <i class="fas fa-sitemap"></i>
+                            Sơ đồ Tổ chức
+                        </a>
+                        <a href="admin-panel.html" class="btn btn-outline">
+                            <i class="fas fa-user-shield"></i>
+                            Admin Panel
+                        </a>
+                    </div>
+                </div>
+                <div class="counter-value">
+                    <i class="fas fa-check-circle"></i>
+                    <span id="checkinCount">245</span>
+                </div>
+                <div class="counter-label">người đã điểm danh</div>
+            </div>
+
+            <a href="pages/checkin.html" class="btn btn-accent w-full mt-md">
+                <i class="fas fa-qrcode"></i>
+                Xem chi tiết điểm danh
+            </a>
+        </div>
+    </div>
+
+    <!-- Calendar Widget -->
+    <div class="widget widget-lg">
+        <div class="calendar-widget">
+            <div class="calendar-header">
+                <h3 class="calendar-title">📅 Lịch Công tác Tháng 11</h3>
+                <div class="calendar-nav">
+                    <button class="calendar-nav-btn">
+                        <i class="fas fa-chevron-left"></i>
+                    </button>
+                    <button class="calendar-nav-btn">
+                        Hôm nay
+                    </button>
+                    <button class="calendar-nav-btn">
+                        <i class="fas fa-chevron-right"></i>
+                    </button>
+                </div>
+            </div>
+
+            <div class="calendar-grid">
+                <div class="calendar-day-label">T2</div>
+                <div class="calendar-day-label">T3</div>
+                <div class="calendar-day-label">T4</div>
+                <div class="calendar-day-label">T5</div>
+                <div class="calendar-day-label">T6</div>
+                <div class="calendar-day-label">T7</div>
+                <div class="calendar-day-label">CN</div>
+
+                <!-- Week 1 -->
+                <div class="calendar-day inactive"></div>
+                <div class="calendar-day inactive"></div>
+                <div class="calendar-day inactive"></div>
+                <div class="calendar-day">1</div>
+                <div class="calendar-day">2</div>
+                <div class="calendar-day">3</div>
+                <div class="calendar-day">4</div>
+
+                <!-- Week 2 -->
+                <div class="calendar-day">5</div>
+                <div class="calendar-day">6</div>
+                <div class="calendar-day">7</div>
+                <div class="calendar-day has-event event-upcoming">8</div>
+                <div class="calendar-day">9</div>
+                <div class="calendar-day">10</div>
+                <div class="calendar-day">11</div>
+
+                <!-- Week 3 -->
+                <div class="calendar-day">12</div>
+                <div class="calendar-day">13</div>
+                <div class="calendar-day">14</div>
+                <div class="calendar-day">15</div>
+                <div class="calendar-day">16</div>
+                <div class="calendar-day">17</div>
+                <div class="calendar-day">18</div>
+
+                <!-- Week 4 -->
+                <div class="calendar-day">19</div>
+                <div class="calendar-day">20</div>
+                <div class="calendar-day has-event event-ongoing today">21</div>
+                <div class="calendar-day">22</div>
+                <div class="calendar-day">23</div>
+                <div class="calendar-day">24</div>
+                <div class="calendar-day">25</div>
+
+                <!-- Week 5 -->
+                <div class="calendar-day">26</div>
+                <div class="calendar-day">27</div>
+                <div class="calendar-day has-event event-upcoming">28</div>
+                <div class="calendar-day">29</div>
+                <div class="calendar-day">30</div>
+                <div class="calendar-day inactive"></div>
+                <div class="calendar-day inactive"></div>
+            </div>
+
+            <div
+                style="margin-top: var(--spacing-lg); padding: var(--spacing-md); background: var(--color-card); border-radius: var(--radius-md);">
+                <div style="display: flex; gap: var(--spacing-lg); font-size: var(--font-size-sm);">
+                    <div style="display: flex; align-items: center; gap: var(--spacing-xs);">
+                        <span
+                            style="width: 12px; height: 12px; background: var(--color-accent); border-radius: 50%;"></span>
+                        Sắp diễn ra
+                    </div>
+                    <div style="display: flex; align-items: center; gap: var(--spacing-xs);">
+                        <span
+                            style="width: 12px; height: 12px; background: var(--color-success); border-radius: 50%;"></span>
+                        Đang diễn ra
+                    </div>
+                </div>
+            </div>
+
+            <a href="pages/calendar.html" class="btn btn-primary w-full mt-md">
+                <i class="fas fa-calendar"></i>
+                Xem lịch đầy đủ
+            </a>
+        </div>
+    </div>
+
+    <!-- News Widget -->
+    <div class="widget widget-full">
+        <div class="news-widget">
+            <div class="news-header">
+                <h3 class="news-title">📢 Bảng tin Thông báo</h3>
+                <a href="pages/news.html" class="btn btn-sm btn-outline">
+                    Xem tất cả
+                </a>
+            </div>
+
+            <div class="news-list">
+                <div class="news-item">
+                    <div class="news-icon urgent">
+                        <i class="fas fa-bullhorn"></i>
+                    </div>
+                    <div class="news-content">
+                        <div class="news-item-title">
+                            [KHẨN CẤP] Thông báo điều chỉnh lịch họp
+                            <span class="news-badge">MỚI</span>
+                        </div>
+                        <div class="news-item-time">
+                            <i class="far fa-clock"></i>
+                            28/11/2024 - 14:30
+                        </div>
+                    </div>
+                </div>
+
+                <div class="news-item">
+                    <div class="news-icon important">
+                        <i class="fas fa-file-alt"></i>
+                    </div>
+                    <div class="news-content">
+                        <div class="news-item-title">
+                            Kế hoạch Tháng Thanh niên 2024
+                        </div>
+                        <div class="news-item-time">
+                            <i class="far fa-clock"></i>
+                            27/11/2024 - 09:00
+                        </div>
+                    </div>
+                </div>
+
+                <div class="news-item">
+                    <div class="news-icon normal">
+                        <i class="fas fa-award"></i>
+                    </div>
+                    <div class="news-content">
+                        <div class="news-item-title">
+                            Danh sách Đoàn viên ưu tú Quý 3
+                        </div>
+                        <div class="news-item-time">
+                            <i class="far fa-clock"></i>
+                            25/11/2024 - 16:00
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Links -->
+    <div class="widget widget-full">
+        <div class="card card-white">
+            <div class="card-header">
+                <h3 class="card-title">⚡ Truy cập nhanh</h3>
+            </div>
+            <div class="grid grid-4 gap-md">
+                <a href="pages/frame-maker.html" class="btn btn-accent">
+                    <i class="fas fa-image"></i>
+                    Tạo Avatar Frame
+                </a>
+                <a href="pages/voting.html" class="btn btn-primary">
+                    <i class="fas fa-poll"></i>
+                    Khảo sát/Bỏ phiếu
+                </a>
+                <a href="pages/org-chart.html" class="btn btn-primary">
+                    <i class="fas fa-sitemap"></i>
+                    Sơ đồ Tổ chức
+                </a>
+                <a href="admin-panel.html" class="btn btn-outline">
+                    <i class="fas fa-user-shield"></i>
+                    Admin Panel
+                </a>
+            </div>
+        </div>
+    </div>
+    </div>
+    </div>
+</main>
+
+<!-- Scripts -->
+<script src="js/hsv-utils.js"></script>
+<script src="js/hsv-app.js"></script>
+</body>
+
+</html>

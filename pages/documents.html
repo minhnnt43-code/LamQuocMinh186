@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nộp Văn bản - Cổng Thanh Niên</title>
+
+    <link rel="stylesheet" href="../css/hsv-design.css">
+    <link rel="stylesheet" href="../css/hsv-layout.css">
+    <link rel="stylesheet" href="../css/hsv-components.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+
+<body>
+    <header class="header">
+        <div class="header-container">
+            <a href="../dashboard-user.html" class="header-logo">
+                <i class="fas fa-flag"></i>
+                <span>Cổng Thanh Niên</span>
+            </a>
+
+            <nav class="header-nav">
+                <a href="../dashboard-user.html" class="nav-link">Dashboard</a>
+                <a href="documents.html" class="nav-link active">Văn bản</a>
+            </nav>
+
+            <div class="header-user">
+                <img src="https://ui-avatars.com/api/?name=User&background=0056B3&color=fff" alt="User"
+                    class="user-avatar">
+            </div>
+        </div>
+    </header>
+
+    <main class="main">
+        <div class="container">
+            <div class="page-header">
+                <h1 class="page-title">📄 Nộp Văn bản/Minh chứng</h1>
+                <p class="page-subtitle">Gửi văn bản, kế hoạch, báo cáo, minh chứng</p>
+            </div>
+
+            <!-- Upload Form -->
+            <div class="card card-white mb-xl">
+                <div class="card-header">
+                    <h3 class="card-title">📤 Nộp văn bản mới</h3>
+                </div>
+
+                <form id="documentForm" class="card-body">
+                    <div class="grid grid-2 gap-md">
+                        <div class="form-group">
+                            <label class="form-label">Tên văn bản *</label>
+                            <input type="text" class="form-input" placeholder="VD: Kế hoạch Tháng 12/2024" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Loại văn bản *</label>
+                            <select class="form-select" required>
+                                <option value="">-- Chọn loại --</option>
+                                <option value="plan">Kế hoạch</option>
+                                <option value="report">Báo cáo</option>
+                                <option value="award">Thi đua - Khen thưởng</option>
+                                <option value="evidence">Minh chứng</option>
+                                <option value="other">Khác</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Đơn vị gửi *</label>
+                        <input type="text" class="form-input" placeholder="VD: Đoàn Khoa CNTT" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">File đính kèm *</label>
+                        <div class="upload-zone" id="docUploadZone">
+                            <i class="fas fa-file-upload"
+                                style="font-size: 2.5rem; color: var(--color-accent); margin-bottom: var(--spacing-md);"></i>
+                            <p style="font-weight: var(--font-weight-semibold); margin-bottom: var(--spacing-sm);">
+                                Kéo thả file vào đây
+                            </p>
+                            <p
+                                style="font-size: var(--font-size-sm); color: var(--color-text-secondary); margin-bottom: var(--spacing-md);">
+                                Định dạng: PDF, DOC, DOCX, PNG, JPG (Tối đa 10MB)
+                            </p>
+                            <input type="file" id="fileInput" accept=".pdf,.doc,.docx,.png,.jpg,.jpeg"
+                                style="display: none;" required>
+                            <button type="button" class="btn btn-primary"
+                                onclick="document.getElementById('fileInput').click()">
+                                <i class="fas fa-folder-open"></i>
+                                Chọn file
+                            </button>
+                            <div id="fileInfo" class="mt-md" style="display: none; color: var(--color-success);"></div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Ghi chú (không bắt buộc)</label>
+                        <textarea class="form-textarea" placeholder="Thông tin bổ sung..."></textarea>
+                    </div>
+
+                    <button type="submit" class="btn btn-accent w-full">
+                        <i class="fas fa-paper-plane"></i>
+                        Gửi văn bản
+                    </button>
+                </form>
+            </div>
+
+            <!-- Document List -->
+            <div class="card card-white">
+                <div class="card-header">
+                    <h3 class="card-title">📋 Danh sách văn bản đã nộp</h3>
+                </div>
+
+                <div class="document-list">
+                    <div class="document-item">
+                        <div class="document-icon">
+                            <i class="fas fa-file-pdf"></i>
+                        </div>
+                        <div class="document-info">
+                            <div class="document-title">Kế hoạch Tháng 11/2024</div>
+                            <div class="document-meta">
+                                <i class="fas fa-folder"></i> Kế hoạch ·
+                                <i class="far fa-clock"></i> Nộp ngày 01/11/2024
+                            </div>
+                        </div>
+                        <div class="document-status">
+                            <span class="badge badge-pending">
+                                <i class="fas fa-clock"></i>
+                                Đang chờ duyệt
+                            </span>
+                        </div>
+                    </div>
+
+                    <div class="document-item">
+                        <div class="document-icon">
+                            <i class="fas fa-file-word"></i>
+                        </div>
+                        <div class="document-info">
+                            <div class="document-title">Báo cáo Thi đua Quý 3</div>
+                            <div class="document-meta">
+                                <i class="fas fa-folder"></i> Báo cáo ·
+                                <i class="far fa-clock"></i> Nộp ngày 28/10/2024
+                            </div>
+                        </div>
+                        <div class="document-status">
+                            <span class="badge badge-approved">
+                                <i class="fas fa-check-circle"></i>
+                                Đã duyệt
+                            </span>
+                        </div>
+                    </div>
+
+                    <div class="document-item">
+                        <div class="document-icon">
+                            <i class="fas fa-file-image"></i>
+                        </div>
+                        <div class="document-info">
+                            <div class="document-title">Minh chứng Sự kiện Tình nguyện</div>
+                            <div class="document-meta">
+                                <i class="fas fa-folder"></i> Minh chứng ·
+                                <i class="far fa-clock"></i> Nộp ngày 22/10/2024
+                            </div>
+                            <div
+                                style="margin-top: var(--spacing-xs); font-size: var(--font-size-sm); color: var(--color-danger);">
+                                <i class="fas fa-exclamation-circle"></i>
+                                Lý do trả về: Thiếu chữ ký xác nhận
+                            </div>
+                        </div>
+                        <div class="document-status">
+                            <span class="badge badge-rejected">
+                                <i class="fas fa-times-circle"></i>
+                                Trả về
+                            </span>
+                        </div>
+                    </div>
+
+                    <div class="document-item">
+                        <div class="document-icon">
+                            <i class="fas fa-file-pdf"></i>
+                        </div>
+                        <div class="document-info">
+                            <div class="document-title">Đề án Thi đua - Khen thưởng</div>
+                            <div class="document-meta">
+                                <i class="fas fa-folder"></i> Thi đua ·
+                                <i class="far fa-clock"></i> Nộp ngày 15/10/2024
+                            </div>
+                        </div>
+                        <div class="document-status">
+                            <span class="badge badge-approved">
+                                <i class="fas fa-check-circle"></i>
+                                Đã duyệt
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Pagination -->
+                <div class="pagination">
+                    <button class="pagination-btn" disabled>
+                        <i class="fas fa-chevron-left"></i>
+                    </button>
+                    <button class="pagination-btn active">1</button>
+                    <button class="pagination-btn">2</button>
+                    <button class="pagination-btn">3</button>
+                    <button class="pagination-btn">
+                        <i class="fas fa-chevron-right"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script src="../js/hsv-docs.js"></script>
+</body>
+
+</html>

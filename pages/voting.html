@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Khảo sát/Bỏ phiếu - Cổng Thanh Niên</title>
+
+    <link rel="stylesheet" href="../css/hsv-design.css">
+    <link rel="stylesheet" href="../css/hsv-layout.css">
+    <link rel="stylesheet" href="../css/hsv-components.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    </nav>
+
+    <div class="header-user">
+        <img src="https://ui-avatars.com/api/?name=User&background=0056B3&color=fff" alt="User" class="user-avatar">
+    </div>
+    </div>
+    </header>
+
+    <main class="main">
+        <div class="container">
+            <div class="page-header">
+                <h1 class="page-title">📊 Khảo sát & Bỏ phiếu</h1>
+                <p class="page-subtitle">Tham gia khảo sát, bình chọn trực tuyến</p>
+            </div>
+
+            <!-- Active Voting -->
+            <div class="card card-white mb-lg">
+                <div class="card-header">
+                    <h3 class="card-title">🗳️ Bầu chọn Đoàn viên Tiêu biểu 2024</h3>
+                    <span class="badge badge-pending">Đang diễn ra</span>
+                </div>
+                <p style="margin-bottom: var(--spacing-lg); color: var(--color-text-secondary);">
+                    Hãy bình chọn cho đoàn viên bạn cho là tiêu biểu nhất năm 2024. Mỗi người chỉ được vote 1 lần.
+                </p>
+
+                <form id="voteForm">
+                    <div style="display: flex; flex-direction: column; gap: var(--spacing-md);">
+                        <label
+                            style="display: flex; align-items: center; gap: var(--spacing-md); padding: var(--spacing-md); border: 2px solid var(--color-border); border-radius: var(--radius-md); cursor: pointer; transition: all var(--transition-fast);">
+                            <input type="radio" name="vote" value="candidate1" style="width: 20px; height: 20px;">
+                            <div style="flex: 1;">
+                                <strong>Nguyễn Văn A</strong> - CNTT K18
+                                <div style="font-size: var(--font-size-sm); color: var(--color-text-secondary);">20 sự
+                                    kiện, 150h hoạt động</div>
+                            </div>
+                        </label>
+
+                        <label
+                            style="display: flex; align-items: center; gap: var(--spacing-md); padding: var(--spacing-md); border: 2px solid var(--color-border); border-radius: var(--radius-md); cursor: pointer;">
+                            <input type="radio" name="vote" value="candidate2" style="width: 20px; height: 20px;">
+                            <div style="flex: 1;">
+                                <strong>Trần Thị B</strong> - QTKD K19
+                                <div style="font-size: var(--font-size-sm); color: var(--color-text-secondary);">18 sự
+                                    kiện, 120h hoạt động</div>
+                            </div>
+                        </label>
+
+                        <label
+                            style="display: flex; align-items: center; gap: var(--spacing-md); padding: var(--spacing-md); border: 2px solid var(--color-border); border-radius: var(--radius-md); cursor: pointer;">
+                            <input type="radio" name="vote" value="candidate3" style="width: 20px; height: 20px;">
+                            <div style="flex: 1;">
+                                <strong>Lê Văn C</strong> - Luật K18
+                                <div style="font-size: var(--font-size-sm); color: var(--color-text-secondary);">22 sự
+                                    kiện, 180h hoạt động</div>
+                            </div>
+                        </label>
+                    </div>
+
+                    <button type="submit" class="btn btn-accent w-full mt-lg">
+                        <i class="fas fa-paper-plane"></i>
+                        Gửi bình chọn
+                    </button>
+                </form>
+
+                <div
+                    style="margin-top: var(--spacing-lg); padding: var(--spacing-md); background: var(--color-card); border-radius: var(--radius-md); font-size: var(--font-size-sm); color: var(--color-text-secondary);">
+                    <i class="fas fa-info-circle"></i>
+                    Thời hạn bầu chọn: đến 23:59 ngày 30/11/2024 | Tổng số phiếu: 120
+                </div>
+            </div>
+
+            <!-- Results -->
+            <div class="card card-white mb-lg">
+                <div class="card-header">
+                    <h3 class="card-title">📈 Kết quả Khảo sát "Cải thiện hoạt động Đoàn"</h3>
+                    <span class="badge badge-approved">Đã kết thúc</span>
+                </div>
+
+                <div style="display: flex; flex-direction: column; gap: var(--spacing-lg);">
+                    <div>
+                        <div style="display: flex; justify-content: space-between; margin-bottom: var(--spacing-sm);">
+                            <span>Tăng số sự kiện tình nguyện</span>
+                            <strong style="color: var(--color-accent);">65%</strong>
+                        </div>
+                        <div
+                            style="height: 12px; background: var(--color-border-light); border-radius: var(--radius-full); overflow: hidden;">
+                            <div
+                                style="height: 100%; width: 65%; background: var(--color-accent); border-radius: var(--radius-full);">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <div style="display: flex; justify-content: space-between; margin-bottom: var(--spacing-sm);">
+                            <span>Thêm hoạt động kỹ năng mềm</span>
+                            <strong style="color: var(--color-primary);">45%</strong>
+                        </div>
+                        <div
+                            style="height: 12px; background: var(--color-border-light); border-radius: var(--radius-full); overflow: hidden;">
+                            <div
+                                style="height: 100%; width: 45%; background: var(--color-primary); border-radius: var(--radius-full);">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <div style="display: flex; justify-content: space-between; margin-bottom: var(--spacing-sm);">
+                            <span>Cải thiện công tác truyền thông</span>
+                            <strong style="color: var(--color-success);">80%</strong>
+                        </div>
+                        <div
+                            style="height: 12px; background: var(--color-border-light); border-radius: var(--radius-full); overflow: hidden;">
+                            <div
+                                style="height: 100%; width: 80%; background: var(--color-success); border-radius: var(--radius-full);">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <div style="display: flex; justify-content: space-between; margin-bottom: var(--spacing-sm);">
+                            <span>Tổ chức giao lưu liên trường</span>
+                            <strong style="color: var(--color-info);">30%</strong>
+                        </div>
+                        <div
+                            style="height: 12px; background: var(--color-border-light); border-radius: var(--radius-full); overflow: hidden;">
+                            <div
+                                style="height: 100%; width: 30%; background: var(--color-info); border-radius: var(--radius-full);">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div style="margin-top: var(--spacing-lg); text-align: center; color: var(--color-text-secondary);">
+                    Tổng số phản hồi: 245 đoàn viên
+                </div>
+            </div>
+
+            <!-- Past Surveys -->
+            <div class="card card-white">
+                <div class="card-header">
+                    <h3 class="card-title">📋 Các khảo sát trước đây</h3>
+                </div>
+
+                <div style="display: flex; flex-direction: column; gap: var(--spacing-md);">
+                    <div
+                        style="padding: var(--spacing-md); border: 1px solid var(--color-border-light); border-radius: var(--radius-md);">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <div>
+                                <strong>Đánh giá Chiến dịch Mùa Hè Xanh 2024</strong>
+                                <div style="font-size: var(--font-size-sm); color: var(--color-text-secondary);">Kết
+                                    thúc: 25/10/2024</div>
+                            </div>
+                            <button class="btn btn-sm btn-outline">Xem kết quả</button>
+                        </div>
+                    </div>
+
+                    <div
+                        style="padding: var(--spacing-md); border: 1px solid var(--color-border-light); border-radius: var(--radius-md);">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <div>
+                                <strong>Khảo sát nhu cầu tham gia hoạt động</strong>
+                                <div style="font-size: var(--font-size-sm); color: var(--color-text-secondary);">Kết
+                                    thúc: 15/09/2024</div>
+                            </div>
+                            <button class="btn btn-sm btn-outline">Xem kết quả</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        document.getElementById('voteForm').addEventListener('submit', function (e) {
+            e.preventDefault();
+            const selected = document.querySelector('input[name="vote"]:checked');
+            if (!selected) {
+                alert('Vui lòng chọn ứng cử viên trước khi bình chọn!');
+                return;
+            }
+
+            if (confirm('Xác nhận gửi bình chọn? Bạn không thể thay đổi sau khi gửi.')) {
+                alert('✅ Đã gửi bình chọn thành công!');
+                this.querySelector('button[type="submit"]').disabled = true;
+                this.querySelector('button[type="submit"]').textContent = 'Đã bình chọn';
+            }
+        });
+
+        // Highlight selected option
+        document.querySelectorAll('input[type="radio"]').forEach(radio => {
+            radio.addEventListener('change', function () {
+                document.querySelectorAll('label').forEach(label => {
+                    label.style.borderColor = 'var(--color-border)';
+                    label.style.background = 'white';
+                });
+                this.closest('label').style.borderColor = 'var(--color-accent)';
+                this.closest('label').style.background = 'rgba(255, 107, 0, 0.05)';
+            });
+        });
+    </script>
+    </body>
+
+</html>

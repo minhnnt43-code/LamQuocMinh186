@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Cổng thông tin & Tiện ích Thanh Niên - Hệ thống quản lý công tác Đoàn - Hội">
+    <title>Dashboard - Cổng Thanh Niên</title>
+
+    <!-- CSS -->
+    <link rel="stylesheet" href="css1/hsv-design.css">
+    <link rel="stylesheet" href="css1/hsv-layout.css">
+    <link rel="stylesheet" href="css1/hsv-components.css">
+    <link rel="stylesheet" href="css1/hsv-animations.css">
+
+    <!-- Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- QR Code Lib -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+</head>
+
+<body class="animate-fade-in">
+    <!-- Header -->
+    <header class="header">
+        <div class="header-container">
+            <a href="dashboard-user.html" class="header-logo hover-scale">
+                <i class="fas fa-flag"></i>
+                <span>Cổng Thanh Niên</span>
+            </a>
+
+            <nav class="header-nav">
+                <a href="dashboard-user.html" class="nav-link active">Dashboard</a>
+                <a href="pages/checkin.html" class="nav-link">Điểm danh</a>
+                <a href="pages/documents.html" class="nav-link">Văn bản</a>
+                <a href="pages/profile.html" class="nav-link">Hồ sơ</a>
+            </nav>
+
+            <div class="header-user">
+                <div class="user-dropdown">
+                    <img src="https://ui-avatars.com/api/?name=User&background=0056B3&color=fff" alt="User Avatar"
+                        class="user-avatar hover-scale" id="userAvatarBtn">
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main">
+        <div class="container" style="max-width: 800px;"> <!-- Giới hạn width cho gọn -->
+            <!-- Page Header -->
+            <div class="page-header stagger-fade-in">
+                <h1 class="page-title">👋 Xin chào, Nguyễn Văn A</h1>
+                <p class="page-subtitle">Hôm nay bạn muốn làm gì?</p>
+            </div>
+
+            <!-- Accordion Container -->
+            <div class="accordion-container stagger-fade-in">
+
+                <!-- 1. QR Widget (Expanded by default) -->
+                <div class="widget-collapsible expanded" id="widget-qr">
+                    <div class="widget-header" onclick="toggleWidget('widget-qr')">
+                        <div class="widget-info">
+                            <div class="widget-title">
+                                <i class="fas fa-qrcode" style="color: var(--color-accent);"></i>
+                                Điểm Danh QR
+                            </div>
+                            <div class="widget-summary" id="qr-summary">Đang diễn ra: Họp Chi Đoàn Tháng 11</div>
+                        </div>
+                        <i class="fas fa-chevron-down widget-toggle-icon"></i>
+                    </div>
+                    <div class="widget-content">
+                        <div
+                            style="display: flex; flex-direction: column; align-items: center; gap: var(--spacing-md);">
+                            <div id="qr-container"></div>
+                            <button class="btn btn-primary ripple" onclick="window.location.href='pages/checkin.html'">
+                                <i class="fas fa-list-alt"></i> Xem lịch sử điểm danh
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 2. Calendar Widget -->
+                <div class="widget-collapsible" id="widget-calendar">
+                    <div class="widget-header" onclick="toggleWidget('widget-calendar')">
+                        <div class="widget-info">
+                            <div class="widget-title">
+                                <i class="fas fa-calendar-alt" style="color: var(--color-primary);"></i>
+                                Lịch Công Tác
+                            </div>
+                            <div class="widget-summary">3 sự kiện sắp tới trong tuần này</div>
+                        </div>
+                        <i class="fas fa-chevron-down widget-toggle-icon"></i>
+                    </div>
+                    <div class="widget-content">
+                        <div class="calendar-preview">
+                            <!-- Simple List View for Compactness -->
+                            <div class="news-item">
+                                <div class="news-icon normal"><i class="fas fa-calendar-day"></i></div>
+                                <div class="news-content">
+                                    <div class="news-item-title">Tập huấn Cán bộ Đoàn</div>
+                                    <div class="news-item-time">01/12/2024 - 07:30</div>
+                                </div>
+                            </div>
+                            <div class="news-item">
+                                <div class="news-icon normal"><i class="fas fa-calendar-day"></i></div>
+                                <div class="news-content">
+                                    <div class="news-item-title">Ngày hội Hiến máu</div>
+                                    <div class="news-item-time">05/12/2024 - 08:00</div>
+                                </div>
+                            </div>
+                            <a href="pages/calendar.html" class="btn btn-outline w-full mt-md">Xem lịch đầy đủ</a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 3. News Widget -->
+                <div class="widget-collapsible" id="widget-news">
+                    <div class="widget-header" onclick="toggleWidget('widget-news')">
+                        <div class="widget-info">
+                            <div class="widget-title">
+                                <i class="fas fa-bullhorn" style="color: var(--color-danger);"></i>
+                                Thông Báo Mới
+                            </div>
+                            <div class="widget-summary">1 thông báo khẩn • 2 thông báo mới</div>
+                        </div>
+                        <i class="fas fa-chevron-down widget-toggle-icon"></i>
+                    </div>
+                    <div class="widget-content">
+                        <div class="news-list">
+                            <div class="news-item">
+                                <div class="news-icon urgent"><i class="fas fa-exclamation-circle"></i></div>
+                                <div class="news-content">
+                                    <div class="news-item-title">[KHẨN] Thay đổi địa điểm họp BCH</div>
+                                    <div class="news-item-time">Vừa xong</div>
+                                </div>
+                            </div>
+                            <div class="news-item">
+                                <div class="news-icon important"><i class="fas fa-file-alt"></i></div>
+                                <div class="news-content">
+                                    <div class="news-item-title">Kế hoạch Mùa hè xanh 2025</div>
+                                    <div class="news-item-time">2 giờ trước</div>
+                                </div>
+                            </div>
+                            <a href="pages/news.html" class="btn btn-outline w-full mt-md">Xem tất cả tin tức</a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 4. Quick Actions -->
+                <div class="widget-collapsible" id="widget-actions">
+                    <div class="widget-header" onclick="toggleWidget('widget-actions')">
+                        <div class="widget-info">
+                            <div class="widget-title">
+                                <i class="fas fa-bolt" style="color: #FFC107;"></i>
+                                Truy Cập Nhanh
+                            </div>
+                            <div class="widget-summary">Tạo frame, khảo sát, sơ đồ...</div>
+                        </div>
+                        <i class="fas fa-chevron-down widget-toggle-icon"></i>
+                    </div>
+                    <div class="widget-content">
+                        <div class="grid grid-2 gap-md">
+                            <a href="pages/frame-maker.html" class="btn btn-accent w-full">
+                                <i class="fas fa-image"></i> Tạo Frame
+                            </a>
+                            <a href="pages/voting.html" class="btn btn-primary w-full">
+                                <i class="fas fa-poll"></i> Khảo sát
+                            </a>
+                            <a href="pages/org-chart.html" class="btn btn-outline w-full">
+                                <i class="fas fa-sitemap"></i> Sơ đồ
+                            </a>
+                            <a href="admin-panel.html" class="btn btn-outline w-full">
+                                <i class="fas fa-user-shield"></i> Admin
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </main>
+
+    <!-- Scripts -->
+    <script src="js1/hsv-utils.js"></script>
+    <script src="js1/firebase-mock.js"></script>
+    <script src="js1/hsv-qr-generator.js"></script>
+    <script>
+        // Accordion Logic
+        function toggleWidget(id) {
+            const allWidgets = document.querySelectorAll('.widget-collapsible');
+            const target = document.getElementById(id);
+
+            // Close others (Exclusive Accordion)
+            allWidgets.forEach(w => {
+                if (w.id !== id) w.classList.remove('expanded');
+            });
+
+            // Toggle target
+            target.classList.toggle('expanded');
+        }
+
+        // Init App
+        document.addEventListener('DOMContentLoaded', () => {
+            // Init QR Generator
+            const currentEvent = MockDB.events["evt_2024_11_29"];
+            if (currentEvent) {
+                const qrGen = new DynamicQR('qr-container', currentEvent.id, currentEvent.secret);
+                document.getElementById('qr-summary').textContent = `Đang diễn ra: ${currentEvent.name}`;
+            }
+        });
+    </script>
+</body>
+
+</html>
