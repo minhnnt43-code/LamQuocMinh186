@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>💕 Thiệp Mời Cưới - Wedding Invitation 💕</title>
+    <link rel="stylesheet" href="wedding.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@400;700&family=Pacifico&family=Great+Vibes&family=Quicksand:wght@300;400;600;700&display=swap"
+        rel="stylesheet">
+</head>
+
+<body>
+    <!-- Music Player -->
+    <div class="music-player" id="musicPlayer">
+        <div class="music-icon" id="musicToggle">
+            <span class="music-note">🎵</span>
+        </div>
+    </div>
+
+    <!-- Audio Element -->
+    <audio id="weddingMusic" loop>
+        <source src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3" type="audio/mpeg">
+    </audio>
+
+    <!-- Animated Hearts Background -->
+    <div class="hearts-container">
+        <div class="heart"></div>
+        <div class="heart"></div>
+        <div class="heart"></div>
+        <div class="heart"></div>
+        <div class="heart"></div>
+        <div class="heart"></div>
+        <div class="heart"></div>
+        <div class="heart"></div>
+    </div>
+
+    <!-- Main Container -->
+    <div class="invitation-container">
+        <!-- Header Section -->
+        <div class="header-section">
+            <div class="rings-icon">💍</div>
+            <h1 class="main-title">Thiệp Mời Cưới</h1>
+            <p class="subtitle">We're Getting Married!</p>
+            <div class="decorative-line"></div>
+        </div>
+
+        <!-- Countdown Timer -->
+        <div class="countdown-section" id="countdownSection">
+            <h2 class="section-title">Đếm Ngược Đến Ngày Trọng Đại</h2>
+            <div class="countdown-timer">
+                <div class="time-unit">
+                    <div class="time-value" id="days">0</div>
+                    <div class="time-label">Ngày</div>
+                </div>
+                <div class="time-unit">
+                    <div class="time-value" id="hours">0</div>
+                    <div class="time-label">Giờ</div>
+                </div>
+                <div class="time-unit">
+                    <div class="time-value" id="minutes">0</div>
+                    <div class="time-label">Phút</div>
+                </div>
+                <div class="time-unit">
+                    <div class="time-value" id="seconds">0</div>
+                    <div class="time-label">Giây</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Couple Names Section -->
+        <div class="couple-section">
+            <div class="groom-section">
+                <div class="name-label">Chú Rể</div>
+                <div class="name-display" id="groomName">Lâm Quốc Minh</div>
+                <div class="flower-icon">🌸</div>
+            </div>
+
+            <div class="heart-divider">
+                <span class="heart-icon">❤️</span>
+            </div>
+
+            <div class="bride-section">
+                <div class="name-label">Cô Dâu</div>
+                <div class="bride-input-container">
+                    <input type="text" id="brideNameInput" class="bride-input" placeholder="Nhập tên cô dâu..."
+                        maxlength="50">
+                    <button id="confirmBtn" class="confirm-btn">Xác nhận ✨</button>
+                </div>
+                <div class="name-display hidden" id="brideName"></div>
+                <div class="flower-icon">🌺</div>
+            </div>
+        </div>
+
+        <!-- Alert Message -->
+        <div class="alert-message hidden" id="alertMessage"></div>
+
+        <!-- Wedding Date Section -->
+        <div class="date-section hidden" id="dateSection">
+            <div class="date-label">Ngày Cưới</div>
+            <div class="date-display" id="weddingDate"></div>
+            <div class="time-display" id="weddingTime"></div>
+            <button class="save-calendar-btn" id="saveCalendarBtn">
+                📅 Lưu Vào Lịch
+            </button>
+        </div>
+
+        <!-- Photo Gallery -->
+        <div class="gallery-section hidden" id="gallerySection">
+            <h2 class="section-title">Album Ảnh Của Chúng Tôi</h2>
+            <div class="photo-gallery">
+                <div class="gallery-container" id="galleryContainer">
+                    <button class="gallery-btn prev-btn" id="prevBtn">❮</button>
+                    <div class="photo-display">
+                        <img src="" alt="Couple Photo" id="currentPhoto" class="gallery-photo">
+                        <div class="photo-caption" id="photoCaption"></div>
+                    </div>
+                    <button class="gallery-btn next-btn" id="nextBtn">❯</button>
+                </div>
+                <div class="gallery-dots" id="galleryDots"></div>
+            </div>
+        </div>
+
+        <!-- Love Story Timeline -->
+        <div class="timeline-section hidden" id="timelineSection">
+            <h2 class="section-title">Câu Chuyện Tình Yêu</h2>
+            <div class="timeline">
+                <div class="timeline-item">
+                    <div class="timeline-icon">👫</div>
+                    <div class="timeline-content">
+                        <h3>Lần Đầu Gặp Gỡ</h3>
+                        <p class="timeline-date">Mùa Thu 2020</p>
+                        <p>Chúng tôi gặp nhau tại quán cà phê yêu thích. Ánh mắt đầu tiên đã khiến trái tim rung động...
+                        </p>
+                    </div>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-icon">💑</div>
+                    <div class="timeline-content">
+                        <h3>Bắt Đầu Hẹn Hò</h3>
+                        <p class="timeline-date">Mùa Đông 2020</p>
+                        <p>Sau vài tháng làm quen, chúng tôi chính thức trở thành người yêu của nhau vào một buổi tối
+                            giáng sinh đầy tuyết...</p>
+                    </div>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-icon">💍</div>
+                    <div class="timeline-content">
+                        <h3>Lời Cầu Hôn</h3>
+                        <p class="timeline-date">Mùa Xuân 2024</p>
+                        <p>Anh ấy quỳ gối cầu hôn tại bãi biển lúc hoàng hôn. Em đã khóc và nói YES ngay lập tức!</p>
+                    </div>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-icon">💒</div>
+                    <div class="timeline-content">
+                        <h3>Đám Cưới</h3>
+                        <p class="timeline-date" id="weddingDateTimeline">Coming Soon...</p>
+                        <p>Và giờ đây, chúng tôi sắp bước vào giai đoạn mới của cuộc đời. Hãy đến chúc phúc cho chúng
+                            tôi nhé!</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Venue Section -->
+        <div class="venue-section hidden" id="venueSection">
+            <div class="venue-icon">🏰</div>
+            <h2 class="section-title">Địa Điểm Tổ Chức</h2>
+            <div class="venue-name">Trung Tâm Tiệc Cưới Hạnh Phúc</div>
+            <div class="venue-address">123 Đường Tình Yêu, Quận Hạnh Phúc, TP. Hồ Chí Minh</div>
+            <div class="venue-phone">📞 Hotline: 0123 456 789</div>
+            <button class="directions-btn" id="directionsBtn">
+                🗺️ Chỉ Đường
+            </button>
+        </div>
+
+        <!-- Weather Widget -->
+        <div class="weather-section hidden" id="weatherSection">
+            <h2 class="section-title">Dự Báo Thời Tiết</h2>
+            <div class="weather-widget">
+                <div class="weather-icon">☀️</div>
+                <div class="weather-temp">28°C</div>
+                <div class="weather-desc">Nắng đẹp, thích hợp cho đám cưới</div>
+                <div class="weather-humidity">💧 Độ ẩm: 65%</div>
+            </div>
+        </div>
+
+        <!-- RSVP Section -->
+        <div class="rsvp-section hidden" id="rsvpSection">
+            <h2 class="section-title">Xác Nhận Tham Dự</h2>
+            <form class="rsvp-form" id="rsvpForm">
+                <div class="form-group">
+                    <label for="guestName">Tên của bạn *</label>
+                    <input type="text" id="guestName" required placeholder="Nguyễn Văn A">
+                </div>
+                <div class="form-group">
+                    <label for="guestPhone">Số điện thoại *</label>
+                    <input type="tel" id="guestPhone" required placeholder="0123456789">
+                </div>
+                <div class="form-group">
+                    <label for="guestCount">Số lượng người tham dự *</label>
+                    <select id="guestCount" required>
+                        <option value="">Chọn số người</option>
+                        <option value="1">1 người</option>
+                        <option value="2">2 người</option>
+                        <option value="3">3 người</option>
+                        <option value="4">4 người</option>
+                        <option value="5+">5+ người</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Lựa chọn món ăn *</label>
+                    <div class="radio-group">
+                        <label class="radio-label">
+                            <input type="radio" name="foodChoice" value="meat" required>
+                            <span>Đồ mặn</span>
+                        </label>
+                        <label class="radio-label">
+                            <input type="radio" name="foodChoice" value="vegetarian">
+                            <span>Đồ chay</span>
+                        </label>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="guestNote">Ghi chú đặc biệt</label>
+                    <textarea id="guestNote" rows="4" placeholder="Dị ứng thực phẩm, yêu cầu đặc biệt..."></textarea>
+                </div>
+                <button type="submit" class="rsvp-submit-btn">
+                    <span class="btn-text">Gửi Xác Nhận</span>
+                    <span class="btn-icon">💌</span>
+                </button>
+            </form>
+        </div>
+
+        <!-- Guest Book -->
+        <div class="guestbook-section hidden" id="guestbookSection">
+            <h2 class="section-title">Sổ Lưu Bút</h2>
+            <div class="guestbook-form-container">
+                <form class="guestbook-form" id="guestbookForm">
+                    <input type="text" id="wishName" placeholder="Tên của bạn" required>
+                    <textarea id="wishMessage" placeholder="Lời chúc của bạn..." rows="3" required></textarea>
+                    <button type="submit" class="wish-submit-btn">Gửi Lời Chúc 💝</button>
+                </form>
+            </div>
+            <div class="wishes-container" id="wishesContainer">
+                <div class="wish-card">
+                    <div class="wish-header">
+                        <span class="wish-author">💖 Admin</span>
+                        <span class="wish-time">Hôm nay</span>
+                    </div>
+                    <div class="wish-content">Chúc hai bạn trăm năm hạnh phúc! 🎉</div>
+                    <button class="wish-like-btn">❤️ <span class="like-count">5</span></button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Gift Registry -->
+        <div class="gift-section hidden" id="giftSection">
+            <h2 class="section-title">Mừng Cưới</h2>
+            <p class="gift-intro">Sự hiện diện của quý khách là món quà quý giá nhất. Nếu muốn gửi lời chúc bằng thiệp
+                mừng, vui lòng chuyển khoản theo thông tin sau:</p>
+            <div class="bank-info">
+                <div class="bank-card">
+                    <div class="bank-name">🏦 Ngân Hàng MB BANK</div>
+                    <div class="account-holder">CHỦ TÀI KHOẢN: LÂM QUỐC MINH</div>
+                    <div class="account-number-container">
+                        <span class="account-number" id="accountNumber">0899012608
+                            <button class="copy-btn" id="copyAccountBtn">📋 Copy</button>
+                    </div>
+                    <div class="qr-code">
+                        <div class="qr-placeholder">
+                            <div class="qr-text">QR CODE</div>
+                            <div class="qr-subtitle">Quét để chuyển khoản (ít nhất 500k)</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <p class="gift-thanks">💕 Xin chân thành cảm ơn! 💕</p>
+        </div>
+
+        <!-- Social Share -->
+        <div class="share-section hidden" id="shareSection">
+            <h2 class="section-title">Chia Sẻ Niềm Vui</h2>
+            <div class="share-buttons">
+                <button class="share-btn facebook-btn" id="shareFacebook">
+                    📘 Facebook
+                </button>
+                <button class="share-btn zalo-btn" id="shareZalo">
+                    💬 Zalo
+                </button>
+                <button class="share-btn copy-link-btn" id="copyLink">
+                    🔗 Copy Link
+                </button>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="footer-section hidden" id="footerSection">
+            <div class="footer-text">
+                Sự hiện diện của quý khách là niềm vinh hạnh của chúng tôi
+            </div>
+            <div class="footer-hearts">💕 💝 💖</div>
+            <div class="footer-copyright">Made with ❤️ by Lâm Quốc Minh</div>
+        </div>
+    </div>
+
+    <!-- Confetti Container -->
+    <div class="confetti-container" id="confettiContainer"></div>
+
+    <script src="wedding.js"></script>
+</body>
+
+</html>
