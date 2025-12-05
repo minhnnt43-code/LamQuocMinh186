@@ -1,0 +1,191 @@
+/* ═══════════════════════════════════════════════════════════════
+   LOCK SCREEN STYLES - LIGHT THEME + PASSWORD
+   ═══════════════════════════════════════════════════════════════ */
+
+.lock-screen {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: var(--grad-bg);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    z-index: var(--z-lock);
+    padding: var(--space-md);
+}
+
+.lock-logo {
+    font-size: 5rem;
+    margin-bottom: var(--space-md);
+    animation: float 3s ease-in-out infinite;
+}
+
+@keyframes float {
+
+    0%,
+    100% {
+        transform: translateY(0);
+    }
+
+    50% {
+        transform: translateY(-15px);
+    }
+}
+
+.lock-title {
+    font-size: var(--fs-hero);
+    background: var(--grad-gold);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    text-align: center;
+}
+
+.lock-subtitle {
+    color: var(--text-secondary);
+    margin-bottom: var(--space-lg);
+}
+
+/* Password Container */
+.password-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--space-md);
+    width: 100%;
+    max-width: 350px;
+}
+
+.password-input-wrapper {
+    position: relative;
+    width: 100%;
+}
+
+.password-input {
+    width: 100%;
+    padding: var(--space-md);
+    padding-right: 50px;
+    background: var(--bg-card);
+    border: 2px solid rgba(201, 162, 39, 0.3);
+    border-radius: var(--radius-md);
+    color: var(--text-primary);
+    font-family: var(--font-main);
+    font-size: var(--fs-body);
+    text-align: center;
+    box-shadow: var(--shadow-sm);
+    transition: var(--trans-normal);
+}
+
+.password-input:focus {
+    outline: none;
+    border-color: var(--accent-gold);
+    box-shadow: 0 0 15px var(--glow-gold);
+}
+
+.password-input::placeholder {
+    color: var(--text-secondary);
+}
+
+.password-toggle {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    font-size: 1.2rem;
+    cursor: pointer;
+    opacity: 0.6;
+    transition: var(--trans-fast);
+}
+
+.password-toggle:hover {
+    opacity: 1;
+}
+
+.password-submit {
+    width: 100%;
+    padding: var(--space-md);
+    background: var(--grad-gold);
+    border: none;
+    border-radius: var(--radius-md);
+    color: var(--bg-primary);
+    font-family: var(--font-main);
+    font-size: var(--fs-body);
+    font-weight: bold;
+    cursor: pointer;
+    transition: var(--trans-normal);
+    box-shadow: var(--shadow-sm);
+}
+
+.password-submit:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+}
+
+.password-submit:active {
+    transform: translateY(0);
+}
+
+.password-message {
+    color: var(--text-secondary);
+    font-size: var(--fs-small);
+    min-height: 20px;
+    text-align: center;
+}
+
+.password-message.error {
+    color: var(--accent-crimson);
+}
+
+.password-message.success {
+    color: var(--accent-green);
+}
+
+.setup-step {
+    color: var(--accent-gold);
+    font-size: var(--fs-small);
+    font-weight: bold;
+}
+
+.lock-footer {
+    position: absolute;
+    bottom: var(--space-lg);
+    color: var(--text-secondary);
+    font-size: var(--fs-tiny);
+}
+
+/* Strength indicator */
+.password-strength {
+    width: 100%;
+    height: 4px;
+    background: #e9ecef;
+    border-radius: 2px;
+    overflow: hidden;
+    margin-top: -8px;
+}
+
+.password-strength-bar {
+    height: 100%;
+    width: 0%;
+    border-radius: 2px;
+    transition: var(--trans-normal);
+}
+
+.strength-weak {
+    background: var(--accent-crimson);
+    width: 33%;
+}
+
+.strength-medium {
+    background: #ffc107;
+    width: 66%;
+}
+
+.strength-strong {
+    background: var(--accent-green);
+    width: 100%;
+}

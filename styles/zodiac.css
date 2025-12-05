@@ -1,0 +1,273 @@
+/* ═══════════════════════════════════════════════════════════════
+   ZODIAC STYLES - LIGHT THEME
+   ═══════════════════════════════════════════════════════════════ */
+
+/* Zodiac Cards Container */
+.zodiac-row {
+    display: flex;
+    justify-content: center;
+    gap: var(--space-md);
+    flex-wrap: wrap;
+    margin-bottom: var(--space-md);
+}
+
+/* Western Zodiac Card */
+.zodiac-card {
+    min-width: 150px;
+    padding: var(--space-md);
+    background: var(--bg-secondary);
+    border: 2px solid rgba(201, 162, 39, 0.2);
+    border-radius: var(--radius-md);
+    text-align: center;
+    transition: var(--trans-fast);
+    box-shadow: var(--shadow-sm);
+}
+
+.zodiac-card:hover {
+    border-color: var(--accent-gold);
+    box-shadow: var(--shadow-md);
+}
+
+.zodiac-label {
+    font-size: var(--fs-tiny);
+    color: var(--text-secondary);
+    margin-bottom: var(--space-xs);
+    text-transform: uppercase;
+}
+
+.zodiac-emoji {
+    font-size: 2.5rem;
+    margin-bottom: var(--space-xs);
+}
+
+.zodiac-symbol {
+    font-size: 1.8rem;
+    color: var(--accent-gold);
+    margin-bottom: var(--space-xs);
+}
+
+.zodiac-name {
+    font-size: var(--fs-subtitle);
+    font-weight: bold;
+    margin-bottom: 2px;
+    color: var(--text-primary);
+}
+
+.zodiac-name-en {
+    font-size: var(--fs-small);
+    color: var(--text-secondary);
+    margin-bottom: var(--space-sm);
+}
+
+.zodiac-meta {
+    display: flex;
+    justify-content: center;
+    gap: var(--space-sm);
+    flex-wrap: wrap;
+}
+
+.zodiac-element,
+.zodiac-ruler {
+    font-size: var(--fs-tiny);
+    padding: 2px 8px;
+    border-radius: var(--radius-sm);
+    background: rgba(201, 162, 39, 0.1);
+    color: var(--accent-gold);
+}
+
+/* Chinese Zodiac Card */
+.chinese-zodiac-card {
+    min-width: 200px;
+    padding: var(--space-md);
+    background: linear-gradient(145deg, rgba(220, 53, 69, 0.05), rgba(201, 162, 39, 0.05));
+    border: 2px solid rgba(220, 53, 69, 0.2);
+    border-radius: var(--radius-md);
+    text-align: center;
+    box-shadow: var(--shadow-sm);
+}
+
+.cz-emoji {
+    font-size: 3rem;
+    margin-bottom: var(--space-xs);
+}
+
+.cz-name {
+    font-size: var(--fs-subtitle);
+    font-weight: bold;
+    color: var(--accent-gold);
+    margin-bottom: var(--space-xs);
+}
+
+.cz-element {
+    font-size: var(--fs-small);
+    color: var(--text-secondary);
+    margin-bottom: var(--space-sm);
+}
+
+.cz-traits {
+    font-size: var(--fs-small);
+    color: var(--text-secondary);
+}
+
+/* Moon Phase Card */
+.moon-phase-card {
+    min-width: 180px;
+    padding: var(--space-lg);
+    background: linear-gradient(145deg, #f8f9fa, #e9ecef);
+    border: 2px solid rgba(201, 162, 39, 0.2);
+    border-radius: var(--radius-lg);
+    text-align: center;
+    box-shadow: var(--shadow-sm);
+}
+
+.moon-emoji {
+    font-size: 4rem;
+    margin-bottom: var(--space-sm);
+}
+
+.moon-name {
+    font-size: var(--fs-subtitle);
+    font-weight: bold;
+    color: var(--text-primary);
+    margin-bottom: var(--space-xs);
+}
+
+.moon-illumination {
+    font-size: var(--fs-small);
+    color: var(--text-secondary);
+    margin-bottom: var(--space-sm);
+}
+
+.moon-meaning {
+    font-size: var(--fs-small);
+    color: var(--accent-gold);
+    margin-bottom: var(--space-xs);
+}
+
+.moon-energy {
+    font-size: var(--fs-tiny);
+    color: var(--text-secondary);
+    font-style: italic;
+}
+
+/* Compatibility Tags */
+.compat-section {
+    margin-top: var(--space-md);
+}
+
+.compat-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-xs);
+    margin-top: var(--space-sm);
+}
+
+.compat-tag {
+    padding: 4px 12px;
+    border-radius: var(--radius-sm);
+    font-size: var(--fs-small);
+}
+
+.compat-tag.good {
+    background: rgba(25, 135, 84, 0.1);
+    color: var(--accent-green);
+    border: 1px solid rgba(25, 135, 84, 0.2);
+}
+
+.compat-tag.bad {
+    background: rgba(220, 53, 69, 0.1);
+    color: var(--accent-crimson);
+    border: 1px solid rgba(220, 53, 69, 0.2);
+}
+
+/* Tai Sui Warning */
+.tai-sui-warning {
+    padding: var(--space-md);
+    background: rgba(220, 53, 69, 0.05);
+    border: 1px solid rgba(220, 53, 69, 0.2);
+    border-radius: var(--radius-md);
+    margin-top: var(--space-md);
+}
+
+.tai-sui-warning h4 {
+    color: var(--accent-crimson);
+    margin-bottom: var(--space-xs);
+}
+
+/* Traits List */
+.traits-section {
+    margin-top: var(--space-md);
+}
+
+.traits-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--space-md);
+}
+
+.traits-column h4 {
+    font-size: var(--fs-body);
+    margin-bottom: var(--space-sm);
+}
+
+.traits-column.strengths h4 {
+    color: var(--accent-green);
+}
+
+.traits-column.weaknesses h4 {
+    color: var(--accent-crimson);
+}
+
+.traits-list {
+    list-style: none;
+}
+
+.traits-list li {
+    padding: 4px 0;
+    font-size: var(--fs-small);
+    color: var(--text-secondary);
+}
+
+.traits-list li::before {
+    content: '•';
+    margin-right: 8px;
+}
+
+/* Year Forecast */
+.year-forecast-card {
+    padding: var(--space-md);
+    background: var(--bg-secondary);
+    border-radius: var(--radius-md);
+    text-align: center;
+    margin-top: var(--space-md);
+    box-shadow: var(--shadow-sm);
+}
+
+.forecast-luck {
+    font-size: 2rem;
+    font-weight: bold;
+    color: var(--accent-gold);
+}
+
+.forecast-summary {
+    color: var(--text-secondary);
+    margin-top: var(--space-xs);
+}
+
+@media (max-width: 768px) {
+    .zodiac-row {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .zodiac-card,
+    .chinese-zodiac-card,
+    .moon-phase-card {
+        width: 100%;
+        max-width: 300px;
+    }
+
+    .traits-grid {
+        grid-template-columns: 1fr;
+    }
+}

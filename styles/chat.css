@@ -1,0 +1,323 @@
+/* ═══════════════════════════════════════════════════════════════
+   CHAT STYLES - AI Interview Interface
+   ═══════════════════════════════════════════════════════════════ */
+
+/* Chat Container */
+.chat-container {
+    display: flex;
+    flex-direction: column;
+    height: 500px;
+    max-height: 70vh;
+    background: var(--bg-secondary);
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    border: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+.chat-header {
+    padding: var(--space-md);
+    background: var(--grad-gold);
+    color: white;
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+}
+
+.chat-header-icon {
+    font-size: 1.5rem;
+}
+
+.chat-header-title {
+    font-weight: bold;
+}
+
+.chat-header-status {
+    font-size: var(--fs-small);
+    opacity: 0.9;
+}
+
+/* Messages Area */
+.chat-messages {
+    flex: 1;
+    overflow-y: auto;
+    padding: var(--space-md);
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-md);
+}
+
+.chat-message {
+    display: flex;
+    gap: var(--space-sm);
+    align-items: flex-start;
+    animation: chatFadeIn 0.3s ease;
+}
+
+@keyframes chatFadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.chat-message.ai {
+    flex-direction: row;
+}
+
+.chat-message.user {
+    flex-direction: row-reverse;
+}
+
+.chat-avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: var(--radius-full);
+    background: var(--bg-primary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+    flex-shrink: 0;
+    box-shadow: var(--shadow-sm);
+}
+
+.chat-bubble {
+    max-width: 80%;
+    padding: var(--space-sm) var(--space-md);
+    border-radius: var(--radius-md);
+    line-height: 1.6;
+}
+
+.chat-message.ai .chat-bubble {
+    background: rgba(201, 162, 39, 0.1);
+    border: 1px solid rgba(201, 162, 39, 0.2);
+    border-radius: var(--radius-md) var(--radius-md) var(--radius-md) 4px;
+    color: var(--text-primary);
+}
+
+.chat-message.user .chat-bubble {
+    background: var(--grad-gold);
+    color: white;
+    border-radius: var(--radius-md) var(--radius-md) 4px var(--radius-md);
+}
+
+/* Options Buttons */
+.chat-options {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-xs);
+    margin-left: 48px;
+    animation: chatFadeIn 0.3s ease 0.2s both;
+}
+
+.chat-option-btn {
+    padding: var(--space-xs) var(--space-md);
+    background: var(--bg-secondary);
+    border: 2px solid var(--accent-gold);
+    border-radius: var(--radius-lg);
+    color: var(--accent-gold);
+    font-family: var(--font-main);
+    font-size: var(--fs-small);
+    cursor: pointer;
+    transition: var(--trans-fast);
+}
+
+.chat-option-btn:hover {
+    background: var(--accent-gold);
+    color: white;
+}
+
+.chat-skip-btn {
+    padding: var(--space-xs) var(--space-md);
+    background: transparent;
+    border: 1px solid var(--text-secondary);
+    border-radius: var(--radius-lg);
+    color: var(--text-secondary);
+    font-family: var(--font-main);
+    font-size: var(--fs-small);
+    cursor: pointer;
+    transition: var(--trans-fast);
+}
+
+.chat-skip-btn:hover {
+    background: rgba(0, 0, 0, 0.05);
+}
+
+/* Input Area */
+.chat-input-area {
+    display: flex;
+    gap: var(--space-xs);
+    margin-left: 48px;
+    animation: chatFadeIn 0.3s ease 0.2s both;
+}
+
+.chat-input {
+    flex: 1;
+    padding: var(--space-sm) var(--space-md);
+    background: var(--bg-primary);
+    border: 2px solid rgba(201, 162, 39, 0.3);
+    border-radius: var(--radius-lg);
+    font-family: var(--font-main);
+    font-size: var(--fs-body);
+    color: var(--text-primary);
+}
+
+.chat-input:focus {
+    outline: none;
+    border-color: var(--accent-gold);
+}
+
+.chat-input::placeholder {
+    color: var(--text-secondary);
+}
+
+.chat-send-btn {
+    padding: var(--space-sm) var(--space-md);
+    background: var(--grad-gold);
+    border: none;
+    border-radius: var(--radius-lg);
+    color: white;
+    font-family: var(--font-main);
+    font-weight: bold;
+    cursor: pointer;
+    transition: var(--trans-fast);
+}
+
+.chat-send-btn:hover {
+    transform: scale(1.05);
+}
+
+/* Completion Actions */
+.chat-completion {
+    display: flex;
+    justify-content: center;
+    gap: var(--space-md);
+    margin-top: var(--space-lg);
+    animation: chatFadeIn 0.5s ease;
+}
+
+/* Context Card */
+.context-card {
+    background: rgba(124, 58, 237, 0.05);
+    border: 1px solid rgba(124, 58, 237, 0.2);
+    border-radius: var(--radius-md);
+    padding: var(--space-md);
+    margin-bottom: var(--space-md);
+}
+
+.context-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--space-sm);
+}
+
+.context-title {
+    font-weight: bold;
+    color: var(--accent-purple);
+}
+
+.context-update {
+    font-size: var(--fs-tiny);
+    color: var(--text-secondary);
+}
+
+.context-items {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: var(--space-xs);
+}
+
+.context-item {
+    font-size: var(--fs-small);
+    color: var(--text-secondary);
+    padding: 4px 0;
+}
+
+.context-item strong {
+    color: var(--text-primary);
+}
+
+/* Start Interview Card */
+.interview-prompt {
+    text-align: center;
+    padding: var(--space-xl);
+}
+
+.interview-prompt-icon {
+    font-size: 4rem;
+    margin-bottom: var(--space-md);
+}
+
+.interview-prompt h3 {
+    color: var(--accent-gold);
+    margin-bottom: var(--space-sm);
+}
+
+.interview-prompt p {
+    color: var(--text-secondary);
+    margin-bottom: var(--space-lg);
+}
+
+/* Typing indicator */
+.typing-indicator {
+    display: flex;
+    gap: 4px;
+    padding: var(--space-sm);
+}
+
+.typing-dot {
+    width: 8px;
+    height: 8px;
+    background: var(--accent-gold);
+    border-radius: 50%;
+    animation: typing 1.4s infinite;
+}
+
+.typing-dot:nth-child(2) {
+    animation-delay: 0.2s;
+}
+
+.typing-dot:nth-child(3) {
+    animation-delay: 0.4s;
+}
+
+@keyframes typing {
+
+    0%,
+    60%,
+    100% {
+        transform: translateY(0);
+        opacity: 0.5;
+    }
+
+    30% {
+        transform: translateY(-8px);
+        opacity: 1;
+    }
+}
+
+@media (max-width: 768px) {
+    .chat-container {
+        height: 400px;
+    }
+
+    .chat-bubble {
+        max-width: 90%;
+    }
+
+    .chat-options,
+    .chat-input-area {
+        margin-left: 0;
+        flex-wrap: wrap;
+    }
+
+    .chat-input {
+        min-width: 100%;
+    }
+}

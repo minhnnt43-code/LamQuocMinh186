@@ -1,0 +1,115 @@
+/* ═══════════════════════════════════════════════════════════════
+   BASE STYLES - LIGHT THEME
+   Lá Số Lâm Quốc Minh
+   ═══════════════════════════════════════════════════════════════ */
+
+/* Font Face */
+@font-face {
+    font-family: 'UTM Avo';
+    src: url('../fonts/UTM-Avo.ttf') format('truetype');
+    font-weight: normal;
+}
+
+@font-face {
+    font-family: 'UTM Avo';
+    src: url('../fonts/UTM-AvoBold.ttf') format('truetype');
+    font-weight: bold;
+}
+
+/* CSS Variables - LIGHT THEME */
+:root {
+    /* Colors */
+    --bg-primary: #f8f9fa;
+    --bg-secondary: #ffffff;
+    --bg-card: rgba(255, 255, 255, 0.95);
+    --text-primary: #1a1a2e;
+    --text-secondary: #6c757d;
+    --accent-gold: #c9a227;
+    --accent-crimson: #dc3545;
+    --accent-purple: #7c3aed;
+    --accent-blue: #0d6efd;
+    --accent-green: #198754;
+    --glow-gold: rgba(201, 162, 39, 0.2);
+    --glow-purple: rgba(124, 58, 237, 0.2);
+
+    /* Gradients */
+    --grad-bg: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 50%, #f1f3f5 100%);
+    --grad-gold: linear-gradient(135deg, #c9a227 0%, #e6c84d 100%);
+    --grad-purple: linear-gradient(135deg, #7c3aed 0%, #a78bfa 100%);
+    --grad-card: linear-gradient(145deg, rgba(255, 255, 255, 0.98), rgba(248, 249, 250, 0.95));
+
+    /* Shadows */
+    --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.08);
+    --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.1);
+    --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.12);
+
+    /* Typography */
+    --font-main: 'UTM Avo', 'Segoe UI', Tahoma, sans-serif;
+    --fs-hero: 2.5rem;
+    --fs-title: 1.5rem;
+    --fs-subtitle: 1.2rem;
+    --fs-body: 1rem;
+    --fs-small: 0.875rem;
+    --fs-tiny: 0.75rem;
+
+    /* Spacing */
+    --space-xs: 0.5rem;
+    --space-sm: 1rem;
+    --space-md: 1.5rem;
+    --space-lg: 2rem;
+    --space-xl: 3rem;
+
+    /* Border Radius */
+    --radius-sm: 8px;
+    --radius-md: 12px;
+    --radius-lg: 20px;
+    --radius-xl: 30px;
+    --radius-full: 50%;
+
+    /* Transitions */
+    --trans-fast: 0.2s ease;
+    --trans-normal: 0.3s ease;
+
+    /* Z-Index */
+    --z-base: 1;
+    --z-dropdown: 100;
+    --z-modal: 1000;
+    --z-lock: 2000;
+}
+
+/* Reset */
+*,
+*::before,
+*::after {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html {
+    scroll-behavior: smooth;
+}
+
+body {
+    font-family: var(--font-main);
+    background: var(--grad-bg);
+    color: var(--text-primary);
+    min-height: 100vh;
+    line-height: 1.6;
+    overflow-x: hidden;
+}
+
+/* Subtle pattern background */
+body::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-image:
+        radial-gradient(circle at 25% 25%, rgba(201, 162, 39, 0.03) 0%, transparent 50%),
+        radial-gradient(circle at 75% 75%, rgba(124, 58, 237, 0.03) 0%, transparent 50%);
+    pointer-events: none;
+    z-index: 0;
+}

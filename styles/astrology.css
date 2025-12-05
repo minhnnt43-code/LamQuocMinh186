@@ -1,0 +1,304 @@
+/* ═══════════════════════════════════════════════════════════════
+   ASTROLOGY STYLES - LIGHT THEME
+   ═══════════════════════════════════════════════════════════════ */
+
+/* Result Section */
+.result-section {
+    margin-bottom: var(--space-lg);
+}
+
+.result-section h3 {
+    font-size: var(--fs-subtitle);
+    margin-bottom: var(--space-md);
+    color: var(--accent-gold);
+}
+
+.analysis-text {
+    font-size: var(--fs-body);
+    color: var(--text-secondary);
+    margin-top: var(--space-sm);
+}
+
+/* Pillars Container (Tứ Trụ) */
+.pillars-container {
+    display: flex;
+    justify-content: center;
+    gap: var(--space-md);
+    flex-wrap: wrap;
+}
+
+.pillar {
+    min-width: 100px;
+    padding: var(--space-md);
+    background: var(--bg-secondary);
+    border: 2px solid rgba(201, 162, 39, 0.3);
+    border-radius: var(--radius-md);
+    text-align: center;
+    box-shadow: var(--shadow-sm);
+}
+
+.pillar-label {
+    font-size: var(--fs-tiny);
+    color: var(--text-secondary);
+    margin-bottom: var(--space-xs);
+    text-transform: uppercase;
+}
+
+.pillar-can {
+    font-size: 1.8rem;
+    font-weight: bold;
+    margin-bottom: var(--space-xs);
+}
+
+.pillar-chi {
+    font-size: 1.3rem;
+    margin-bottom: var(--space-sm);
+}
+
+.pillar-element {
+    font-size: var(--fs-small);
+    padding: 4px 8px;
+    border-radius: var(--radius-sm);
+    display: inline-block;
+}
+
+/* Elements Chart (Ngũ Hành) */
+.elements-chart {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-sm);
+}
+
+.element-bar {
+    width: 100%;
+}
+
+.element-label {
+    display: flex;
+    justify-content: space-between;
+    font-size: var(--fs-small);
+    margin-bottom: 4px;
+    color: var(--text-primary);
+}
+
+.element-progress {
+    height: 8px;
+    background: #e9ecef;
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.element-fill {
+    height: 100%;
+    border-radius: 4px;
+    transition: width 0.5s ease;
+}
+
+/* Lucky Elements */
+.lucky-elements {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-sm);
+}
+
+.lucky-tag {
+    padding: var(--space-xs) var(--space-sm);
+    border-radius: var(--radius-sm);
+    font-size: var(--fs-small);
+}
+
+/* Numbers Grid (Thần Số Học) */
+.numbers-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: var(--space-md);
+}
+
+.number-card {
+    background: var(--bg-secondary);
+    border: 1px solid rgba(0, 0, 0, 0.06);
+    border-radius: var(--radius-md);
+    padding: var(--space-md);
+    text-align: center;
+    transition: var(--trans-fast);
+    box-shadow: var(--shadow-sm);
+}
+
+.number-card:hover {
+    box-shadow: var(--shadow-md);
+}
+
+.number-card.master {
+    border-color: var(--accent-purple);
+    background: rgba(124, 58, 237, 0.05);
+}
+
+.number-icon {
+    font-size: 1.5rem;
+    margin-bottom: var(--space-xs);
+}
+
+.number-value {
+    font-size: 2rem;
+    font-weight: bold;
+    color: var(--accent-gold);
+}
+
+.number-card.master .number-value {
+    color: var(--accent-purple);
+}
+
+.number-name {
+    font-size: var(--fs-small);
+    color: var(--text-secondary);
+    margin-top: var(--space-xs);
+}
+
+.number-title {
+    font-size: var(--fs-tiny);
+    color: var(--accent-gold);
+    margin-top: 4px;
+}
+
+/* Cycles Row */
+.cycles-row {
+    display: flex;
+    justify-content: center;
+    gap: var(--space-lg);
+    flex-wrap: wrap;
+}
+
+.cycle-item {
+    text-align: center;
+}
+
+.cycle-value {
+    display: block;
+    font-size: 2rem;
+    font-weight: bold;
+    color: var(--accent-gold);
+}
+
+.cycle-label {
+    font-size: var(--fs-small);
+    color: var(--text-secondary);
+}
+
+/* Birthday Grid (Lo Shu) */
+.birthday-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 4px;
+    max-width: 200px;
+    margin: 0 auto;
+}
+
+.grid-cell {
+    aspect-ratio: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: var(--bg-secondary);
+    border: 1px solid rgba(0, 0, 0, 0.06);
+    border-radius: var(--radius-sm);
+}
+
+.grid-cell.filled {
+    border-color: var(--accent-gold);
+    background: rgba(201, 162, 39, 0.1);
+}
+
+.grid-cell.empty {
+    opacity: 0.5;
+}
+
+.grid-number {
+    font-size: 1.2rem;
+    font-weight: bold;
+    color: var(--text-primary);
+}
+
+.grid-count {
+    font-size: 0.6rem;
+    color: var(--accent-gold);
+}
+
+/* Arrows List */
+.arrows-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-xs);
+}
+
+.arrow-item {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    padding: var(--space-xs) var(--space-sm);
+    background: var(--bg-secondary);
+    border-radius: var(--radius-sm);
+    font-size: var(--fs-small);
+}
+
+.arrow-item.full {
+    border-left: 3px solid var(--accent-green);
+}
+
+.arrow-item.empty {
+    border-left: 3px solid var(--accent-crimson);
+}
+
+.arrow-desc {
+    color: var(--text-secondary);
+    margin-left: auto;
+}
+
+/* AI Result Card */
+.ai-result-card {
+    background: rgba(124, 58, 237, 0.05);
+    border: 1px solid rgba(124, 58, 237, 0.2);
+    border-radius: var(--radius-md);
+    overflow: hidden;
+}
+
+.ai-result-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--space-sm) var(--space-md);
+    background: rgba(124, 58, 237, 0.1);
+    font-weight: bold;
+    color: var(--accent-purple);
+}
+
+.ai-badge {
+    font-size: var(--fs-tiny);
+    background: var(--grad-purple);
+    color: white;
+    padding: 2px 8px;
+    border-radius: var(--radius-sm);
+}
+
+.ai-result-content {
+    padding: var(--space-md);
+    line-height: 1.8;
+    color: var(--text-primary);
+}
+
+/* Daily Header */
+.daily-header {
+    text-align: center;
+    margin-bottom: var(--space-md);
+}
+
+.daily-header h3 {
+    color: var(--accent-gold);
+}
+
+/* Error Text */
+.error-text {
+    color: var(--accent-crimson);
+    text-align: center;
+    padding: var(--space-md);
+}
