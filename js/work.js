@@ -23,13 +23,14 @@ export const initWorkModule = (data, user) => {
     if (!globalData.tasks) globalData.tasks = [];
     if (!globalData.todos) globalData.todos = [];
     if (!globalData.projects) globalData.projects = [];
+    if (!globalData.todoGroups) globalData.todoGroups = []; // [MỚI] To-do Groups
 
     populateTaskDropdowns();
     resetTaskForm();
 
     renderDashboard();
     renderTasks();
-    renderTodoList();
+    renderTodoList(); // Sẽ gọi renderTodoGroups()
     renderProjects();
     renderCalendar();
 
@@ -59,13 +60,17 @@ export const initWorkModule = (data, user) => {
         });
     });
 
-    // To-do
-    const addTodoBtn = document.getElementById('btn-add-todo');
-    if (addTodoBtn) addTodoBtn.addEventListener('click', handleAddTodo);
+    // [MỚI] Setup To-do Groups
+    setupTodoGroupsEvents();
 
     setupProjectEvents();
     setupCalendarEvents();
     setupExportCSV();
+
+    // [MỚI] Export render functions ra window để AI Tasks module có thể gọi
+    window.renderTasks = renderTasks;
+    window.renderDashboard = renderDashboard;
+    window.renderCalendar = renderCalendar;
 };
 
 function populateTaskDropdowns() {
@@ -675,40 +680,252 @@ const deleteTask = async (id) => {
     }
 };
 
-// --- 4. TO-DO LIST ---
-const renderTodoList = () => {
-    const container = document.getElementById('todo-list-container');
+// --- 4. TO-DO LIST VỚI NHÓM (GROUPS) ---
+
+// Hàm format ngày cho hiển thị
+const formatDateVN = (dateStr) => {
+    if (!dateStr) return '';
+    const d = new Date(dateStr);
+    return d.toLocaleDateString('vi-VN', { weekday: 'short', day: '2-digit', month: '2-digit', year: 'numeric' });
+};
+
+// Hàm render danh sách nhóm To-do
+const renderTodoGroups = () => {
+    const container = document.getElementById('todo-groups-container');
+    const emptyState = document.getElementById('todo-groups-empty');
     if (!container) return;
+
     container.innerHTML = '';
-    const todos = globalData.todos || [];
-    todos.forEach(todo => {
-        const div = document.createElement('div');
-        div.className = `todo-item ${todo.completed ? 'completed' : ''}`;
-        div.innerHTML = `<input type="checkbox" class="todo-checkbox" ${todo.completed ? 'checked' : ''}><span class="todo-label">${escapeHTML(todo.text)}</span><button class="delete-todo-btn">×</button>`;
-        div.querySelector('.todo-checkbox').addEventListener('change', () => toggleTodo(todo.id));
-        div.querySelector('.delete-todo-btn').addEventListener('click', () => deleteTodo(todo.id));
-        container.appendChild(div);
+
+    // Khởi tạo todoGroups nếu chưa có
+    if (!globalData.todoGroups) globalData.todoGroups = [];
+
+    const groups = globalData.todoGroups || [];
+
+    if (groups.length === 0) {
+        if (emptyState) emptyState.style.display = 'block';
+        return;
+    }
+    if (emptyState) emptyState.style.display = 'none';
+
+    // Sắp xếp nhóm theo ngày (mới nhất lên trước)
+    groups.sort((a, b) => new Date(b.createdDate) - new Date(a.createdDate));
+
+    groups.forEach(group => {
+        const groupDiv = document.createElement('div');
+        groupDiv.className = 'todo-group-card';
+        groupDiv.style.cssText = 'background: white; border-radius: 12px; margin-bottom: 15px; box-shadow: 0 2px 10px rgba(0,0,0,0.08); overflow: hidden;';
+
+        // Tính số item đã hoàn thành
+        const items = group.items || [];
+        const completedCount = items.filter(i => i.completed).length;
+        const totalCount = items.length;
+        const progress = totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0;
+
+        groupDiv.innerHTML = `
+            <div class="todo-group-header" style="padding: 15px 20px; background: linear-gradient(135deg, var(--primary-blue), #0088CC); color: white; display: flex; justify-content: space-between; align-items: center; cursor: pointer;">
+                <div style="display: flex; align-items: center; gap: 12px;">
+                    <span class="group-toggle-icon" style="font-size: 1.2rem; transition: transform 0.3s;">▼</span>
+                    <div>
+                        <h3 style="margin: 0; font-size: 1.1rem;">${escapeHTML(group.name)}</h3>
+                        <span style="font-size: 0.8rem; opacity: 0.9;">📅 ${formatDateVN(group.createdDate)}</span>
+                    </div>
+                </div>
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <span style="font-size: 0.85rem; background: rgba(255,255,255,0.2); padding: 4px 10px; border-radius: 20px;">
+                        ${completedCount}/${totalCount} ✓
+                    </span>
+                    <button class="btn-delete-group" style="background: rgba(255,255,255,0.2); border: none; color: white; width: 30px; height: 30px; border-radius: 50%; cursor: pointer; font-size: 1rem;" title="Xóa nhóm">🗑️</button>
+                </div>
+            </div>
+            
+            <div class="todo-group-body" style="padding: 15px;">
+                <!-- Progress bar -->
+                <div style="background: #eee; height: 6px; border-radius: 3px; margin-bottom: 15px; overflow: hidden;">
+                    <div style="background: linear-gradient(90deg, #00C853, #69F0AE); height: 100%; width: ${progress}%; transition: width 0.5s ease;"></div>
+                </div>
+                
+                <!-- Form thêm to-do mới -->
+                <div style="display: flex; gap: 10px; margin-bottom: 15px;">
+                    <input type="text" class="todo-input-in-group" placeholder="Thêm việc mới..." style="flex: 1; padding: 10px 15px; border: 2px solid #eee; border-radius: 8px; font-size: 0.95rem;">
+                    <button class="btn-add-todo-in-group btn-submit" style="padding: 10px 15px;">+ Thêm</button>
+                </div>
+                
+                <!-- Danh sách items -->
+                <div class="todo-items-list">
+                    ${items.length === 0 ? '<p style="color: #999; text-align: center; font-style: italic;">Chưa có việc nào trong nhóm này</p>' : ''}
+                    ${items.map(item => `
+                        <div class="todo-item-row" style="display: flex; align-items: center; gap: 10px; padding: 10px; border-radius: 8px; margin-bottom: 8px; background: ${item.completed ? '#f9f9f9' : '#fff'}; border: 1px solid #eee; transition: all 0.3s;">
+                            <input type="checkbox" class="todo-item-checkbox" data-group-id="${group.id}" data-item-id="${item.id}" ${item.completed ? 'checked' : ''} style="width: 20px; height: 20px; cursor: pointer; accent-color: var(--primary-blue);">
+                            <span class="todo-item-text" style="flex: 1; ${item.completed ? 'text-decoration: line-through; color: #999;' : ''}">${escapeHTML(item.text)}</span>
+                            <button class="btn-delete-todo-item" data-group-id="${group.id}" data-item-id="${item.id}" style="background: none; border: none; cursor: pointer; font-size: 1rem; opacity: 0.5; transition: opacity 0.3s;" title="Xóa">✕</button>
+                        </div>
+                    `).join('')}
+                </div>
+            </div>
+        `;
+
+        // Sự kiện toggle collapse/expand
+        const header = groupDiv.querySelector('.todo-group-header');
+        const body = groupDiv.querySelector('.todo-group-body');
+        const toggleIcon = groupDiv.querySelector('.group-toggle-icon');
+
+        header.addEventListener('click', (e) => {
+            if (e.target.classList.contains('btn-delete-group')) return;
+            body.style.display = body.style.display === 'none' ? 'block' : 'none';
+            toggleIcon.style.transform = body.style.display === 'none' ? 'rotate(-90deg)' : 'rotate(0deg)';
+        });
+
+        // Sự kiện xóa nhóm
+        groupDiv.querySelector('.btn-delete-group').addEventListener('click', (e) => {
+            e.stopPropagation();
+            handleDeleteTodoGroup(group.id);
+        });
+
+        // Sự kiện thêm to-do trong nhóm
+        const inputInGroup = groupDiv.querySelector('.todo-input-in-group');
+        const addBtnInGroup = groupDiv.querySelector('.btn-add-todo-in-group');
+
+        addBtnInGroup.addEventListener('click', () => handleAddTodoToGroup(group.id, inputInGroup.value));
+        inputInGroup.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') handleAddTodoToGroup(group.id, inputInGroup.value);
+        });
+
+        // Sự kiện checkbox và xóa item
+        groupDiv.querySelectorAll('.todo-item-checkbox').forEach(cb => {
+            cb.addEventListener('change', () => handleToggleTodoItem(cb.dataset.groupId, cb.dataset.itemId));
+        });
+
+        groupDiv.querySelectorAll('.btn-delete-todo-item').forEach(btn => {
+            btn.addEventListener('click', () => handleDeleteTodoItem(btn.dataset.groupId, btn.dataset.itemId));
+        });
+
+        container.appendChild(groupDiv);
     });
 };
 
-const handleAddTodo = async () => {
-    const input = document.getElementById('new-todo-input');
-    if (!input.value.trim()) return;
-    const newTodo = { id: generateID('todo'), text: input.value, completed: false };
-    globalData.todos.push(newTodo);
-    await saveUserData(currentUser.uid, { todos: globalData.todos });
-    renderTodoList(); renderDashboard(); input.value = '';
+// Hàm tạo nhóm mới
+const handleAddTodoGroup = async () => {
+    const nameInput = document.getElementById('new-todo-group-name');
+    const dateInput = document.getElementById('new-todo-group-date');
+
+    const name = nameInput.value.trim();
+    if (!name) {
+        showNotification('Vui lòng nhập tên nhóm!', 'error');
+        nameInput.focus();
+        return;
+    }
+
+    const newGroup = {
+        id: generateID('tg'),
+        name: name,
+        createdDate: dateInput.value || toLocalISOString(new Date()),
+        items: []
+    };
+
+    if (!globalData.todoGroups) globalData.todoGroups = [];
+    globalData.todoGroups.push(newGroup);
+
+    await saveUserData(currentUser.uid, { todoGroups: globalData.todoGroups });
+
+    // Reset form
+    nameInput.value = '';
+    dateInput.value = toLocalISOString(new Date());
+
+    renderTodoGroups();
+    renderDashboard();
+    showNotification(`Đã tạo nhóm "${name}" 📁`);
 };
 
-const toggleTodo = async (id) => {
-    const todo = globalData.todos.find(t => t.id === id);
-    if (todo) { todo.completed = !todo.completed; await saveUserData(currentUser.uid, { todos: globalData.todos }); renderTodoList(); renderDashboard(); }
+// Hàm xóa nhóm
+const handleDeleteTodoGroup = async (groupId) => {
+    const group = globalData.todoGroups.find(g => g.id === groupId);
+    if (!group) return;
+
+    if (confirm(`Xóa nhóm "${group.name}" và tất cả việc cần làm trong đó?`)) {
+        globalData.todoGroups = globalData.todoGroups.filter(g => g.id !== groupId);
+        await saveUserData(currentUser.uid, { todoGroups: globalData.todoGroups });
+        renderTodoGroups();
+        renderDashboard();
+        showNotification('Đã xóa nhóm!');
+    }
 };
 
-const deleteTodo = async (id) => {
-    globalData.todos = globalData.todos.filter(t => t.id !== id);
-    await saveUserData(currentUser.uid, { todos: globalData.todos });
-    renderTodoList(); renderDashboard();
+// Hàm thêm to-do vào nhóm
+const handleAddTodoToGroup = async (groupId, text) => {
+    if (!text || !text.trim()) return;
+
+    const group = globalData.todoGroups.find(g => g.id === groupId);
+    if (!group) return;
+
+    if (!group.items) group.items = [];
+
+    group.items.push({
+        id: generateID('ti'),
+        text: text.trim(),
+        completed: false,
+        createdAt: new Date().toISOString()
+    });
+
+    await saveUserData(currentUser.uid, { todoGroups: globalData.todoGroups });
+    renderTodoGroups();
+    renderDashboard();
+};
+
+// Hàm toggle hoàn thành to-do
+const handleToggleTodoItem = async (groupId, itemId) => {
+    const group = globalData.todoGroups.find(g => g.id === groupId);
+    if (!group) return;
+
+    const item = group.items.find(i => i.id === itemId);
+    if (!item) return;
+
+    item.completed = !item.completed;
+
+    await saveUserData(currentUser.uid, { todoGroups: globalData.todoGroups });
+    renderTodoGroups();
+    renderDashboard();
+};
+
+// Hàm xóa to-do item
+const handleDeleteTodoItem = async (groupId, itemId) => {
+    const group = globalData.todoGroups.find(g => g.id === groupId);
+    if (!group) return;
+
+    group.items = group.items.filter(i => i.id !== itemId);
+
+    await saveUserData(currentUser.uid, { todoGroups: globalData.todoGroups });
+    renderTodoGroups();
+    renderDashboard();
+};
+
+// Setup sự kiện cho To-do Groups
+const setupTodoGroupsEvents = () => {
+    // Set ngày mặc định là hôm nay
+    const dateInput = document.getElementById('new-todo-group-date');
+    if (dateInput) {
+        dateInput.value = toLocalISOString(new Date());
+    }
+
+    // Sự kiện nút tạo nhóm
+    const addGroupBtn = document.getElementById('btn-add-todo-group');
+    if (addGroupBtn) {
+        addGroupBtn.addEventListener('click', handleAddTodoGroup);
+    }
+
+    // Sự kiện nhấn Enter trong ô tên nhóm
+    const nameInput = document.getElementById('new-todo-group-name');
+    if (nameInput) {
+        nameInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') handleAddTodoGroup();
+        });
+    }
+};
+
+// Giữ lại hàm cũ để tương thích với Dashboard (nếu cần)
+const renderTodoList = () => {
+    // Gọi render nhóm mới
+    renderTodoGroups();
 };
 
 // --- 5. QUẢN LÝ DỰ ÁN ---
@@ -772,12 +989,34 @@ const renderDashboard = () => {
         if (todayTasks.length > 0) { taskEmpty.style.display = 'none'; todayTasks.forEach(t => { taskListUl.innerHTML += `<li><span class="task-title">${escapeHTML(t.name)}</span><span class="due-date">${t.priority}</span></li>`; }); } else { taskEmpty.style.display = 'block'; }
     }
 
+    // [CẬP NHẬT] Lấy to-do từ todoGroups mới
     const todoListUl = document.getElementById('dashboard-todo-list');
     const todoEmpty = document.getElementById('dashboard-todo-list-empty');
     if (todoListUl) {
-        const activeTodos = (globalData.todos || []).filter(t => !t.completed).slice(0, 5);
+        // Gom tất cả items chưa hoàn thành từ tất cả các nhóm
+        let allTodoItems = [];
+        (globalData.todoGroups || []).forEach(group => {
+            const items = (group.items || []).filter(i => !i.completed);
+            items.forEach(item => {
+                allTodoItems.push({
+                    text: item.text,
+                    groupName: group.name
+                });
+            });
+        });
+
+        // Lấy 5 items đầu tiên
+        const displayItems = allTodoItems.slice(0, 5);
+
         todoListUl.innerHTML = '';
-        if (activeTodos.length > 0) { todoEmpty.style.display = 'none'; activeTodos.forEach(t => { todoListUl.innerHTML += `<li>${escapeHTML(t.text)}</li>`; }); } else { todoEmpty.style.display = 'block'; }
+        if (displayItems.length > 0) {
+            todoEmpty.style.display = 'none';
+            displayItems.forEach(t => {
+                todoListUl.innerHTML += `<li><span style="font-size:0.75rem;color:#888;">[${escapeHTML(t.groupName)}]</span> ${escapeHTML(t.text)}</li>`;
+            });
+        } else {
+            todoEmpty.style.display = 'block';
+        }
     }
 
     const completedCount = (globalData.tasks || []).filter(t => t.status === 'Hoàn thành').length;

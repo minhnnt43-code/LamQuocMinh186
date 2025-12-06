@@ -26,6 +26,9 @@
 
     <!-- CSS Chính -->
     <link rel="stylesheet" href="style.css">
+
+    <!-- [MỚI] UI/UX Overhaul - Phase 9 (30 nâng cấp với UTM Avo & Montserrat) -->
+    <link rel="stylesheet" href="css/ui-overhaul.css">
 </head>
 
 <body>
@@ -77,6 +80,11 @@
 
     <!-- 3. MAIN APP -->
     <div id="app-container" style="display: none;">
+        <!-- External Link Button (Bottom Left) -->
+        <a href="https://lamquocminh.id.vn/portfolio.html" target="_blank" class="external-link-btn"
+            title="Truy cập website riêng">
+            🌐
+        </a>
 
         <!-- HEADER MOBILE -->
         <div class="mobile-top-bar" style="display:none;">
@@ -150,6 +158,19 @@
                     <ul class="nav-submenu">
                         <li><button class="nav-btn" data-target="digital-library">Thư viện Số</button></li>
                         <li><button class="nav-btn" data-target="outline-composer">Xây dựng Dàn ý</button></li>
+                    </ul>
+                </li>
+
+                <!-- [MỚI] AI TOOLS -->
+                <li class="nav-group">
+                    <button class="nav-group-toggle"
+                        style="background: linear-gradient(135deg, #667eea, #764ba2); color: white;">🧠 AI
+                        Tools</button>
+                    <ul class="nav-submenu">
+                        <li><button class="nav-btn" data-target="ai-analytics" style="color: #667eea;">📊 AI
+                                Analytics</button></li>
+                        <li><button class="nav-btn" data-target="ai-media" style="color: #f093fb;">🖼️ AI Media
+                                Center</button></li>
                     </ul>
                 </li>
 
@@ -385,11 +406,56 @@
                 </div>
             </section>
 
-            <!-- TASKS -->
             <section id="tasks" class="content-section">
                 <h1>Quản lý công việc</h1>
+
+                <!-- [MỚI] AI Quick Add với Natural Language -->
+                <div class="ai-quick-add-container"
+                    style="margin-bottom: 20px; padding: 20px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 12px; color: white;">
+                    <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
+                        <span style="font-size: 1.5rem;">🤖</span>
+                        <h3 style="margin: 0;">Thêm bằng AI</h3>
+                    </div>
+                    <p style="opacity: 0.9; font-size: 0.9rem; margin-bottom: 15px;">
+                        Nhập tự nhiên như: "Họp với thầy thứ 5 lúc 2h chiều" hoặc "Nộp bài tập Luật Dân sự ngày 15/12 ưu
+                        tiên cao"
+                    </p>
+                    <div style="display: flex; gap: 10px;">
+                        <input type="text" id="ai-task-input" placeholder="Mô tả công việc bằng ngôn ngữ tự nhiên..."
+                            style="flex: 1; padding: 12px 15px; border: none; border-radius: 8px; font-size: 1rem;">
+                        <button id="btn-ai-add-task" class="btn-submit"
+                            style="background: white; color: #764ba2; font-weight: 600; padding: 12px 20px;">
+                            ✨ Tạo với AI
+                        </button>
+                    </div>
+                    <div id="ai-task-preview"
+                        style="margin-top: 15px; padding: 15px; background: rgba(255,255,255,0.15); border-radius: 8px; display: none;">
+                        <strong>📋 Preview:</strong>
+                        <div id="ai-task-preview-content" style="margin-top: 10px;"></div>
+                        <div style="display: flex; gap: 10px; margin-top: 10px;">
+                            <button id="btn-ai-confirm-task" class="btn-submit" style="background: #4CAF50;">✓ Xác
+                                nhận</button>
+                            <button id="btn-ai-cancel-task" class="btn-submit"
+                                style="background: rgba(255,255,255,0.3);">✕ Hủy</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Thêm nhanh thường -->
                 <div class="quick-add-container">
                     <input type="text" id="quick-add-task-input" placeholder="Thêm nhanh công việc (Enter)...">
+                </div>
+
+                <!-- Nút AI Phân tích ưu tiên -->
+                <div style="margin-bottom: 15px; display: flex; gap: 10px;">
+                    <button id="btn-ai-prioritize" class="btn-submit"
+                        style="background: linear-gradient(135deg, #11998e, #38ef7d);">
+                        🧠 AI Phân tích ưu tiên
+                    </button>
+                    <button id="btn-ai-suggest" class="btn-submit"
+                        style="background: linear-gradient(135deg, #fc4a1a, #f7b733);">
+                        💡 AI Gợi ý công việc
+                    </button>
                 </div>
                 <div class="form-container">
                     <div class="form-grid">
@@ -434,21 +500,246 @@
                 <div id="task-list" class="list-container"></div>
             </section>
 
-            <!-- TODO LIST -->
+            <!-- TODO LIST (NÂNG CẤP VỚI GROUPS) -->
             <section id="todo-list" class="content-section">
                 <h1>To-do List</h1>
-                <div class="form-container">
-                    <div class="settings-input-group">
-                        <input type="text" id="new-todo-input" placeholder="Việc cần làm...">
-                        <button class="btn-submit" id="btn-add-todo">Thêm</button>
+
+                <!-- Form tạo nhóm mới -->
+                <div class="form-container" style="margin-bottom: 20px;">
+                    <h3 style="margin-top: 0; margin-bottom: 15px;">📁 Tạo nhóm mới</h3>
+                    <div class="form-grid" style="grid-template-columns: 2fr 1fr auto;">
+                        <div class="form-group" style="margin-bottom: 0;">
+                            <input type="text" id="new-todo-group-name"
+                                placeholder="Tên nhóm (VD: Công việc hôm nay)...">
+                        </div>
+                        <div class="form-group" style="margin-bottom: 0;">
+                            <input type="date" id="new-todo-group-date">
+                        </div>
+                        <button class="btn-submit" id="btn-add-todo-group" style="height: 42px;">+ Tạo nhóm</button>
                     </div>
                 </div>
-                <div id="todo-list-container" class="list-container"></div>
+
+                <!-- Container chứa các nhóm To-do -->
+                <div id="todo-groups-container"></div>
+
+                <!-- Empty state -->
+                <p class="empty-state" id="todo-groups-empty" style="display: none;">
+                    Chưa có nhóm nào. Tạo nhóm mới để bắt đầu quản lý công việc!
+                </p>
             </section>
 
             <!-- DRAFTS -->
             <section id="drafts" class="content-section">
                 <h1>Bản Nháp</h1>
+
+                <!-- [MỚI] AI Writing Studio - Phase 4 (96-125 trừ 123) -->
+                <div class="ai-writing-studio"
+                    style="margin-bottom: 20px; padding: 20px; background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); border-radius: 15px; color: white;">
+                    <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 15px;">
+                        <span style="font-size: 1.8rem;">✍️</span>
+                        <div>
+                            <h2 style="margin: 0; font-size: 1.3rem;">AI Writing Studio</h2>
+                            <p style="margin: 0; opacity: 0.9; font-size: 0.9rem;">Bộ công cụ viết content chuyên nghiệp
+                                với AI</p>
+                        </div>
+                    </div>
+
+                    <!-- Tabs -->
+                    <div style="display: flex; gap: 8px; margin-bottom: 15px; flex-wrap: wrap;">
+                        <button class="ai-writing-tab active" data-tab="basic"
+                            style="padding: 8px 16px; background: white; color: #f5576c; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; font-size: 0.9rem;">
+                            📝 Cơ bản
+                        </button>
+                        <button class="ai-writing-tab" data-tab="professional"
+                            style="padding: 8px 16px; background: rgba(255,255,255,0.2); color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 0.9rem;">
+                            💼 Chuyên nghiệp
+                        </button>
+                        <button class="ai-writing-tab" data-tab="creative"
+                            style="padding: 8px 16px; background: rgba(255,255,255,0.2); color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 0.9rem;">
+                            🎨 Sáng tạo
+                        </button>
+                        <button class="ai-writing-tab" data-tab="analysis"
+                            style="padding: 8px 16px; background: rgba(255,255,255,0.2); color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 0.9rem;">
+                            📊 Phân tích
+                        </button>
+                    </div>
+
+                    <!-- Tab 1: Cơ bản -->
+                    <div id="tab-writing-basic" class="ai-writing-tab-content"
+                        style="background: rgba(255,255,255,0.1); padding: 15px; border-radius: 10px;">
+                        <div style="display: flex; flex-wrap: wrap; gap: 10px;">
+                            <!-- #96 Writing Assistant -->
+                            <button id="btn-ai-write-assist" class="btn-submit"
+                                style="background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.3);">
+                                ✨ Hỗ trợ viết
+                            </button>
+                            <!-- #97 Auto-complete -->
+                            <button id="btn-ai-autocomplete" class="btn-submit"
+                                style="background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.3);">
+                                ➡️ Gợi ý tiếp
+                            </button>
+                            <!-- #98 Tone Adjuster -->
+                            <button id="btn-ai-tone" class="btn-submit"
+                                style="background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.3);">
+                                🎭 Chỉnh giọng văn
+                            </button>
+                            <!-- #101 Rephraser -->
+                            <button id="btn-ai-rephrase" class="btn-submit"
+                                style="background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.3);">
+                                🔄 Viết lại
+                            </button>
+                            <!-- #103 Text Expander -->
+                            <button id="btn-ai-expand" class="btn-submit"
+                                style="background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.3);">
+                                📈 Mở rộng ý
+                            </button>
+                            <!-- #104 Summarizer -->
+                            <button id="btn-ai-summarize" class="btn-submit"
+                                style="background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.3);">
+                                📝 Tóm tắt
+                            </button>
+                            <!-- #112 Bullet Points -->
+                            <button id="btn-ai-bullets" class="btn-submit"
+                                style="background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.3);">
+                                • Gạch đầu dòng
+                            </button>
+                            <!-- #113 Proofreader -->
+                            <button id="btn-ai-proofread" class="btn-submit"
+                                style="background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.3);">
+                                ✓ Sửa lỗi
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Tab 2: Chuyên nghiệp -->
+                    <div id="tab-writing-professional" class="ai-writing-tab-content"
+                        style="background: rgba(255,255,255,0.1); padding: 15px; border-radius: 10px; display: none;">
+                        <div style="display: flex; flex-wrap: wrap; gap: 10px;">
+                            <!-- #100 Email Composer -->
+                            <button id="btn-ai-email" class="btn-submit"
+                                style="background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.3);">
+                                📧 Soạn email
+                            </button>
+                            <!-- #108 Cover Letter -->
+                            <button id="btn-ai-cover-letter" class="btn-submit"
+                                style="background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.3);">
+                                📄 Thư xin việc
+                            </button>
+                            <!-- #109 Resume Optimizer -->
+                            <button id="btn-ai-resume" class="btn-submit"
+                                style="background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.3);">
+                                📋 Tối ưu CV
+                            </button>
+                            <!-- #111 Bio Generator -->
+                            <button id="btn-ai-bio" class="btn-submit"
+                                style="background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.3);">
+                                👤 Viết tiểu sử
+                            </button>
+                            <!-- #116 Translation -->
+                            <button id="btn-ai-translate" class="btn-submit"
+                                style="background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.3);">
+                                🌐 Dịch thuật
+                            </button>
+                            <!-- #122 Meeting Notes -->
+                            <button id="btn-ai-meeting-notes" class="btn-submit"
+                                style="background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.3);">
+                                📋 Meeting notes
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Tab 3: Sáng tạo -->
+                    <div id="tab-writing-creative" class="ai-writing-tab-content"
+                        style="background: rgba(255,255,255,0.1); padding: 15px; border-radius: 10px; display: none;">
+                        <div style="display: flex; flex-wrap: wrap; gap: 10px;">
+                            <!-- #99 Blog Generator -->
+                            <button id="btn-ai-blog" class="btn-submit"
+                                style="background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.3);">
+                                📰 Tạo blog post
+                            </button>
+                            <!-- #102 Title Generator -->
+                            <button id="btn-ai-title" class="btn-submit"
+                                style="background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.3);">
+                                💡 Gợi ý tiêu đề
+                            </button>
+                            <!-- #105 Writing Prompts -->
+                            <button id="btn-ai-prompts" class="btn-submit"
+                                style="background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.3);">
+                                💭 Ý tưởng viết
+                            </button>
+                            <!-- #110 Social Media -->
+                            <button id="btn-ai-social" class="btn-submit"
+                                style="background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.3);">
+                                📱 Social content
+                            </button>
+                            <!-- #114 Content Ideas -->
+                            <button id="btn-ai-content-ideas" class="btn-submit"
+                                style="background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.3);">
+                                🎯 Ý tưởng content
+                            </button>
+                            <!-- #118 Hashtags -->
+                            <button id="btn-ai-hashtags" class="btn-submit"
+                                style="background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.3);">
+                                #️⃣ Hashtags
+                            </button>
+                            <!-- #119 Caption -->
+                            <button id="btn-ai-caption" class="btn-submit"
+                                style="background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.3);">
+                                📸 Caption ảnh
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Tab 4: Phân tích -->
+                    <div id="tab-writing-analysis" class="ai-writing-tab-content"
+                        style="background: rgba(255,255,255,0.1); padding: 15px; border-radius: 10px; display: none;">
+                        <div style="display: flex; flex-wrap: wrap; gap: 10px;">
+                            <!-- #106 Consistency -->
+                            <button id="btn-ai-consistency" class="btn-submit"
+                                style="background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.3);">
+                                🔍 Kiểm tra nhất quán
+                            </button>
+                            <!-- #107 Formatting -->
+                            <button id="btn-ai-format" class="btn-submit"
+                                style="background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.3);">
+                                📐 Định dạng
+                            </button>
+                            <!-- #115 Draft Revisions -->
+                            <button id="btn-ai-revise" class="btn-submit"
+                                style="background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.3);">
+                                ✏️ Đề xuất sửa
+                            </button>
+                            <!-- #117 Readability -->
+                            <button id="btn-ai-readability" class="btn-submit"
+                                style="background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.3);">
+                                📖 Độ dễ đọc
+                            </button>
+                            <!-- #121 SEO -->
+                            <button id="btn-ai-seo" class="btn-submit"
+                                style="background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.3);">
+                                🔎 Tối ưu SEO
+                            </button>
+                            <!-- #124 Sentiment -->
+                            <button id="btn-ai-sentiment" class="btn-submit"
+                                style="background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.3);">
+                                😊 Phân tích cảm xúc
+                            </button>
+                            <!-- #125 Version Compare -->
+                            <button id="btn-ai-compare" class="btn-submit"
+                                style="background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.3);">
+                                ⚖️ So sánh phiên bản
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Input area -->
+                    <div style="margin-top: 15px;">
+                        <textarea id="ai-writing-input" rows="3"
+                            placeholder="Nhập hoặc dán nội dung cần xử lý... (hoặc chọn text trong editor)"
+                            style="width: 100%; padding: 12px 15px; border: none; border-radius: 8px; font-size: 1rem; resize: vertical;"></textarea>
+                    </div>
+                </div>
+
                 <div class="composer-toolbar">
                     <input type="search" id="drafts-search" placeholder="Tìm nháp...">
                     <button class="btn-submit" id="btn-create-draft">Tạo Mới +</button>
@@ -484,6 +775,135 @@
             <section id="focus-mode" class="content-section">
                 <div id="focus-mode-section">
                     <h1>Chế độ tập trung</h1>
+
+                    <!-- [MỚI] AI Study Tools - #36, #58, #60 -->
+                    <div
+                        style="margin-bottom: 25px; padding: 20px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 15px; color: white;">
+                        <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 15px;">
+                            <span style="font-size: 1.8rem;">🎓</span>
+                            <div>
+                                <h2 style="margin: 0; font-size: 1.3rem;">AI Study Assistant</h2>
+                                <p style="margin: 0; opacity: 0.9; font-size: 0.9rem;">Lập kế hoạch học tập thông minh
+                                    cho sinh viên Luật</p>
+                            </div>
+                        </div>
+
+                        <!-- Tabs -->
+                        <div style="display: flex; gap: 10px; margin-bottom: 15px; flex-wrap: wrap;">
+                            <button class="ai-study-tab active" data-tab="study-planner"
+                                style="padding: 10px 20px; background: white; color: #764ba2; border: none; border-radius: 8px; font-weight: 600; cursor: pointer;">
+                                📅 Lập kế hoạch ôn thi
+                            </button>
+                            <button class="ai-study-tab" data-tab="essay-outline"
+                                style="padding: 10px 20px; background: rgba(255,255,255,0.2); color: white; border: none; border-radius: 8px; cursor: pointer;">
+                                📝 Tạo dàn ý bài luận
+                            </button>
+                            <button class="ai-study-tab" data-tab="schedule-optimizer"
+                                style="padding: 10px 20px; background: rgba(255,255,255,0.2); color: white; border: none; border-radius: 8px; cursor: pointer;">
+                                ⚡ Tối ưu lịch học
+                            </button>
+                        </div>
+
+                        <!-- Tab 1: Study Planner (#36) -->
+                        <div id="tab-study-planner" class="ai-study-tab-content"
+                            style="background: rgba(255,255,255,0.1); padding: 15px; border-radius: 10px;">
+                            <div class="form-grid" style="gap: 15px;">
+                                <div class="form-group" style="margin: 0;">
+                                    <label style="color: white;">Môn thi / Chủ đề ôn</label>
+                                    <input type="text" id="study-subject"
+                                        placeholder="VD: Luật Dân sự 2, Hình sự, Hiến pháp..." style="width: 100%;">
+                                </div>
+                                <div class="form-group" style="margin: 0;">
+                                    <label style="color: white;">Ngày thi</label>
+                                    <input type="date" id="exam-date" style="width: 100%;">
+                                </div>
+                                <div class="form-group" style="margin: 0;">
+                                    <label style="color: white;">Số giờ học/ngày có thể dành</label>
+                                    <input type="number" id="study-hours" value="3" min="1" max="12"
+                                        style="width: 100%;">
+                                </div>
+                                <div class="form-group" style="margin: 0;">
+                                    <label style="color: white;">Các chương/phần cần ôn (mỗi dòng 1 phần)</label>
+                                    <textarea id="study-chapters" rows="3"
+                                        placeholder="Chương 1: Khái niệm cơ bản&#10;Chương 2: Quyền sở hữu&#10;Chương 3: Hợp đồng"
+                                        style="width: 100%;"></textarea>
+                                </div>
+                            </div>
+                            <button id="btn-ai-study-plan" class="btn-submit"
+                                style="width: 100%; margin-top: 15px; background: white; color: #764ba2; font-weight: 600;">
+                                🎯 Tạo kế hoạch ôn thi với AI
+                            </button>
+                        </div>
+
+                        <!-- Tab 2: Essay Outline (#58) -->
+                        <div id="tab-essay-outline" class="ai-study-tab-content"
+                            style="background: rgba(255,255,255,0.1); padding: 15px; border-radius: 10px; display: none;">
+                            <div class="form-group" style="margin: 0;">
+                                <label style="color: white;">Đề bài / Chủ đề bài luận</label>
+                                <textarea id="essay-topic" rows="3"
+                                    placeholder="VD: Phân tích quyền tự do hợp đồng trong Bộ luật Dân sự 2015..."
+                                    style="width: 100%;"></textarea>
+                            </div>
+                            <div class="form-group" style="margin-top: 15px;">
+                                <label style="color: white;">Loại bài viết</label>
+                                <select id="essay-type" style="width: 100%;">
+                                    <option value="essay">Tiểu luận pháp luật</option>
+                                    <option value="thesis">Khóa luận/Luận văn</option>
+                                    <option value="case-study">Phân tích tình huống</option>
+                                    <option value="comparison">So sánh pháp luật</option>
+                                    <option value="argument">Bài nghị luận</option>
+                                </select>
+                            </div>
+                            <div class="form-group" style="margin-top: 15px;">
+                                <label style="color: white;">Độ dài mong muốn</label>
+                                <select id="essay-length" style="width: 100%;">
+                                    <option value="short">Ngắn (2-5 trang)</option>
+                                    <option value="medium" selected>Trung bình (5-10 trang)</option>
+                                    <option value="long">Dài (10-20 trang)</option>
+                                </select>
+                            </div>
+                            <button id="btn-ai-essay-outline" class="btn-submit"
+                                style="width: 100%; margin-top: 15px; background: white; color: #764ba2; font-weight: 600;">
+                                📑 Tạo dàn ý với AI
+                            </button>
+                        </div>
+
+                        <!-- Tab 3: Schedule Optimizer (#60) -->
+                        <div id="tab-schedule-optimizer" class="ai-study-tab-content"
+                            style="background: rgba(255,255,255,0.1); padding: 15px; border-radius: 10px; display: none;">
+                            <p style="opacity: 0.9; margin-bottom: 15px;">
+                                Nhập các môn học và thời gian bạn có, AI sẽ tối ưu lịch học hiệu quả nhất.
+                            </p>
+                            <div class="form-group" style="margin: 0;">
+                                <label style="color: white;">Các môn cần học (mỗi dòng: Tên môn - Số giờ cần)</label>
+                                <textarea id="subjects-list" rows="4"
+                                    placeholder="Luật Dân sự - 15 giờ&#10;Luật Hình sự - 10 giờ&#10;Luật Hiến pháp - 8 giờ&#10;Tiếng Anh pháp lý - 5 giờ"
+                                    style="width: 100%;"></textarea>
+                            </div>
+                            <div class="form-grid" style="gap: 15px; margin-top: 15px;">
+                                <div class="form-group" style="margin: 0;">
+                                    <label style="color: white;">Số ngày để phân bổ</label>
+                                    <input type="number" id="schedule-days" value="7" min="1" max="30"
+                                        style="width: 100%;">
+                                </div>
+                                <div class="form-group" style="margin: 0;">
+                                    <label style="color: white;">Giờ học hiệu quả nhất</label>
+                                    <select id="peak-hours" style="width: 100%;">
+                                        <option value="morning">Sáng (6h-12h)</option>
+                                        <option value="afternoon">Chiều (12h-18h)</option>
+                                        <option value="evening" selected>Tối (18h-23h)</option>
+                                        <option value="mixed">Cả ngày</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <button id="btn-ai-schedule" class="btn-submit"
+                                style="width: 100%; margin-top: 15px; background: white; color: #764ba2; font-weight: 600;">
+                                ⚡ Tối ưu lịch với AI
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Pomodoro Timer -->
                     <div id="pomodoro-timer">25:00</div>
                     <div class="focus-control-buttons">
                         <button id="pomodoro-start-btn">Bắt đầu</button>
@@ -504,6 +924,88 @@
             <!-- CALENDAR -->
             <section id="time-management" class="content-section">
                 <div id="calendar-section-container">
+
+                    <!-- [MỚI] AI Calendar Assistant (71-95 trừ 80) -->
+                    <div class="ai-calendar-container"
+                        style="margin-bottom: 20px; padding: 20px; background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); border-radius: 15px; color: white;">
+                        <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 15px;">
+                            <span style="font-size: 1.8rem;">📅</span>
+                            <div>
+                                <h2 style="margin: 0; font-size: 1.3rem;">AI Calendar Assistant</h2>
+                                <p style="margin: 0; opacity: 0.9; font-size: 0.9rem;">Tối ưu lịch và quản lý thời gian
+                                    thông minh</p>
+                            </div>
+                        </div>
+
+                        <div style="display: flex; flex-wrap: wrap; gap: 10px;">
+                            <!-- #71 Calendar Optimizer -->
+                            <button id="btn-ai-cal-optimize" class="btn-submit"
+                                style="background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.3);">
+                                🎯 Tối ưu lịch tuần
+                            </button>
+                            <!-- #72 Meeting Scheduler -->
+                            <button id="btn-ai-meeting" class="btn-submit"
+                                style="background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.3);">
+                                🤝 Tìm giờ họp
+                            </button>
+                            <!-- #75 Time Blocking -->
+                            <button id="btn-ai-time-block" class="btn-submit"
+                                style="background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.3);">
+                                ⏰ Chia block thời gian
+                            </button>
+                            <!-- #76 Conflict Resolver -->
+                            <button id="btn-ai-conflict" class="btn-submit"
+                                style="background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.3);">
+                                ⚡ Xử lý xung đột
+                            </button>
+                            <!-- #82 Analytics -->
+                            <button id="btn-ai-cal-analytics" class="btn-submit"
+                                style="background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.3);">
+                                📊 Phân tích thời gian
+                            </button>
+                            <!-- #84 Smart Booking -->
+                            <button id="btn-ai-smart-booking" class="btn-submit"
+                                style="background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.3);">
+                                📌 Gợi ý slot hẹn
+                            </button>
+                            <!-- #88 Time Spent -->
+                            <button id="btn-ai-time-spent" class="btn-submit"
+                                style="background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.3);">
+                                ⏱️ Thống kê thời gian
+                            </button>
+                            <!-- #89 Focus Hours -->
+                            <button id="btn-ai-focus-hours" class="btn-submit"
+                                style="background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.3);">
+                                🧘 Giờ tập trung
+                            </button>
+                        </div>
+
+                        <!-- [MỚI] Quick Add Event bằng ngôn ngữ tự nhiên -->
+                        <div style="margin-top: 15px; background: rgba(0,0,0,0.2); padding: 15px; border-radius: 12px;">
+                            <label style="color: white; font-weight: 600; margin-bottom: 8px; display: block;">⚡ Thêm sự
+                                kiện nhanh</label>
+                            <div style="display: flex; gap: 10px;">
+                                <input type="text" id="quick-event-input"
+                                    placeholder='VD: "Họp với thầy thứ 5 lúc 2h chiều" hoặc "Học Luật Dân sự ngày mai từ 9h-11h"'
+                                    style="flex: 1; padding: 12px 15px; border: none; border-radius: 8px; font-size: 1rem;">
+                                <button id="btn-quick-add-event" class="btn-submit"
+                                    style="background: white; color: #4facfe; font-weight: 600; white-space: nowrap;">
+                                    ➕ Thêm
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Input cho các tính năng cần input -->
+                        <div id="ai-cal-input-area" style="margin-top: 15px; display: none;">
+                            <input type="text" id="ai-cal-input" placeholder="Nhập yêu cầu..."
+                                style="width: 100%; padding: 12px 15px; border: none; border-radius: 8px; font-size: 1rem;">
+                            <button id="btn-ai-cal-submit" class="btn-submit"
+                                style="width: 100%; margin-top: 10px; background: white; color: #4facfe; font-weight: 600;">
+                                ✨ Xử lý với AI
+                            </button>
+                        </div>
+                    </div>
+
                     <div class="calendar-header">
                         <div class="calendar-actions">
                             <button id="btn-google-sync" class="btn-google-sync">Đồng bộ Google</button>
@@ -568,6 +1070,214 @@
             <section id="student-journey" class="content-section">
                 <h1>Hành trình Sinh viên 5 tốt</h1>
                 <div id="sv5t-board-container"></div>
+            </section>
+
+            <!-- [MỚI] AI ANALYTICS DASHBOARD - Phase 7 (171-190) - REDESIGNED -->
+            <section id="ai-analytics" class="content-section">
+                <h1>📊 AI Analytics Dashboard</h1>
+
+                <div class="ai-dashboard-layout" style="display: flex; gap: 20px; min-height: 500px;">
+                    <!-- SIDEBAR - Quick Actions -->
+                    <div class="ai-sidebar"
+                        style="width: 280px; flex-shrink: 0; background: linear-gradient(180deg, #1a1a2e 0%, #16213e 100%); border-radius: 16px; padding: 20px; color: white;">
+                        <div style="margin-bottom: 20px;">
+                            <h3 style="margin: 0 0 5px; font-size: 1rem; opacity: 0.7;">🧠 AI Insights</h3>
+                            <p style="margin: 0; font-size: 0.85rem; opacity: 0.6;">Chọn phân tích bên dưới</p>
+                        </div>
+
+                        <!-- Quick Stats Mini -->
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px;">
+                            <div
+                                style="background: rgba(102,126,234,0.2); padding: 12px; border-radius: 10px; text-align: center;">
+                                <div style="font-size: 1.4rem; font-weight: 700;" id="score-productivity">--</div>
+                                <div style="font-size: 0.7rem; opacity: 0.7;">Năng suất</div>
+                            </div>
+                            <div
+                                style="background: rgba(16,185,129,0.2); padding: 12px; border-radius: 10px; text-align: center;">
+                                <div style="font-size: 1.4rem; font-weight: 700;" id="score-tasks">--</div>
+                                <div style="font-size: 0.7rem; opacity: 0.7;">Hoàn thành</div>
+                            </div>
+                            <div
+                                style="background: rgba(245,158,11,0.2); padding: 12px; border-radius: 10px; text-align: center;">
+                                <div style="font-size: 1.4rem; font-weight: 700;" id="score-streak">--</div>
+                                <div style="font-size: 0.7rem; opacity: 0.7;">Streak</div>
+                            </div>
+                            <div
+                                style="background: rgba(239,68,68,0.2); padding: 12px; border-radius: 10px; text-align: center;">
+                                <div style="font-size: 1.4rem; font-weight: 700;" id="score-goals">--</div>
+                                <div style="font-size: 0.7rem; opacity: 0.7;">Mục tiêu</div>
+                            </div>
+                        </div>
+
+                        <!-- Action Groups -->
+                        <div class="ai-action-group" style="margin-bottom: 15px;">
+                            <div
+                                style="font-size: 0.75rem; text-transform: uppercase; opacity: 0.5; margin-bottom: 8px; letter-spacing: 0.5px;">
+                                📈 Phân tích</div>
+                            <button id="btn-ai-insights" class="ai-sidebar-btn">🔮 Dashboard Insights</button>
+                            <button id="btn-ai-trends" class="ai-sidebar-btn">📈 Xu hướng</button>
+                            <button id="btn-ai-anomaly" class="ai-sidebar-btn">⚠️ Bất thường</button>
+                        </div>
+
+                        <div class="ai-action-group" style="margin-bottom: 15px;">
+                            <div
+                                style="font-size: 0.75rem; text-transform: uppercase; opacity: 0.5; margin-bottom: 8px; letter-spacing: 0.5px;">
+                                📊 Báo cáo</div>
+                            <button id="btn-ai-report" class="ai-sidebar-btn">📄 Báo cáo tuần</button>
+                            <button id="btn-ai-time-report" class="ai-sidebar-btn">⏱️ Thời gian</button>
+                            <button id="btn-ai-digest" class="ai-sidebar-btn">📬 Tổng kết</button>
+                        </div>
+
+                        <div class="ai-action-group" style="margin-bottom: 15px;">
+                            <div
+                                style="font-size: 0.75rem; text-transform: uppercase; opacity: 0.5; margin-bottom: 8px; letter-spacing: 0.5px;">
+                                🎯 Mục tiêu</div>
+                            <button id="btn-ai-productivity" class="ai-sidebar-btn">⚡ Năng suất</button>
+                            <button id="btn-ai-goals" class="ai-sidebar-btn">🎯 Mục tiêu</button>
+                            <button id="btn-ai-achieve" class="ai-sidebar-btn">🏆 Thành tích</button>
+                        </div>
+
+                        <div class="ai-action-group">
+                            <div
+                                style="font-size: 0.75rem; text-transform: uppercase; opacity: 0.5; margin-bottom: 8px; letter-spacing: 0.5px;">
+                                💡 Gợi ý</div>
+                            <button id="btn-ai-predict" class="ai-sidebar-btn">🔮 Dự đoán</button>
+                            <button id="btn-ai-recommend" class="ai-sidebar-btn">💡 Đề xuất</button>
+                            <button id="btn-ai-kpi" class="ai-sidebar-btn">📊 KPI</button>
+                            <button id="btn-ai-cards" class="ai-sidebar-btn">💳 Insight Cards</button>
+                        </div>
+                    </div>
+
+                    <!-- CONTENT - Result Display -->
+                    <div class="ai-content"
+                        style="flex: 1; background: #f8fafc; border-radius: 16px; padding: 25px; min-height: 450px;">
+                        <!-- Welcome State -->
+                        <div id="ai-analytics-welcome" style="text-align: center; padding: 80px 20px; color: #64748b;">
+                            <div style="font-size: 4rem; margin-bottom: 20px;">🧠</div>
+                            <h2 style="color: #334155; margin-bottom: 10px;">AI Analytics Dashboard</h2>
+                            <p style="max-width: 400px; margin: 0 auto;">Chọn một phân tích từ sidebar để xem insight
+                                thông minh về năng suất và tiến độ của bạn.</p>
+                        </div>
+
+                        <!-- Result State -->
+                        <div id="ai-insight-display" style="display: none;">
+                            <div
+                                style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding-bottom: 15px; border-bottom: 2px solid #e2e8f0;">
+                                <h3 style="margin: 0; color: #1e293b; display: flex; align-items: center; gap: 10px;"
+                                    id="insight-title">
+                                    <span style="font-size: 1.5rem;">🤖</span> AI Insight
+                                </h3>
+                                <button id="btn-close-insight"
+                                    style="background: #f1f5f9; border: none; color: #64748b; width: 32px; height: 32px; border-radius: 8px; cursor: pointer; font-size: 1.2rem;">×</button>
+                            </div>
+                            <div id="insight-content" style="line-height: 1.8; color: #334155;"></div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- [MỚI] AI MEDIA CENTER - Phase 7 (126-145) - REDESIGNED -->
+            <section id="ai-media" class="content-section">
+                <h1>🖼️ AI Media Center</h1>
+
+                <div class="ai-dashboard-layout" style="display: flex; gap: 20px; min-height: 500px;">
+                    <!-- SIDEBAR - Quick Actions -->
+                    <div class="ai-sidebar"
+                        style="width: 280px; flex-shrink: 0; background: linear-gradient(180deg, #2d1b69 0%, #11998e 100%); border-radius: 16px; padding: 20px; color: white;">
+                        <div style="margin-bottom: 20px;">
+                            <h3 style="margin: 0 0 5px; font-size: 1rem; opacity: 0.9;">🎨 Media Tools</h3>
+                            <p style="margin: 0; font-size: 0.85rem; opacity: 0.7;">20 công cụ AI cho ảnh</p>
+                        </div>
+
+                        <!-- Action Groups -->
+                        <div class="ai-action-group" style="margin-bottom: 15px;">
+                            <div
+                                style="font-size: 0.75rem; text-transform: uppercase; opacity: 0.6; margin-bottom: 8px; letter-spacing: 0.5px;">
+                                📝 Phân tích</div>
+                            <button id="btn-media-caption" class="ai-sidebar-btn">📝 Mô tả ảnh</button>
+                            <button id="btn-media-color" class="ai-sidebar-btn">🌈 Màu sắc</button>
+                            <button id="btn-media-face" class="ai-sidebar-btn">👤 Khuôn mặt</button>
+                            <button id="btn-media-ocr" class="ai-sidebar-btn">📄 OCR Text</button>
+                        </div>
+
+                        <div class="ai-action-group" style="margin-bottom: 15px;">
+                            <div
+                                style="font-size: 0.75rem; text-transform: uppercase; opacity: 0.6; margin-bottom: 8px; letter-spacing: 0.5px;">
+                                ✨ Chỉnh sửa</div>
+                            <button id="btn-media-enhance" class="ai-sidebar-btn">✨ Nâng cao</button>
+                            <button id="btn-media-removebg" class="ai-sidebar-btn">🪄 Xóa nền</button>
+                            <button id="btn-media-crop" class="ai-sidebar-btn">✂️ Cắt ảnh</button>
+                            <button id="btn-media-filter" class="ai-sidebar-btn">🎨 Filter</button>
+                        </div>
+
+                        <div class="ai-action-group" style="margin-bottom: 15px;">
+                            <div
+                                style="font-size: 0.75rem; text-transform: uppercase; opacity: 0.6; margin-bottom: 8px; letter-spacing: 0.5px;">
+                                🎬 Tạo nội dung</div>
+                            <button id="btn-media-thumbnail" class="ai-sidebar-btn">🖼️ Thumbnail</button>
+                            <button id="btn-media-avatar" class="ai-sidebar-btn">🧑‍🎨 Avatar</button>
+                            <button id="btn-media-collage" class="ai-sidebar-btn">🎞️ Collage</button>
+                            <button id="btn-media-meme" class="ai-sidebar-btn">😂 Meme</button>
+                            <button id="btn-media-slideshow" class="ai-sidebar-btn">🎬 Slideshow</button>
+                        </div>
+
+                        <div class="ai-action-group">
+                            <div
+                                style="font-size: 0.75rem; text-transform: uppercase; opacity: 0.6; margin-bottom: 8px; letter-spacing: 0.5px;">
+                                📂 Tiện ích</div>
+                            <button id="btn-media-organize" class="ai-sidebar-btn">📂 Sắp xếp</button>
+                            <button id="btn-media-album" class="ai-sidebar-btn">📸 Album</button>
+                            <button id="btn-media-duplicate" class="ai-sidebar-btn">🔍 Trùng lặp</button>
+                            <button id="btn-media-similar" class="ai-sidebar-btn">🔎 Tương tự</button>
+                            <button id="btn-media-layout" class="ai-sidebar-btn">📐 Gallery</button>
+                            <button id="btn-media-scan" class="ai-sidebar-btn">📋 Scan</button>
+                            <button id="btn-media-metadata" class="ai-sidebar-btn">ℹ️ Metadata</button>
+                        </div>
+                    </div>
+
+                    <!-- CONTENT - Upload + Result Display -->
+                    <div class="ai-content"
+                        style="flex: 1; background: #f8fafc; border-radius: 16px; padding: 25px; min-height: 450px;">
+                        <!-- Upload Area -->
+                        <div
+                            style="background: linear-gradient(135deg, #e0e7ff 0%, #dbeafe 100%); border: 2px dashed #667eea; border-radius: 12px; padding: 25px; text-align: center; margin-bottom: 20px;">
+                            <input type="file" id="media-file-input" accept="image/*" style="display: none;">
+                            <label for="media-file-input" style="cursor: pointer; display: block;">
+                                <span style="font-size: 2.5rem; display: block; margin-bottom: 10px;">📤</span>
+                                <span style="font-size: 1rem; color: #4f46e5; font-weight: 600;">Click hoặc kéo thả ảnh
+                                    vào đây</span>
+                                <div style="font-size: 0.85rem; color: #64748b; margin-top: 5px;">JPG, PNG, WebP (max
+                                    10MB)</div>
+                            </label>
+                            <div id="media-preview" style="margin-top: 15px; display: none;">
+                                <img id="media-preview-img"
+                                    style="max-width: 250px; max-height: 150px; border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.15);">
+                            </div>
+                        </div>
+
+                        <!-- Welcome State -->
+                        <div id="ai-media-welcome" style="text-align: center; padding: 40px 20px; color: #64748b;">
+                            <div style="font-size: 3rem; margin-bottom: 15px;">🎨</div>
+                            <h3 style="color: #334155; margin-bottom: 10px;">AI Media Tools</h3>
+                            <p style="max-width: 350px; margin: 0 auto; font-size: 0.95rem;">Tải ảnh lên và chọn công cụ
+                                từ sidebar để bắt đầu xử lý với AI.</p>
+                        </div>
+
+                        <!-- Result State -->
+                        <div id="ai-media-result" style="display: none;">
+                            <div
+                                style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding-bottom: 15px; border-bottom: 2px solid #e2e8f0;">
+                                <h3 style="margin: 0; color: #1e293b; display: flex; align-items: center; gap: 10px;"
+                                    id="media-result-title">
+                                    <span style="font-size: 1.5rem;">🎨</span> Kết quả
+                                </h3>
+                                <button id="btn-close-media-result"
+                                    style="background: #f1f5f9; border: none; color: #64748b; width: 32px; height: 32px; border-radius: 8px; cursor: pointer; font-size: 1.2rem;">×</button>
+                            </div>
+                            <div id="media-result-content" style="line-height: 1.8; color: #334155;"></div>
+                        </div>
+                    </div>
+                </div>
             </section>
 
             <!-- PROOFS -->
@@ -650,6 +1360,63 @@
                             <label>Chế độ tối</label>
                             <label class="toggle-switch"><input type="checkbox" id="toggle-dark-mode"><span
                                     class="slider"></span></label>
+                        </div>
+                    </div>
+
+                    <!-- [MỚI] CÀI ĐẶT AI -->
+                    <div class="settings-card" style="grid-column: span 2;">
+                        <h3>🤖 Trợ lý AI</h3>
+                        <p style="color: #666; margin-bottom: 15px; font-size: 0.9rem;">
+                            Cấu hình API để sử dụng các tính năng AI thông minh.
+                            <a href="https://aistudio.google.com/app/apikey" target="_blank"
+                                style="color: var(--primary-blue);">Lấy Google AI Key (miễn phí)</a>
+                        </p>
+
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                            <!-- Google AI -->
+                            <div style="padding: 15px; background: #f9f9f9; border-radius: 10px;">
+                                <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
+                                    <input type="radio" name="ai-provider" id="provider-google" value="google" checked>
+                                    <label for="provider-google" style="font-weight: 600;">Google AI (Gemini)</label>
+                                    <span id="google-ai-status"
+                                        style="font-size: 0.8rem; padding: 2px 8px; border-radius: 10px; background: #eee;">Chưa
+                                        cấu hình</span>
+                                </div>
+                                <input type="password" id="google-api-key" placeholder="Nhập Google AI API Key..."
+                                    style="width: 100%; padding: 10px; border: 2px solid #ddd; border-radius: 8px; margin-bottom: 10px;">
+                                <div style="display: flex; gap: 10px;">
+                                    <button class="btn-submit" id="btn-save-google-key" style="flex: 1;">💾 Lưu
+                                        Key</button>
+                                    <button class="btn-submit" id="btn-test-google-ai"
+                                        style="flex: 1; background: #4285F4;">🧪 Test</button>
+                                </div>
+                            </div>
+
+                            <!-- OpenAI -->
+                            <div style="padding: 15px; background: #f9f9f9; border-radius: 10px;">
+                                <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
+                                    <input type="radio" name="ai-provider" id="provider-openai" value="openai">
+                                    <label for="provider-openai" style="font-weight: 600;">OpenAI (GPT)</label>
+                                    <span id="openai-status"
+                                        style="font-size: 0.8rem; padding: 2px 8px; border-radius: 10px; background: #eee;">Chưa
+                                        cấu hình</span>
+                                </div>
+                                <input type="password" id="openai-api-key" placeholder="Nhập OpenAI API Key..."
+                                    style="width: 100%; padding: 10px; border: 2px solid #ddd; border-radius: 8px; margin-bottom: 10px;">
+                                <div style="display: flex; gap: 10px;">
+                                    <button class="btn-submit" id="btn-save-openai-key" style="flex: 1;">💾 Lưu
+                                        Key</button>
+                                    <button class="btn-submit" id="btn-test-openai"
+                                        style="flex: 1; background: #10A37F;">🧪 Test</button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- AI Test Response -->
+                        <div id="ai-test-result"
+                            style="margin-top: 15px; padding: 15px; background: linear-gradient(135deg, #667eea, #764ba2); color: white; border-radius: 10px; display: none;">
+                            <strong>🤖 Phản hồi từ AI:</strong>
+                            <p id="ai-test-response" style="margin-top: 10px;"></p>
                         </div>
                     </div>
                     <div class="settings-card">
@@ -874,6 +1641,91 @@
         <div class="sv5t-panel-body" id="outline-node-panel-body"></div>
     </div>
     <div id="notification-container"></div>
+
+    <!-- [MỚI] AI CHATBOT WIDGET - Phase 6 -->
+    <div id="ai-chatbot-widget" style="position: fixed; bottom: 25px; right: 25px; z-index: 9999;">
+        <!-- Toggle Button -->
+        <button id="btn-chatbot-toggle" style="
+            width: 65px; height: 65px; border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none; cursor: pointer; box-shadow: 0 5px 25px rgba(102, 126, 234, 0.4);
+            display: flex; align-items: center; justify-content: center;
+            transition: transform 0.3s, box-shadow 0.3s;
+        ">
+            <span style="font-size: 2rem;">🤖</span>
+        </button>
+
+        <!-- Chat Window -->
+        <div id="chatbot-window" style="
+            display: none; position: absolute; bottom: 80px; right: 0;
+            width: 380px; height: 520px; background: white; border-radius: 20px;
+            box-shadow: 0 10px 50px rgba(0,0,0,0.2); overflow: hidden;
+            flex-direction: column;
+        ">
+            <!-- Header -->
+            <div style="
+                padding: 18px 20px; 
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                color: white; display: flex; align-items: center; justify-content: space-between;
+            ">
+                <div style="display: flex; align-items: center; gap: 12px;">
+                    <span style="font-size: 1.8rem;">🧠</span>
+                    <div>
+                        <div style="font-weight: bold; font-size: 1.1rem;">LQM AI Assistant</div>
+                        <div style="font-size: 0.8rem; opacity: 0.9;">Powered by Gemini 2.0</div>
+                    </div>
+                </div>
+                <button id="btn-chatbot-close"
+                    style="background: none; border: none; color: white; font-size: 1.5rem; cursor: pointer;">×</button>
+            </div>
+
+            <!-- Quick Actions -->
+            <div
+                style="padding: 12px 15px; background: #f8f9fa; border-bottom: 1px solid #eee; display: flex; gap: 8px; flex-wrap: wrap;">
+                <button class="quick-prompt" data-prompt="Hôm nay tôi nên làm gì?"
+                    style="padding: 6px 12px; background: #e3f2fd; border: none; border-radius: 15px; font-size: 0.8rem; cursor: pointer;">📋
+                    Việc hôm nay</button>
+                <button class="quick-prompt" data-prompt="Giúp tôi lập kế hoạch tuần"
+                    style="padding: 6px 12px; background: #e8f5e9; border: none; border-radius: 15px; font-size: 0.8rem; cursor: pointer;">📅
+                    Kế hoạch</button>
+                <button class="quick-prompt" data-prompt="Tôi cần động lực"
+                    style="padding: 6px 12px; background: #fff3e0; border: none; border-radius: 15px; font-size: 0.8rem; cursor: pointer;">💪
+                    Động lực</button>
+            </div>
+
+            <!-- Messages -->
+            <div id="chatbot-messages" style="
+                flex: 1; overflow-y: auto; padding: 15px;
+                display: flex; flex-direction: column; gap: 12px;
+            ">
+                <div class="chat-msg ai" style="
+                    padding: 12px 16px; background: linear-gradient(135deg, #667eea, #764ba2);
+                    color: white; border-radius: 18px 18px 18px 4px; max-width: 85%;
+                    line-height: 1.5;
+                ">
+                    Xin chào! 👋 Tôi là trợ lý AI của bạn. Tôi có thể giúp bạn:
+                    <br>• Quản lý công việc và lịch
+                    <br>• Lập kế hoạch học tập
+                    <br>• Viết và chỉnh sửa văn bản
+                    <br>• Trả lời mọi câu hỏi
+                    <br><br>Hãy hỏi tôi bất cứ điều gì! 🚀
+                </div>
+            </div>
+
+            <!-- Input -->
+            <div style="padding: 15px; border-top: 1px solid #eee; display: flex; gap: 10px; background: white;">
+                <input type="text" id="chatbot-input" placeholder="Nhập tin nhắn..." style="
+                    flex: 1; padding: 12px 18px; border: 2px solid #e0e0e0; border-radius: 25px;
+                    font-size: 1rem; outline: none; transition: border-color 0.3s;
+                ">
+                <button id="btn-chatbot-send" style="
+                    width: 50px; height: 50px; border-radius: 50%;
+                    background: linear-gradient(135deg, #667eea, #764ba2);
+                    border: none; cursor: pointer; color: white; font-size: 1.3rem;
+                ">➤</button>
+            </div>
+        </div>
+    </div>
 
     <!-- HIDDEN INPUTS -->
     <input type="file" id="import-file-input" style="display:none;">

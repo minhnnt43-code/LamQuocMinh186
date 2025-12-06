@@ -19,10 +19,21 @@ import { setupSettings, applyUserSettings } from './settings.js';
 import { setupAllModals } from './modals.js';
 import { loadProfileDataToForm, setupProfileListeners } from './profile.js';
 
+// [MỚI] Import AI modules
+import { setupAISettings } from './ai-settings.js';
+import { initAITasks } from './ai-tasks.js';
+import { initAIStudy, setupStudyAssistantEvents } from './ai-study.js';
+import { initAICalendar } from './ai-calendar.js';
+import { initAIWriting } from './ai-writing.js';
+import { initAIAnalytics } from './ai-analytics.js';
+import { initAIChatbot } from './ai-chatbot.js';
+import { initAIMedia } from './ai-media.js';
+
 // Dữ liệu mặc định cho tài khoản mới tinh (tránh lỗi null)
 const DEFAULT_DATA = {
     tasks: [],
     todos: [],
+    todoGroups: [], // [MỚI] To-do Groups
     projects: [],
     documents: [],
     achievements: [],
@@ -106,6 +117,15 @@ document.addEventListener('DOMContentLoaded', () => {
                 setupSettings(user, currentUserData); // [MỚI] Truyền currentUserData
                 loadProfileDataToForm(currentUserData); // [MỚI] Truyền currentUserData
                 setupProfileListeners(currentUserData); // [MỚI] Setup listeners
+                setupAISettings(); // [MỚI] Setup AI Settings
+                initAITasks(currentUserData, user); // [MỚI] Setup AI Tasks
+                initAIStudy(); // [MỚI] Setup AI Study
+                setupStudyAssistantEvents(); // [MỚI] Setup 3 tính năng Study: #36, #58, #60
+                initAICalendar(currentUserData, user); // [MỚI] Setup 8 tính năng Calendar: #71-95 (trừ #80)
+                initAIWriting(); // [MỚI] Setup 28 tính năng Writing: #96-125 (trừ #123)
+                initAIAnalytics(currentUserData, user); // [MỚI] Setup 13 tính năng Analytics: #171-190
+                initAIChatbot(currentUserData, user); // [MỚI] Setup AI Chatbot - Phase 6
+                initAIMedia(); // [MỚI] Setup 20 tính năng Media: #126-145
 
                 showNotification(`Chào mừng trở lại, ${user.displayName}!`);
 
