@@ -25,6 +25,14 @@
     <!-- Supabase SDK -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
+    <!-- EmailJS SDK -->
+    <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+    <script>
+        (function () {
+            emailjs.init({ publicKey: "IbNP7Ve3OHq0ro2HF" });
+        })();
+    </script>
+
     <!-- Google Login Styles -->
     <style>
         .google-login-btn {
@@ -77,6 +85,37 @@
             <p id="password-message" class="password-message">Nhập mật khẩu để mở khóa</p>
 
             <button id="password-submit" class="password-submit">🔓 Mở Khóa</button>
+
+            <button type="button" id="forgot-password-btn" class="forgot-password-btn">Quên mật khẩu?</button>
+        </div>
+
+        <!-- Recovery Modal -->
+        <div id="recovery-modal" class="recovery-modal hidden">
+            <div class="recovery-content">
+                <h3 class="recovery-title">🔑 Khôi Phục Mật Khẩu</h3>
+                <p id="recovery-step" class="recovery-step">Nhấn gửi để nhận mã qua email</p>
+
+                <div id="recovery-send" class="recovery-section">
+                    <p class="recovery-email">📧 lqm186005@gmail.com</p>
+                    <button id="send-recovery-btn" class="btn btn-primary btn-block">📤 Gửi Mã Khôi Phục</button>
+                </div>
+
+                <div id="recovery-verify" class="recovery-section hidden">
+                    <input type="text" id="recovery-code-input" class="recovery-input" placeholder="Nhập mã 6 số..."
+                        maxlength="6">
+                    <button id="verify-recovery-btn" class="btn btn-primary btn-block">✅ Xác Nhận</button>
+                </div>
+
+                <div id="recovery-newpass" class="recovery-section hidden">
+                    <input type="password" id="new-password-input" class="recovery-input" placeholder="Mật khẩu mới...">
+                    <input type="password" id="confirm-password-input" class="recovery-input"
+                        placeholder="Xác nhận mật khẩu...">
+                    <button id="save-new-password-btn" class="btn btn-primary btn-block">💾 Lưu Mật Khẩu Mới</button>
+                </div>
+
+                <p id="recovery-message" class="recovery-message"></p>
+                <button type="button" class="recovery-close" onclick="RecoveryManager.close()">← Quay lại</button>
+            </div>
         </div>
 
         <div class="lock-footer">

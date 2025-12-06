@@ -315,6 +315,10 @@ const Auth = {
                        style="color: var(--accent-gold); text-decoration: underline;">Đăng ký</a>
                 </p>
                 
+                <button type="button" class="forgot-password-btn" onclick="Auth.handleForgotPassword()">
+                    Quên mật khẩu?
+                </button>
+                
                 <p id="auth-message" class="password-message" style="margin-top: 1rem;"></p>
             </div>
             
@@ -325,6 +329,142 @@ const Auth = {
         setTimeout(() => {
             document.getElementById('auth-password')?.focus();
         }, 100);
+    },
+
+    async handleForgotPassword() {
+        const email = document.getElementById('auth-email').value.trim();
+
+        if (!email) {
+            this.showMessage('⚠️ Vui lòng nhập email', 'error');
+            return;
+        }
+
+        this.showMessage('⏳ Đang gửi email khôi phục...', '');
+
+        try {
+            // Use Supabase password reset
+            const { error } = await SupabaseClient.client.auth.resetPasswordForEmail(email, {
+                redirectTo: window.location.origin + window.location.pathname
+            });
+
+            if (error) throw error;
+
+            this.showMessage('✅ Đã gửi email khôi phục! Kiểm tra hộp thư của bạn.', 'success');
+        } catch (error) {
+            console.error('Reset password error:', error);
+            // Fallback to EmailJS if Supabase fails
+            await this.sendRecoveryEmailJS();
+        }
+    },
+
+    async sendRecoveryEmailJS() {
+        try {
+            const recoveryCode = Math.floor(100000 + Math.random() * 900000).toString();
+            localStorage.setItem('recovery_code', recoveryCode);
+            localStorage.setItem('recovery_expiry', Date.now() + 10 * 60 * 1000);
+
+            await emailjs.send('service_h4ufunn', 'template_2f3okkd', {
+                recovery_code: recoveryCode,
+                to_email: 'lqm186005@gmail.com'
+            });
+
+            this.showMessage('✅ Đã gửi mã khôi phục qua email!', 'success');
+            this.showRecoveryCodeInput();
+        } catch (error) {
+            console.error('EmailJS error:', error);
+            this.showMessage('❌ Lỗi gửi email. Vui lòng thử lại.', 'error');
+        }
+    },
+
+    showRecoveryCodeInput() {
+        const container = document.getElementById('auth-container');
+        if (!container) return;
+
+        container.innerHTML = `
+            <h3 style="color: var(--accent-gold); margin-bottom: 1rem;">🔑 Khôi Phục Mật Khẩu</h3>
+            <p style="color: #666; font-size: 0.85rem; margin-bottom: 1rem;">Nhập mã 6 số đã gửi tới email</p>
+            
+            <input type="text" id="recovery-code" class="password-input" placeholder="Nhập mã 6 số..." maxlength="6" style="text-align: center; letter-spacing: 0.5rem; font-size: 1.5rem;">
+            
+            <button class="password-submit" onclick="Auth.verifyRecoveryCode()">✅ Xác Nhận</button>
+            
+            <button type="button" class="forgot-password-btn" onclick="Auth.showAuthScreen()">← Quay lại</button>
+            
+            <p id="auth-message" class="password-message" style="margin-top: 1rem;"></p>
+        `;
+    },
+
+    verifyRecoveryCode() {
+        const inputCode = document.getElementById('recovery-code').value.trim();
+        const savedCode = localStorage.getItem('recovery_code');
+        const expiry = parseInt(localStorage.getItem('recovery_expiry') || '0');
+
+        if (Date.now() > expiry) {
+            this.showMessage('❌ Mã đã hết hạn. Vui lòng gửi lại.', 'error');
+            return;
+        }
+
+        if (inputCode !== savedCode) {
+            this.showMessage('❌ Mã không đúng. Vui lòng thử lại.', 'error');
+            return;
+        }
+
+        // Code is correct, show new password form
+        this.showNewPasswordForm();
+    },
+
+    showNewPasswordForm() {
+        const container = document.getElementById('auth-container');
+        if (!container) return;
+
+        container.innerHTML = `
+            <h3 style="color: var(--accent-gold); margin-bottom: 1rem;">🔐 Đặt Mật Khẩu Mới</h3>
+            
+            <input type="password" id="new-password" class="password-input" placeholder="Mật khẩu mới..." style="text-align: left;">
+            <input type="password" id="confirm-password" class="password-input" placeholder="Xác nhận mật khẩu..." style="text-align: left; margin-top: 0.5rem;">
+            
+            <button class="password-submit" onclick="Auth.saveNewPassword()">💾 Lưu Mật Khẩu</button>
+            
+            <p id="auth-message" class="password-message" style="margin-top: 1rem;"></p>
+        `;
+    },
+
+    async saveNewPassword() {
+        const newPass = document.getElementById('new-password').value;
+        const confirmPass = document.getElementById('confirm-password').value;
+
+        if (newPass.length < 6) {
+            this.showMessage('❌ Mật khẩu phải có ít nhất 6 ký tự', 'error');
+            return;
+        }
+
+        if (newPass !== confirmPass) {
+            this.showMessage('❌ Mật khẩu xác nhận không khớp', 'error');
+            return;
+        }
+
+        this.showMessage('⏳ Đang cập nhật mật khẩu...', '');
+
+        try {
+            // Try Supabase first
+            if (SupabaseClient.client) {
+                const { error } = await SupabaseClient.client.auth.updateUser({ password: newPass });
+                if (error) throw error;
+            }
+
+            // Clear recovery data
+            localStorage.removeItem('recovery_code');
+            localStorage.removeItem('recovery_expiry');
+
+            this.showMessage('✅ Đã cập nhật mật khẩu! Đang chuyển hướng...', 'success');
+
+            setTimeout(() => {
+                this.showAuthScreen();
+            }, 1500);
+        } catch (error) {
+            console.error('Update password error:', error);
+            this.showMessage('❌ Lỗi cập nhật mật khẩu: ' + error.message, 'error');
+        }
     },
 
     async handleLogin() {
