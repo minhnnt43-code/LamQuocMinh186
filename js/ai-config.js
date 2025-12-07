@@ -1,17 +1,21 @@
 // --- FILE: js/ai-config.js ---
-// Cấu hình cho các dịch vụ AI
+// Cấu hình cho các dịch vụ AI - Hỗ trợ nhiều providers với auto-fallback
 
 export const AI_CONFIG = {
-    // API Provider: 'google' (Google AI Studio - Gemini) hoặc 'openai'
-    provider: 'google',
+    // Provider ưu tiên: 'groq' (miễn phí), 'google', 'openai', 'deepseek'
+    provider: 'groq',
 
     // API Keys (Sẽ được nhập từ Settings)
     googleApiKey: '',
     openaiApiKey: '',
+    groqApiKey: '',
+    deepseekApiKey: '',
 
-    // Model settings
+    // Model settings cho từng provider
     googleModel: 'gemini-2.0-flash',
     openaiModel: 'gpt-3.5-turbo',
+    groqModel: 'llama-3.3-70b-versatile',
+    deepseekModel: 'deepseek-chat',
 
     // Request settings
     maxTokens: 2048,
@@ -25,6 +29,11 @@ export const AI_CONFIG = {
     showLoadingIndicator: true,
     enableVoiceInput: true,
 
+    // Auto-fallback: Tự động chuyển provider khi gặp lỗi/rate limit
+    enableFallback: true,
+    // DeepSeek bị CORS khi gọi từ browser, nên không đưa vào fallback chain
+    fallbackOrder: ['groq', 'google', 'openai'],
+
     // Feature toggles
     features: {
         taskAssistant: true,
@@ -36,19 +45,57 @@ export const AI_CONFIG = {
     }
 };
 
+// Danh sách tất cả providers được hỗ trợ
+export const SUPPORTED_PROVIDERS = {
+    groq: {
+        name: 'Groq',
+        icon: '🚀',
+        description: 'Miễn phí 100% - Llama 3.3 70B (Nhanh nhất)',
+        keyPrefix: 'gsk_',
+        free: true
+    },
+    deepseek: {
+        name: 'DeepSeek',
+        icon: '💎',
+        description: 'Gần miễn phí - DeepSeek V3 (Rất mạnh)',
+        keyPrefix: 'sk-',
+        free: true
+    },
+    google: {
+        name: 'Google AI (Gemini)',
+        icon: '✨',
+        description: 'Gemini 2.0 Flash - Cần API key',
+        keyPrefix: 'AI',
+        free: false
+    },
+    openai: {
+        name: 'OpenAI (ChatGPT)',
+        icon: '🤖',
+        description: 'GPT-3.5/4 - Cần API key trả phí',
+        keyPrefix: 'sk-',
+        free: false
+    }
+};
+
 // Hàm lấy API key từ localStorage
 export const getApiKey = (provider = AI_CONFIG.provider) => {
     const key = localStorage.getItem(`ai_api_key_${provider}`);
     return key || '';
 };
 
-// Hàm lưu API key vào localStorage
+// Hàm lưu API key vào localStorage (tự động làm sạch ký tự không hợp lệ)
 export const setApiKey = (provider, key) => {
-    localStorage.setItem(`ai_api_key_${provider}`, key);
+    // Loại bỏ ký tự không phải ASCII và khoảng trắng thừa
+    const sanitizedKey = key.replace(/[^\x00-\x7F]/g, '').trim();
+    localStorage.setItem(`ai_api_key_${provider}`, sanitizedKey);
     if (provider === 'google') {
-        AI_CONFIG.googleApiKey = key;
+        AI_CONFIG.googleApiKey = sanitizedKey;
     } else if (provider === 'openai') {
-        AI_CONFIG.openaiApiKey = key;
+        AI_CONFIG.openaiApiKey = sanitizedKey;
+    } else if (provider === 'groq') {
+        AI_CONFIG.groqApiKey = sanitizedKey;
+    } else if (provider === 'deepseek') {
+        AI_CONFIG.deepseekApiKey = sanitizedKey;
     }
 };
 
@@ -64,10 +111,37 @@ export const setProvider = (provider) => {
 };
 
 // Hàm kiểm tra API key đã được cấu hình chưa
-export const isApiConfigured = () => {
-    const provider = getProvider();
-    const key = getApiKey(provider);
+export const isApiConfigured = (provider = null) => {
+    const targetProvider = provider || getProvider();
+    const key = getApiKey(targetProvider);
     return key && key.length > 10;
+};
+
+// Lấy danh sách providers đã cấu hình
+export const getConfiguredProviders = () => {
+    return Object.keys(SUPPORTED_PROVIDERS).filter(p => isApiConfigured(p));
+};
+
+// Lấy provider tiếp theo trong fallback chain
+export const getNextFallbackProvider = (currentProvider) => {
+    const configuredProviders = getConfiguredProviders();
+    const currentIndex = AI_CONFIG.fallbackOrder.indexOf(currentProvider);
+
+    for (let i = currentIndex + 1; i < AI_CONFIG.fallbackOrder.length; i++) {
+        const nextProvider = AI_CONFIG.fallbackOrder[i];
+        if (configuredProviders.includes(nextProvider)) {
+            return nextProvider;
+        }
+    }
+
+    // Nếu hết fallback, tìm từ đầu (trừ current)
+    for (const provider of AI_CONFIG.fallbackOrder) {
+        if (provider !== currentProvider && configuredProviders.includes(provider)) {
+            return provider;
+        }
+    }
+
+    return null;
 };
 
 // Hàm tải cấu hình từ localStorage
@@ -75,6 +149,8 @@ export const loadAIConfig = () => {
     AI_CONFIG.provider = getProvider();
     AI_CONFIG.googleApiKey = getApiKey('google');
     AI_CONFIG.openaiApiKey = getApiKey('openai');
+    AI_CONFIG.groqApiKey = getApiKey('groq');
+    AI_CONFIG.deepseekApiKey = getApiKey('deepseek');
 
     // Load feature toggles
     const savedFeatures = localStorage.getItem('ai_features');
@@ -85,6 +161,23 @@ export const loadAIConfig = () => {
             console.warn('Lỗi parse AI features config');
         }
     }
+
+    // Load fallback setting
+    const savedFallback = localStorage.getItem('ai_enable_fallback');
+    if (savedFallback !== null) {
+        AI_CONFIG.enableFallback = savedFallback === 'true';
+    }
+};
+
+// Lưu cài đặt fallback
+export const setFallbackEnabled = (enabled) => {
+    AI_CONFIG.enableFallback = enabled;
+    localStorage.setItem('ai_enable_fallback', enabled.toString());
+};
+
+// Kiểm tra fallback có bật không
+export const isFallbackEnabled = () => {
+    return AI_CONFIG.enableFallback;
 };
 
 // Load config khi module được import

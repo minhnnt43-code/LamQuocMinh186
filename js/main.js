@@ -29,6 +29,14 @@ import { initAIAnalytics } from './ai-analytics.js';
 import { initAIChatbot } from './ai-chatbot.js';
 import { initAIMedia } from './ai-media.js';
 
+// [MỚI] Phase D, H, J modules
+import { initAIAutomation } from './ai-automation.js';
+import { initAIEvents } from './ai-events.js';
+import { initUIEnhancements } from './ui-enhancements.js';
+import { initCalendarViews } from './calendar-views.js'; // Phase C
+import { initAdvancedFeatures } from './advanced-features.js'; // 3 features cuối
+import { initDashboardToolbar } from './dashboard-toolbar.js'; // AI Mega Toolbar
+
 // Dữ liệu mặc định cho tài khoản mới tinh (tránh lỗi null)
 const DEFAULT_DATA = {
     tasks: [],
@@ -126,6 +134,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 initAIAnalytics(currentUserData, user); // [MỚI] Setup 13 tính năng Analytics: #171-190
                 initAIChatbot(currentUserData, user); // [MỚI] Setup AI Chatbot - Phase 6
                 initAIMedia(); // [MỚI] Setup 20 tính năng Media: #126-145
+
+                // [MỚI] Phase D, H, J - Các modules vừa thêm
+                initAIAutomation(currentUserData, user); // Phase H: AI Automation
+                initAIEvents(currentUserData, user); // Phase D: Recurring Events, Location
+                initUIEnhancements(); // Phase J: Themes, Kanban, Timeline
+                initCalendarViews(currentUserData, user); // Phase C: Month, Year, List views
+                initAdvancedFeatures(); // Drag Resize, Dependencies, Infinite Scroll
+                initDashboardToolbar(currentUserData, user); // AI Mega Toolbar events
 
                 showNotification(`Chào mừng trở lại, ${user.displayName}!`);
 

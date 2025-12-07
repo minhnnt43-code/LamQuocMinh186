@@ -234,3 +234,231 @@ export const showAIModal = (title, content, options = {}) => {
         if (e.key === 'Escape') { modal.remove(); document.removeEventListener('keydown', escHandler); }
     });
 };
+
+// ============================================================
+// 11. [#30] EMPTY STATE - Hiển thị trạng thái trống đẹp
+// ============================================================
+const EMPTY_STATE_CONFIGS = {
+    tasks: { icon: '📋', title: 'Chưa có công việc nào', desc: 'Thêm công việc mới để bắt đầu!' },
+    events: { icon: '📅', title: 'Chưa có sự kiện', desc: 'Lịch của bạn đang trống' },
+    projects: { icon: '📁', title: 'Chưa có dự án', desc: 'Tạo dự án đầu tiên!' },
+    notes: { icon: '📝', title: 'Chưa có ghi chú', desc: 'Bắt đầu viết ngay!' },
+    search: { icon: '🔍', title: 'Không tìm thấy kết quả', desc: 'Thử từ khóa khác' },
+    error: { icon: '⚠️', title: 'Có lỗi xảy ra', desc: 'Vui lòng thử lại sau' },
+    default: { icon: '📭', title: 'Chưa có dữ liệu', desc: 'Hãy thêm dữ liệu mới!' }
+};
+
+export const showEmptyState = (container, type = 'default', customConfig = {}) => {
+    const config = { ...EMPTY_STATE_CONFIGS[type] || EMPTY_STATE_CONFIGS.default, ...customConfig };
+
+    if (typeof container === 'string') {
+        container = document.getElementById(container);
+    }
+    if (!container) return;
+
+    container.innerHTML = `
+        <div class="empty-state" style="
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            padding: 40px 20px; text-align: center; min-height: 200px;
+            background: linear-gradient(135deg, rgba(102,126,234,0.05), rgba(118,75,162,0.05));
+            border-radius: 16px; border: 2px dashed rgba(102,126,234,0.2);
+        ">
+            <div style="font-size: 3rem; margin-bottom: 15px; animation: bounce 1s infinite;">${config.icon}</div>
+            <h3 style="margin: 0 0 8px; color: #4b5563; font-weight: 600;">${config.title}</h3>
+            <p style="margin: 0; color: #9ca3af; font-size: 0.9rem;">${config.desc}</p>
+            ${config.action ? `
+                <button class="empty-state-action btn-submit" style="margin-top: 20px; padding: 10px 24px;">
+                    ${config.actionIcon || '➕'} ${config.action}
+                </button>
+            ` : ''}
+        </div>
+    `;
+
+    if (config.action && config.onAction) {
+        container.querySelector('.empty-state-action')?.addEventListener('click', config.onAction);
+    }
+};
+
+// ============================================================
+// 12. [#49] LIGHTBOX - Xem ảnh fullscreen
+// ============================================================
+export const showLightbox = (imageSrc, options = {}) => {
+    const existing = document.getElementById('lightbox-overlay');
+    if (existing) existing.remove();
+
+    const lightbox = document.createElement('div');
+    lightbox.id = 'lightbox-overlay';
+    lightbox.style.cssText = `
+        position: fixed; inset: 0; background: rgba(0,0,0,0.95);
+        display: flex; align-items: center; justify-content: center;
+        z-index: 99999; animation: fadeIn 0.3s ease; cursor: zoom-out;
+    `;
+
+    lightbox.innerHTML = `
+        <button id="lightbox-close" style="
+            position: absolute; top: 20px; right: 20px;
+            background: rgba(255,255,255,0.1); border: none; color: white;
+            width: 44px; height: 44px; border-radius: 50%; cursor: pointer;
+            font-size: 24px; transition: background 0.2s;
+        ">&times;</button>
+        <img src="${imageSrc}" alt="${options.alt || 'Image'}" style="
+            max-width: 90%; max-height: 90%; object-fit: contain;
+            border-radius: 8px; box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+            animation: zoomIn 0.3s ease;
+        ">
+        ${options.caption ? `
+            <div style="position: absolute; bottom: 20px; color: white; text-align: center;
+                 background: rgba(0,0,0,0.6); padding: 10px 20px; border-radius: 8px;">
+                ${options.caption}
+            </div>
+        ` : ''}
+    `;
+
+    document.body.appendChild(lightbox);
+    document.body.style.overflow = 'hidden';
+
+    const close = () => {
+        lightbox.remove();
+        document.body.style.overflow = '';
+    };
+
+    lightbox.querySelector('#lightbox-close').onclick = close;
+    lightbox.onclick = (e) => { if (e.target === lightbox) close(); };
+    document.addEventListener('keydown', function handler(e) {
+        if (e.key === 'Escape') { close(); document.removeEventListener('keydown', handler); }
+    });
+};
+
+// ============================================================
+// 13. [#10] TOAST PRO - Thông báo nâng cao với undo, progress
+// ============================================================
+export const showToastPro = (message, options = {}) => {
+    const {
+        type = 'success',
+        duration = 5000,
+        undoAction = null,
+        undoLabel = 'Hoàn tác',
+        icon = null,
+        progress = true
+    } = options;
+
+    const icons = {
+        success: '✅',
+        error: '❌',
+        warning: '⚠️',
+        info: 'ℹ️'
+    };
+
+    const colors = {
+        success: 'linear-gradient(135deg, #10b981, #059669)',
+        error: 'linear-gradient(135deg, #ef4444, #dc2626)',
+        warning: 'linear-gradient(135deg, #f59e0b, #d97706)',
+        info: 'linear-gradient(135deg, #3b82f6, #2563eb)'
+    };
+
+    const container = document.getElementById('notification-container') || document.body;
+
+    const toast = document.createElement('div');
+    toast.className = 'toast-pro';
+    toast.style.cssText = `
+        position: relative; min-width: 300px; max-width: 400px;
+        padding: 16px 20px; margin-bottom: 10px;
+        background: white; border-radius: 12px;
+        box-shadow: 0 10px 40px rgba(0,0,0,0.15);
+        display: flex; align-items: center; gap: 12px;
+        animation: slideInRight 0.3s ease;
+        overflow: hidden;
+    `;
+
+    toast.innerHTML = `
+        <div style="
+            width: 36px; height: 36px; border-radius: 10px;
+            background: ${colors[type]}; display: flex;
+            align-items: center; justify-content: center; font-size: 1.2rem;
+        ">${icon || icons[type]}</div>
+        <div style="flex: 1;">
+            <div style="font-weight: 600; color: #1f2937; font-size: 0.95rem;">${message}</div>
+        </div>
+        ${undoAction ? `
+            <button class="toast-undo" style="
+                background: none; border: 1px solid #e5e7eb; color: #4b5563;
+                padding: 6px 12px; border-radius: 6px; cursor: pointer;
+                font-size: 0.8rem; font-weight: 500; transition: all 0.2s;
+            ">${undoLabel}</button>
+        ` : ''}
+        <button class="toast-close" style="
+            background: none; border: none; color: #9ca3af;
+            cursor: pointer; font-size: 1.2rem; padding: 4px;
+        ">&times;</button>
+        ${progress ? `
+            <div class="toast-progress" style="
+                position: absolute; bottom: 0; left: 0; height: 3px;
+                background: ${colors[type]}; width: 100%;
+                animation: shrink ${duration}ms linear forwards;
+            "></div>
+        ` : ''}
+    `;
+
+    container.appendChild(toast);
+
+    const remove = () => {
+        toast.style.animation = 'slideOutRight 0.3s ease forwards';
+        setTimeout(() => toast.remove(), 300);
+    };
+
+    toast.querySelector('.toast-close').onclick = remove;
+
+    if (undoAction) {
+        toast.querySelector('.toast-undo').onclick = () => {
+            undoAction();
+            remove();
+        };
+    }
+
+    // Auto remove
+    setTimeout(remove, duration);
+
+    return { remove };
+};
+
+// Add CSS animations for new components
+const addUIStyles = () => {
+    if (document.getElementById('ui-enhancements-styles')) return;
+
+    const style = document.createElement('style');
+    style.id = 'ui-enhancements-styles';
+    style.textContent = `
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+        @keyframes zoomIn {
+            from { transform: scale(0.8); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+        @keyframes slideInRight {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        @keyframes slideOutRight {
+            from { transform: translateX(0); opacity: 1; }
+            to { transform: translateX(100%); opacity: 0; }
+        }
+        @keyframes shrink {
+            from { width: 100%; }
+            to { width: 0%; }
+        }
+        .toast-undo:hover {
+            background: #f3f4f6 !important;
+            border-color: #9ca3af !important;
+        }
+    `;
+    document.head.appendChild(style);
+};
+
+// Initialize styles on load
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', addUIStyles);
+} else {
+    addUIStyles();
+}

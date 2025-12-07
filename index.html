@@ -97,6 +97,10 @@
         <!-- SIDEBAR -->
         <aside class="sidebar" id="sidebar">
             <div class="sidebar-header">
+                <button id="btn-collapse-sidebar" title="Thu gọn sidebar"
+                    style="position:absolute;top:10px;right:10px;background:rgba(255,255,255,0.2);border:none;color:white;width:28px;height:28px;border-radius:6px;cursor:pointer;font-size:1rem;">
+                    ◀
+                </button>
                 <img id="sidebar-profile-pic" class="profile-picture" src="https://placehold.co/80" alt="Avatar">
                 <div class="welcome-message">Xin chào, <strong id="sidebar-user-name">Admin</strong></div>
             </div>
@@ -423,6 +427,10 @@
                     <div style="display: flex; gap: 10px;">
                         <input type="text" id="ai-task-input" placeholder="Mô tả công việc bằng ngôn ngữ tự nhiên..."
                             style="flex: 1; padding: 12px 15px; border: none; border-radius: 8px; font-size: 1rem;">
+                        <button id="btn-voice-input" title="Nhập bằng giọng nói"
+                            style="background: white; color: #764ba2; border: none; border-radius: 8px; padding: 12px 15px; cursor: pointer; font-size: 1.2rem;">
+                            🎤
+                        </button>
                         <button id="btn-ai-add-task" class="btn-submit"
                             style="background: white; color: #764ba2; font-weight: 600; padding: 12px 20px;">
                             ✨ Tạo với AI
@@ -447,7 +455,7 @@
                 </div>
 
                 <!-- Nút AI Phân tích ưu tiên -->
-                <div style="margin-bottom: 15px; display: flex; gap: 10px;">
+                <div style="margin-bottom: 15px; display: flex; gap: 10px; flex-wrap: wrap;">
                     <button id="btn-ai-prioritize" class="btn-submit"
                         style="background: linear-gradient(135deg, #11998e, #38ef7d);">
                         🧠 AI Phân tích ưu tiên
@@ -455,6 +463,19 @@
                     <button id="btn-ai-suggest" class="btn-submit"
                         style="background: linear-gradient(135deg, #fc4a1a, #f7b733);">
                         💡 AI Gợi ý công việc
+                    </button>
+                    <!-- [MỚI] Phase E, F Buttons -->
+                    <button id="btn-eisenhower-matrix" class="btn-submit"
+                        style="background: linear-gradient(135deg, #8b5cf6, #6366f1);">
+                        📊 Ma trận Eisenhower
+                    </button>
+                    <button id="btn-ai-auto-priority" class="btn-submit"
+                        style="background: linear-gradient(135deg, #ec4899, #f43f5e);">
+                        🎯 Auto Priority
+                    </button>
+                    <button id="btn-ai-task-review" class="btn-submit"
+                        style="background: linear-gradient(135deg, #0ea5e9, #06b6d4);">
+                        📋 Task Review
                     </button>
                 </div>
                 <div class="form-container">
@@ -484,7 +505,13 @@
                         <div class="form-group" style="grid-column:1/-1"><label>Ghi chú</label><textarea
                                 id="task-notes"></textarea></div>
                     </div>
-                    <button id="add-task-btn" class="btn-submit">Thêm công việc</button>
+                    <div style="display: flex; gap: 10px; margin-top: 10px;">
+                        <button id="add-task-btn" class="btn-submit">Thêm công việc</button>
+                        <button id="btn-generate-subtasks" class="btn-submit"
+                            style="background: linear-gradient(135deg, #a855f7, #6366f1);">
+                            ✂️ Tạo Subtasks AI
+                        </button>
+                    </div>
                 </div>
                 <div class="task-controls">
                     <div class="task-search-sort"><input type="search" id="task-search" placeholder="Tìm..."><select
@@ -1017,6 +1044,28 @@
                             <button id="cal-next-btn">&gt; <i class="fas fa-chevron-right"></i></button>
                             <button id="cal-today-btn" class="filter-btn">Hôm nay</button>
                         </div>
+                        <!-- [MỚI] Calendar View Selector -->
+                        <div class="calendar-view-selector"
+                            style="display:flex;gap:5px;background:#f3f4f6;padding:5px;border-radius:10px;">
+                            <button class="view-btn active" data-view="week"
+                                style="padding:8px 14px;border:none;border-radius:8px;cursor:pointer;background:#667eea;color:white;">📅
+                                Tuần</button>
+                            <button class="view-btn" data-view="month"
+                                style="padding:8px 14px;border:none;border-radius:8px;cursor:pointer;background:transparent;color:#4b5563;">📆
+                                Tháng</button>
+                            <button class="view-btn" data-view="year"
+                                style="padding:8px 14px;border:none;border-radius:8px;cursor:pointer;background:transparent;color:#4b5563;">🗓️
+                                Năm</button>
+                            <button class="view-btn" data-view="list"
+                                style="padding:8px 14px;border:none;border-radius:8px;cursor:pointer;background:transparent;color:#4b5563;">📋
+                                List</button>
+                            <button class="view-btn" data-view="kanban"
+                                style="padding:8px 14px;border:none;border-radius:8px;cursor:pointer;background:transparent;color:#4b5563;">📊
+                                Kanban</button>
+                            <button class="view-btn" data-view="timeline"
+                                style="padding:8px 14px;border:none;border-radius:8px;cursor:pointer;background:transparent;color:#4b5563;">⏳
+                                Timeline</button>
+                        </div>
                     </div>
                     <div id="week-view-container" class="calendar-grid-container active-view">
                         <table class="calendar-table">
@@ -1361,54 +1410,225 @@
                             <label class="toggle-switch"><input type="checkbox" id="toggle-dark-mode"><span
                                     class="slider"></span></label>
                         </div>
+                        <div style="display:flex; justify-content:space-between; margin-top:10px;">
+                            <label>Auto Dark (7PM-6AM)</label>
+                            <label class="toggle-switch"><input type="checkbox" id="toggle-auto-dark"><span
+                                    class="slider"></span></label>
+                        </div>
                     </div>
 
-                    <!-- [MỚI] CÀI ĐẶT AI -->
+                    <!-- [MỚI] Theme Presets -->
+                    <div class="settings-card" style="grid-column: span 2;">
+                        <h3>🎨 Theme Presets</h3>
+                        <p style="color:#666;font-size:0.85rem;margin-bottom:12px;">Chọn giao diện màu sắc yêu thích</p>
+                        <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                            <button class="theme-btn" data-theme="default"
+                                style="padding:10px 16px;background:#667eea;color:white;border:none;border-radius:8px;cursor:pointer;">Mặc
+                                định</button>
+                            <button class="theme-btn" data-theme="ocean"
+                                style="padding:10px 16px;background:#0ea5e9;color:white;border:none;border-radius:8px;cursor:pointer;">🌊
+                                Ocean</button>
+                            <button class="theme-btn" data-theme="sunset"
+                                style="padding:10px 16px;background:#f97316;color:white;border:none;border-radius:8px;cursor:pointer;">🌅
+                                Sunset</button>
+                            <button class="theme-btn" data-theme="forest"
+                                style="padding:10px 16px;background:#22c55e;color:white;border:none;border-radius:8px;cursor:pointer;">🌲
+                                Forest</button>
+                            <button class="theme-btn" data-theme="lavender"
+                                style="padding:10px 16px;background:#a855f7;color:white;border:none;border-radius:8px;cursor:pointer;">💜
+                                Lavender</button>
+                            <button class="theme-btn" data-theme="rose"
+                                style="padding:10px 16px;background:#f43f5e;color:white;border:none;border-radius:8px;cursor:pointer;">🌹
+                                Rose</button>
+                            <button class="theme-btn" data-theme="midnight"
+                                style="padding:10px 16px;background:#1e1b4b;color:white;border:none;border-radius:8px;cursor:pointer;">🌙
+                                Midnight</button>
+                            <button id="btn-custom-css-settings"
+                                style="padding:10px 16px;background:#374151;color:white;border:none;border-radius:8px;cursor:pointer;">🎨
+                                Custom CSS</button>
+                        </div>
+                    </div>
+
+                    <!-- [MỚI] CÀI ĐẶT AI - Hỗ trợ nhiều providers với Auto-Fallback -->
                     <div class="settings-card" style="grid-column: span 2;">
                         <h3>🤖 Trợ lý AI</h3>
                         <p style="color: #666; margin-bottom: 15px; font-size: 0.9rem;">
-                            Cấu hình API để sử dụng các tính năng AI thông minh.
-                            <a href="https://aistudio.google.com/app/apikey" target="_blank"
-                                style="color: var(--primary-blue);">Lấy Google AI Key (miễn phí)</a>
+                            Cấu hình API để sử dụng các tính năng AI thông minh. Khuyến nghị dùng Groq (miễn phí 100%).
                         </p>
 
+                        <!-- Active Provider Info -->
+                        <div id="active-provider-info"
+                            style="background: linear-gradient(135deg, #667eea, #764ba2); color: white; padding: 12px 15px; border-radius: 10px; margin-bottom: 15px; font-size: 0.9rem;">
+                            <strong>Provider hiện tại:</strong> Đang tải...
+                        </div>
+
+                        <!-- Auto-Fallback Toggle -->
+                        <div
+                            style="display: flex; justify-content: space-between; align-items: center; padding: 12px 15px; background: #e8f5e9; border-radius: 10px; margin-bottom: 15px;">
+                            <div>
+                                <strong style="color: #2e7d32;">🔄 Auto-Fallback</strong>
+                                <p style="margin: 0; font-size: 0.8rem; color: #558b2f;">Tự động chuyển provider khi gặp
+                                    lỗi/rate limit</p>
+                            </div>
+                            <label class="toggle-switch">
+                                <input type="checkbox" id="ai-auto-fallback" checked>
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+
+                        <!-- Token Counter (#51, #52) -->
+                        <div id="token-counter-section"
+                            style="background: linear-gradient(135deg, #1a1a2e, #16213e); color: white; padding: 15px; border-radius: 12px; margin-bottom: 15px;">
+                            <div
+                                style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                                <h4 style="margin: 0; font-size: 0.95rem;">📊 Token Usage</h4>
+                                <button id="btn-reset-tokens"
+                                    style="background: rgba(255,255,255,0.1); border: none; color: #aaa; padding: 4px 10px; border-radius: 5px; cursor: pointer; font-size: 0.75rem;">🔄
+                                    Reset</button>
+                            </div>
+
+                            <!-- Stats Cards -->
+                            <div
+                                style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 12px;">
+                                <div
+                                    style="background: rgba(102,126,234,0.2); padding: 10px; border-radius: 8px; text-align: center;">
+                                    <div id="token-today" style="font-size: 1.2rem; font-weight: 700;">0</div>
+                                    <div style="font-size: 0.7rem; opacity: 0.7;">Hôm nay</div>
+                                </div>
+                                <div
+                                    style="background: rgba(16,185,129,0.2); padding: 10px; border-radius: 8px; text-align: center;">
+                                    <div id="token-week" style="font-size: 1.2rem; font-weight: 700;">0</div>
+                                    <div style="font-size: 0.7rem; opacity: 0.7;">Tuần này</div>
+                                </div>
+                                <div
+                                    style="background: rgba(245,158,11,0.2); padding: 10px; border-radius: 8px; text-align: center;">
+                                    <div id="token-month" style="font-size: 1.2rem; font-weight: 700;">0</div>
+                                    <div style="font-size: 0.7rem; opacity: 0.7;">Tháng này</div>
+                                </div>
+                                <div
+                                    style="background: rgba(239,68,68,0.2); padding: 10px; border-radius: 8px; text-align: center;">
+                                    <div id="token-total" style="font-size: 1.2rem; font-weight: 700;">0</div>
+                                    <div style="font-size: 0.7rem; opacity: 0.7;">Tổng cộng</div>
+                                </div>
+                            </div>
+
+                            <!-- Provider Stats -->
+                            <div style="font-size: 0.75rem; opacity: 0.8;">
+                                <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+                                    <span>🚀 Groq:</span>
+                                    <span id="token-groq">0 tokens / 0 requests</span>
+                                </div>
+                                <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+                                    <span>✨ Google:</span>
+                                    <span id="token-google">0 tokens / 0 requests</span>
+                                </div>
+                                <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+                                    <span>🤖 OpenAI:</span>
+                                    <span id="token-openai">0 tokens / 0 requests</span>
+                                </div>
+                                <div style="display: flex; justify-content: space-between;">
+                                    <span>💎 DeepSeek:</span>
+                                    <span id="token-deepseek">0 tokens / 0 requests</span>
+                                </div>
+                            </div>
+                        </div>
+
                         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
-                            <!-- Google AI -->
-                            <div style="padding: 15px; background: #f9f9f9; border-radius: 10px;">
+                            <!-- Groq (Miễn phí - Khuyến nghị) -->
+                            <div
+                                style="padding: 15px; background: linear-gradient(135deg, #e8f5e9, #c8e6c9); border-radius: 10px; border: 2px solid #4caf50;">
                                 <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
-                                    <input type="radio" name="ai-provider" id="provider-google" value="google" checked>
-                                    <label for="provider-google" style="font-weight: 600;">Google AI (Gemini)</label>
-                                    <span id="google-ai-status"
-                                        style="font-size: 0.8rem; padding: 2px 8px; border-radius: 10px; background: #eee;">Chưa
+                                    <input type="radio" name="ai-provider" id="provider-groq" value="groq">
+                                    <label for="provider-groq" style="font-weight: 600;">🚀 Groq (Miễn phí)</label>
+                                    <span id="groq-status"
+                                        style="font-size: 0.75rem; padding: 2px 8px; border-radius: 10px; background: #fff3cd; color: #856404;">Chưa
                                         cấu hình</span>
                                 </div>
+                                <p style="font-size: 0.75rem; color: #388e3c; margin-bottom: 10px;">Llama 3.3 70B -
+                                    Nhanh nhất, 14,400 requests/ngày miễn phí</p>
+                                <input type="password" id="groq-api-key" placeholder="Nhập Groq API Key (gsk_...)"
+                                    style="width: 100%; padding: 10px; border: 2px solid #81c784; border-radius: 8px; margin-bottom: 10px;">
+                                <div style="display: flex; gap: 10px;">
+                                    <button class="btn-submit" id="btn-save-groq-key"
+                                        style="flex: 1; background: #4caf50;">💾 Lưu</button>
+                                    <button class="btn-submit" id="btn-test-groq"
+                                        style="flex: 1; background: #2e7d32;">🧪 Test</button>
+                                </div>
+                                <a href="https://console.groq.com" target="_blank"
+                                    style="font-size: 0.75rem; color: #1b5e20; display: block; margin-top: 8px;">🔗 Lấy
+                                    API Key miễn phí</a>
+                            </div>
+
+                            <!-- DeepSeek (Gần miễn phí) -->
+                            <div
+                                style="padding: 15px; background: linear-gradient(135deg, #e3f2fd, #bbdefb); border-radius: 10px; border: 2px solid #2196f3;">
+                                <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
+                                    <input type="radio" name="ai-provider" id="provider-deepseek" value="deepseek">
+                                    <label for="provider-deepseek" style="font-weight: 600;">💎 DeepSeek</label>
+                                    <span id="deepseek-status"
+                                        style="font-size: 0.75rem; padding: 2px 8px; border-radius: 10px; background: #fff3cd; color: #856404;">Chưa
+                                        cấu hình</span>
+                                </div>
+                                <p style="font-size: 0.75rem; color: #1565c0; margin-bottom: 10px;">DeepSeek V3 - Rất
+                                    mạnh, tặng $5 credit khi đăng ký</p>
+                                <input type="password" id="deepseek-api-key"
+                                    placeholder="Nhập DeepSeek API Key (sk-...)"
+                                    style="width: 100%; padding: 10px; border: 2px solid #64b5f6; border-radius: 8px; margin-bottom: 10px;">
+                                <div style="display: flex; gap: 10px;">
+                                    <button class="btn-submit" id="btn-save-deepseek-key"
+                                        style="flex: 1; background: #2196f3;">💾 Lưu</button>
+                                    <button class="btn-submit" id="btn-test-deepseek"
+                                        style="flex: 1; background: #1565c0;">🧪 Test</button>
+                                </div>
+                                <a href="https://platform.deepseek.com" target="_blank"
+                                    style="font-size: 0.75rem; color: #0d47a1; display: block; margin-top: 8px;">🔗 Lấy
+                                    API Key (tặng $5)</a>
+                            </div>
+
+                            <!-- Google AI (Gemini) -->
+                            <div style="padding: 15px; background: #f9f9f9; border-radius: 10px;">
+                                <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
+                                    <input type="radio" name="ai-provider" id="provider-google" value="google">
+                                    <label for="provider-google" style="font-weight: 600;">✨ Google AI (Gemini)</label>
+                                    <span id="google-ai-status"
+                                        style="font-size: 0.75rem; padding: 2px 8px; border-radius: 10px; background: #eee;">Chưa
+                                        cấu hình</span>
+                                </div>
+                                <p style="font-size: 0.75rem; color: #666; margin-bottom: 10px;">Gemini 2.0 Flash - Free
+                                    tier giới hạn</p>
                                 <input type="password" id="google-api-key" placeholder="Nhập Google AI API Key..."
                                     style="width: 100%; padding: 10px; border: 2px solid #ddd; border-radius: 8px; margin-bottom: 10px;">
                                 <div style="display: flex; gap: 10px;">
-                                    <button class="btn-submit" id="btn-save-google-key" style="flex: 1;">💾 Lưu
-                                        Key</button>
+                                    <button class="btn-submit" id="btn-save-google-key" style="flex: 1;">💾 Lưu</button>
                                     <button class="btn-submit" id="btn-test-google-ai"
                                         style="flex: 1; background: #4285F4;">🧪 Test</button>
                                 </div>
+                                <a href="https://aistudio.google.com/app/apikey" target="_blank"
+                                    style="font-size: 0.75rem; color: #4285F4; display: block; margin-top: 8px;">🔗 Lấy
+                                    API Key</a>
                             </div>
 
                             <!-- OpenAI -->
                             <div style="padding: 15px; background: #f9f9f9; border-radius: 10px;">
                                 <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
                                     <input type="radio" name="ai-provider" id="provider-openai" value="openai">
-                                    <label for="provider-openai" style="font-weight: 600;">OpenAI (GPT)</label>
+                                    <label for="provider-openai" style="font-weight: 600;">🤖 OpenAI (GPT)</label>
                                     <span id="openai-status"
-                                        style="font-size: 0.8rem; padding: 2px 8px; border-radius: 10px; background: #eee;">Chưa
+                                        style="font-size: 0.75rem; padding: 2px 8px; border-radius: 10px; background: #eee;">Chưa
                                         cấu hình</span>
                                 </div>
+                                <p style="font-size: 0.75rem; color: #666; margin-bottom: 10px;">GPT-3.5/4 - Cần trả phí
+                                </p>
                                 <input type="password" id="openai-api-key" placeholder="Nhập OpenAI API Key..."
                                     style="width: 100%; padding: 10px; border: 2px solid #ddd; border-radius: 8px; margin-bottom: 10px;">
                                 <div style="display: flex; gap: 10px;">
-                                    <button class="btn-submit" id="btn-save-openai-key" style="flex: 1;">💾 Lưu
-                                        Key</button>
+                                    <button class="btn-submit" id="btn-save-openai-key" style="flex: 1;">💾 Lưu</button>
                                     <button class="btn-submit" id="btn-test-openai"
                                         style="flex: 1; background: #10A37F;">🧪 Test</button>
                                 </div>
+                                <a href="https://platform.openai.com/api-keys" target="_blank"
+                                    style="font-size: 0.75rem; color: #10A37F; display: block; margin-top: 8px;">🔗 Lấy
+                                    API Key</a>
                             </div>
                         </div>
 

@@ -11,13 +11,13 @@ import {
 const urlParams = new URLSearchParams(window.location.search);
 
 // --- [QUAN TRỌNG] THAY UID CỦA BẠN VÀO DÒNG DƯỚI ĐÂY ---
-const DEFAULT_UID = "5a6YielwJJYFwB2DyFfUB9DVQXR2"; 
+const DEFAULT_UID = "5a6YielwJJYFwB2DyFfUB9DVQXR2";
 // -------------------------------------------------------
 
 const OWNER_UID = urlParams.get('uid') || DEFAULT_UID;
 
 // --- [BẮT BUỘC PHẢI CÓ 2 DÒNG NÀY Ở ĐÂY] ---
-let currentLightboxPhotos = []; 
+let currentLightboxPhotos = [];
 let currentLightboxIndex = 0;
 // -------------------------------------------
 
@@ -34,7 +34,7 @@ let currentCalendarMonth = new Date();
 // Fix: Lấy ngày hôm nay theo múi giờ địa phương
 const todayLocal = new Date();
 const offset = todayLocal.getTimezoneOffset() * 60000;
-let selectedDateStr = (new Date(todayLocal - offset)).toISOString().split('T')[0]; 
+let selectedDateStr = (new Date(todayLocal - offset)).toISOString().split('T')[0];
 
 console.log("🚀 Đang tải Portfolio của:", OWNER_UID);
 
@@ -55,28 +55,28 @@ async function loadOwnerPortfolio() {
         if (docSnap.exists()) {
             const data = docSnap.data();
             renderHeader(data);
-            
+
             publicData.projects = data.projects || [];
             publicData.tasks = data.tasks || [];
-            publicData.events = data.calendarEvents || []; 
+            publicData.events = data.calendarEvents || [];
             publicData.achievements = data.achievements || [];
 
             renderProjects(publicData.projects);
             renderAchievements(publicData.achievements);
-            
+
             // Render lịch và chọn ngày hôm nay mặc định
             renderPublicCalendar(currentCalendarMonth);
-            
+
             // Gọi selectDate để cập nhật cột bên trái ngay khi load
             setTimeout(() => {
-                 if(document.getElementById('focus-list')) window.selectDate(selectedDateStr); 
+                if (document.getElementById('focus-list')) window.selectDate(selectedDateStr);
             }, 100);
 
         } else {
             const title = document.querySelector('.hero-title');
-            if(title) title.innerText = "Người dùng không tồn tại.";
+            if (title) title.innerText = "Người dùng không tồn tại.";
             const sub = document.querySelector('.hero-subtitle');
-            if(sub) sub.style.display = "none";
+            if (sub) sub.style.display = "none";
         }
 
         loadSubCollections();
@@ -105,18 +105,18 @@ function renderHeader(data) {
     const settings = data.settings || {};
 
     const nameEl = document.getElementById('pf-name');
-    if(nameEl) nameEl.textContent = info.fullName || "Người dùng";
-    
+    if (nameEl) nameEl.textContent = info.fullName || "Người dùng";
+
     const emailEl = document.getElementById('pf-email');
-    if(emailEl) emailEl.textContent = info.email || "";
-    
+    if (emailEl) emailEl.textContent = info.email || "";
+
     if (info.occupation) {
         const sub = document.querySelector('.hero-subtitle');
-        if(sub) sub.textContent = `Xin chào, tôi là ${info.fullName}. Hiện đang là ${info.occupation}.`;
+        if (sub) sub.textContent = `Xin chào, tôi là ${info.fullName}. Hiện đang là ${info.occupation}.`;
     }
     if (settings.customAvatarUrl) {
         const ava = document.getElementById('pf-avatar');
-        if(ava) ava.src = settings.customAvatarUrl;
+        if (ava) ava.src = settings.customAvatarUrl;
     }
 
     const chipsContainer = document.querySelector('.info-chips');
@@ -129,7 +129,7 @@ function renderHeader(data) {
 }
 
 // ==================================================================
-// 4. RENDER DỰ ÁN (CẬP NHẬT LOGIC MỚI: SỐ THỨ TỰ & POPUP TASK)
+// 4. RENDER DỰ ÁN - BENTO GRID LAYOUT
 // ==================================================================
 function renderProjects(projects) {
     const container = document.getElementById('pf-projects');
@@ -141,6 +141,9 @@ function renderProjects(projects) {
         return;
     }
 
+    // Bento Grid sizes pattern
+    const bentoSizes = ['large', '', 'wide', '', 'tall', ''];
+
     const groups = {};
     projects.forEach(p => {
         let year = p.endDate ? p.endDate.split('-')[0] : (p.startDate ? p.startDate.split('-')[0] : 'Khác');
@@ -150,52 +153,61 @@ function renderProjects(projects) {
 
     Object.keys(groups).sort().reverse().forEach(year => {
         container.innerHTML += `<h3 class="pf-year-label">Năm ${year}</h3>`;
-        
+
+        // BENTO GRID
         const grid = document.createElement('div');
-        grid.className = 'pf-year-grid';
+        grid.className = 'bento-grid';
+        grid.style.cssText = 'display:grid;grid-template-columns:repeat(4,1fr);grid-auto-rows:180px;gap:15px;';
 
         groups[year].forEach((p, index) => {
-            // TẠO SỐ THỨ TỰ (STT)
             const stt = String(index + 1).padStart(2, '0');
-            
             const isDone = !!p.endDate;
-            const statusText = isDone ? 'Hoàn thành' : 'Đang thực hiện';
-            const statusClass = isDone ? 'done' : 'doing';
-            
+            const statusText = isDone ? '✅ Hoàn thành' : '🔄 Đang thực hiện';
+            const bentoClass = bentoSizes[index % bentoSizes.length];
+
+            // Tech stack badges
+            const techStack = p.techStack || ['Web'];
+            const techHtml = techStack.map(t => `<span style="background:rgba(255,255,255,0.2);padding:3px 8px;border-radius:15px;font-size:0.7rem;">${t}</span>`).join('');
+
             const div = document.createElement('div');
-            div.className = 'pf-card project-style';
-            div.style.cursor = 'pointer';
-            
-            // Gán sự kiện Click để mở Modal
+            div.className = `bento-item ${bentoClass}`;
+            div.style.cssText = `
+                background:linear-gradient(135deg,rgba(0,91,150,0.9),rgba(255,122,0,0.8)),url('${p.image || 'https://placehold.co/400x300?text=Project'}');
+                background-size:cover;background-position:center;
+                border-radius:20px;cursor:pointer;position:relative;overflow:hidden;
+                display:flex;flex-direction:column;justify-content:flex-end;padding:20px;color:white;
+                transition:all .4s cubic-bezier(.175,.885,.32,1.275);
+            `;
+
+            div.onmouseenter = () => { div.style.transform = 'translateY(-8px) scale(1.02)'; div.style.boxShadow = '0 20px 40px rgba(0,0,0,.2)'; };
+            div.onmouseleave = () => { div.style.transform = ''; div.style.boxShadow = ''; };
             div.onclick = () => window.openProjectDetails(p);
 
             div.innerHTML = `
-                <!-- Số to mờ làm nền -->
-                <div class="project-bg-icon" style="font-family: 'Montserrat', sans-serif; font-weight:900; opacity:0.05; font-size:6rem;">
-                    ${stt}
-                </div>
-                
-                <div class="project-header">
-                    <!-- Số nhỏ trong hộp màu -->
-                    <div class="project-icon-box" style="font-family: 'Montserrat', sans-serif; font-weight:800; font-size:1.5rem;">
-                        ${stt}
-                    </div>
-                    <div>
-                        <h3 style="margin:0; font-size:1.1rem; color:#005B96; line-height:1.3;">${p.name}</h3>
-                        <span class="status-badge ${statusClass}" style="margin-top:5px;">${statusText}</span>
-                    </div>
-                </div>
-                
-                <p style="color:#555; font-size:0.9rem; flex-grow:1; margin-bottom:15px; line-height:1.5;">
-                    ${p.description || 'Chưa có mô tả chi tiết cho dự án này.'}
-                </p>
-                
-                ${!isDone ? '<div class="project-progress-mini"></div>' : ''}
+                <div style="position:absolute;top:15px;left:15px;background:rgba(0,0,0,0.3);padding:5px 12px;border-radius:20px;font-size:0.75rem;">${statusText}</div>
+                <div style="position:absolute;top:15px;right:15px;font-size:2.5rem;font-weight:900;opacity:0.3;">${stt}</div>
+                <h3 style="margin:0 0 8px;font-size:1.2rem;font-weight:700;color:white!important;">${p.name}</h3>
+                <p style="margin:0 0 10px;font-size:0.85rem;opacity:0.9;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;">${p.description || ''}</p>
+                <div style="display:flex;gap:5px;flex-wrap:wrap;">${techHtml}</div>
             `;
             grid.appendChild(div);
         });
         container.appendChild(grid);
     });
+
+    // Add responsive CSS
+    if (!document.getElementById('bento-responsive')) {
+        const style = document.createElement('style');
+        style.id = 'bento-responsive';
+        style.textContent = `
+            .bento-item.large { grid-column:span 2; grid-row:span 2; }
+            .bento-item.wide { grid-column:span 2; }
+            .bento-item.tall { grid-row:span 2; }
+            @media(max-width:1024px) { .bento-grid { grid-template-columns:repeat(2,1fr)!important; } .bento-item.large { grid-column:span 2; } }
+            @media(max-width:600px) { .bento-grid { grid-template-columns:1fr!important; } .bento-item.large,.bento-item.wide,.bento-item.tall { grid-column:span 1;grid-row:span 1; } }
+        `;
+        document.head.appendChild(style);
+    }
 }
 
 // --- HÀM MỞ POPUP CHI TIẾT DỰ ÁN ---
@@ -222,7 +234,7 @@ window.openProjectDetails = (project) => {
             const isTaskDone = t.status === 'Hoàn thành';
             const icon = isTaskDone ? '✅' : '🔸';
             const style = isTaskDone ? 'text-decoration:line-through; color:#999;' : 'color:#333; font-weight:500;';
-            
+
             tasksHTML += `
                 <li style="padding:10px 0; border-bottom:1px dashed #eee; display:flex; gap:10px;">
                     <span>${icon}</span>
@@ -287,22 +299,62 @@ window.filterAchievements = (type) => {
     });
 
     let filtered = (type === 'all') ? window.allAchievementsData : window.allAchievementsData.filter(a => a.category === type);
-    
+
     if (filtered.length === 0) {
         container.innerHTML = '<p style="text-align:center; padding:20px; color:#999">Chưa có dữ liệu.</p>';
         return;
     }
 
+    // Badge tier logic
+    const getTier = (ach) => {
+        if (ach.tier) return ach.tier;
+        if (ach.category === 'award') return 'gold';
+        if (ach.category === 'academic') return 'silver';
+        return 'bronze';
+    };
+
+    const tierColors = {
+        bronze: 'linear-gradient(135deg, #cd7f32, #8b4513)',
+        silver: 'linear-gradient(135deg, #c0c0c0, #808080)',
+        gold: 'linear-gradient(135deg, #ffd700, #ff8c00)'
+    };
+    const tierIcons = { bronze: '🥉', silver: '🥈', gold: '🥇' };
+
+    // Stats counter
+    container.innerHTML = `
+        <div style="display:flex;justify-content:center;gap:30px;margin-bottom:25px;flex-wrap:wrap;">
+            <div style="text-align:center;"><div style="font-size:2rem;font-weight:900;color:var(--blue);">${filtered.length}</div><div style="font-size:0.8rem;color:#666;">Thành tích</div></div>
+            <div style="text-align:center;"><div style="font-size:2rem;font-weight:900;color:#ffd700;">${filtered.filter(a => getTier(a) === 'gold').length}</div><div style="font-size:0.8rem;color:#666;">🥇 Vàng</div></div>
+        </div>
+    `;
+
     const grid = document.createElement('div');
-    grid.style.cssText = 'display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px;';
+    grid.style.cssText = 'display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:20px;';
+
     filtered.forEach(ach => {
-        const imgHtml = ach.imageUrl ? `<div style="height:150px; overflow:hidden;"><img src="${ach.imageUrl}" style="width:100%; height:100%; object-fit:cover;"></div>` : '';
+        const tier = getTier(ach);
+        const tierColor = tierColors[tier];
+        const tierIcon = tierIcons[tier];
+
+        const imgHtml = ach.imageUrl
+            ? `<div style="height:150px;overflow:hidden;position:relative;">
+                <img src="${ach.imageUrl}" style="width:100%;height:100%;object-fit:cover;" loading="lazy">
+                <div style="position:absolute;top:10px;right:10px;background:${tierColor};width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1.1rem;box-shadow:0 4px 12px rgba(0,0,0,.3);">${tierIcon}</div>
+               </div>`
+            : `<div style="height:70px;background:${tierColor};display:flex;align-items:center;justify-content:center;font-size:2rem;">${tierIcon}</div>`;
+
         grid.innerHTML += `
-            <div class="pf-card" style="padding:0; overflow:hidden; cursor:pointer;" onclick="window.openLightbox([{url:'${ach.imageUrl}', caption:'${ach.name}'}], 0)">
+            <div class="pf-card" style="padding:0;overflow:hidden;cursor:pointer;transition:all .3s;" 
+                 onmouseenter="this.style.transform='translateY(-6px)';this.style.boxShadow='0 12px 30px rgba(0,0,0,.12)'" 
+                 onmouseleave="this.style.transform='';this.style.boxShadow=''"
+                 onclick="window.openLightbox([{url:'${ach.imageUrl}', caption:'${ach.name}'}], 0)">
                 ${imgHtml}
-                <div style="padding:20px;">
-                    <h3 style="font-size:1.1rem; margin-top:0; color:#005B96;">${ach.name}</h3>
-                    <p style="font-size:0.9rem; color:#666;">${formatDateVN(ach.date)}</p>
+                <div style="padding:18px;">
+                    <div style="display:flex;align-items:center;gap:6px;margin-bottom:6px;">
+                        <span style="background:${tierColor};color:#fff;padding:2px 8px;border-radius:10px;font-size:0.65rem;font-weight:700;text-transform:uppercase;">${tier}</span>
+                    </div>
+                    <h3 style="font-size:1.05rem;margin:0 0 4px;color:#005B96;">${ach.name}</h3>
+                    <p style="font-size:0.8rem;color:#666;margin:0;">${formatDateVN(ach.date)}</p>
                 </div>
             </div>`;
     });
@@ -314,14 +366,14 @@ function renderTimeline(timeline) {
     if (!container) return;
     container.innerHTML = '';
 
-    if(!timeline || timeline.length === 0) {
+    if (!timeline || timeline.length === 0) {
         container.innerHTML = '<p style="text-align:center; color:#999;">Chưa cập nhật lộ trình.</p>';
         return;
     }
 
     timeline.forEach((item, index) => {
         const pos = index % 2 === 0 ? 'left' : 'right';
-        
+
         const logoHtml = item.logo ? `<img src="${item.logo}" class="tl-logo" alt="Logo" onerror="this.style.display='none'">` : '';
 
         let tagClass = 'academic';
@@ -351,7 +403,7 @@ function renderTimeline(timeline) {
 // --- [REPLACE] HÀM RENDER ALBUM THEO NĂM (TIMELINE) ---
 function renderAlbums(albums) {
     // Lưu ý: ID trong HTML mới là 'pf-album-container'
-    const container = document.getElementById('pf-album-container'); 
+    const container = document.getElementById('pf-album-container');
     if (!container) return;
     container.innerHTML = '';
 
@@ -393,11 +445,11 @@ function renderAlbums(albums) {
         groups[year].forEach(album => {
             const div = document.createElement('div');
             div.className = 'album-card';
-            
+
             // Format ngày và địa điểm
             const displayDate = album.eventDate ? formatDateVN(album.eventDate) : '...';
-            const locationHtml = album.location 
-                ? `<div class="album-location-tag">📍 ${album.location}</div>` 
+            const locationHtml = album.location
+                ? `<div class="album-location-tag">📍 ${album.location}</div>`
                 : '';
 
             div.innerHTML = `
@@ -411,7 +463,7 @@ function renderAlbums(albums) {
                     <div class="album-meta-date">📅 ${displayDate} • 📸 ${album.photos ? album.photos.length : 0} ảnh</div>
                 </div>
             `;
-            
+
             // KHI CLICK -> GỌI HÀM MỞ STORY (Bước 3 sẽ thêm hàm này)
             div.onclick = () => openStoryModal(album);
             grid.appendChild(div);
@@ -432,13 +484,13 @@ function renderMonthSelector() {
     const today = new Date();
     for (let i = -3; i <= 8; i++) {
         const tempDate = new Date(today.getFullYear(), today.getMonth() + i, 1);
-        
-        const isSelected = tempDate.getMonth() === currentCalendarMonth.getMonth() && 
-                           tempDate.getFullYear() === currentCalendarMonth.getFullYear();
+
+        const isSelected = tempDate.getMonth() === currentCalendarMonth.getMonth() &&
+            tempDate.getFullYear() === currentCalendarMonth.getFullYear();
 
         const btn = document.createElement('button');
         btn.className = `month-btn ${isSelected ? 'active' : ''}`;
-        
+
         const monthStr = String(tempDate.getMonth() + 1).padStart(2, '0');
         const yearStr = String(tempDate.getFullYear()).slice(-2);
         btn.textContent = `Thg ${monthStr}/${yearStr}`;
@@ -452,44 +504,44 @@ function renderMonthSelector() {
 }
 
 function renderPublicCalendar(date) {
-    renderMonthSelector(); 
+    renderMonthSelector();
 
     const year = date.getFullYear();
     const month = date.getMonth();
-    
+
     const titleEl = document.getElementById('calendar-month-title');
-    if(titleEl) titleEl.textContent = `Tháng ${month + 1}/${year}`;
+    if (titleEl) titleEl.textContent = `Tháng ${month + 1}/${year}`;
 
     const monthStartStr = `${year}-${String(month + 1).padStart(2, '0')}`;
-    
+
     const eventsInMonth = publicData.events.filter(e => e.date && e.date.startsWith(monthStartStr));
     const tasksInMonth = publicData.tasks.filter(t => t.dueDate && t.dueDate.startsWith(monthStartStr));
 
     const grid = document.getElementById('pf-calendar-grid');
     if (!grid) return;
     grid.innerHTML = '';
-    
-    ['CN','T2','T3','T4','T5','T6','T7'].forEach(d => {
+
+    ['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7'].forEach(d => {
         grid.innerHTML += `<div style="font-weight:bold; color:#999; padding:5px;">${d}</div>`;
     });
 
     const firstDay = new Date(year, month, 1).getDay();
     const daysInMonth = new Date(year, month + 1, 0).getDate();
-    
+
     const today = new Date();
-    today.setHours(0,0,0,0);
+    today.setHours(0, 0, 0, 0);
 
-    for(let i=0; i<firstDay; i++) grid.innerHTML += `<div></div>`;
+    for (let i = 0; i < firstDay; i++) grid.innerHTML += `<div></div>`;
 
-    for(let day=1; day<=daysInMonth; day++) {
+    for (let day = 1; day <= daysInMonth; day++) {
         const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-        
+
         const currentDayObj = new Date(year, month, day);
         const isPast = currentDayObj < today;
 
         const hasEvent = eventsInMonth.some(e => e.date === dateStr);
         const hasTask = tasksInMonth.some(t => t.dueDate === dateStr);
-        
+
         let dotHtml = '';
         if (hasEvent) dotHtml += `<span style="display:inline-block; width:6px; height:6px; background:#2980b9; border-radius:50%; margin:1px;"></span>`;
         if (hasTask) dotHtml += `<span style="display:inline-block; width:6px; height:6px; background:#d35400; border-radius:50%; margin:1px;"></span>`;
@@ -524,25 +576,25 @@ function calculateBusyPercentage(dateStr) {
             const startMin = start[0] * 60 + start[1];
             const endMin = end[0] * 60 + end[1];
             let duration = endMin - startMin;
-            if (duration < 0) duration = 0; 
+            if (duration < 0) duration = 0;
             totalBusyMinutes += duration;
         } else {
             totalBusyMinutes += 60;
         }
     });
 
-    const WORK_DAY_MINUTES = 600; 
+    const WORK_DAY_MINUTES = 600;
     let percentage = (totalBusyMinutes / WORK_DAY_MINUTES) * 100;
     return percentage;
 }
 
 window.selectDate = (dateStr) => {
     selectedDateStr = dateStr;
-    
+
     const selectedDate = new Date(dateStr);
     const today = new Date();
-    today.setHours(0,0,0,0);
-    
+    today.setHours(0, 0, 0, 0);
+
     // So sánh time để chính xác hơn là so sánh ngày
     const isPast = selectedDate.getTime() < today.getTime();
 
@@ -550,7 +602,7 @@ window.selectDate = (dateStr) => {
     const isOverloaded = busyPercent >= 80;
 
     // Render lại lịch để update trạng thái active
-    renderPublicCalendar(currentCalendarMonth); 
+    renderPublicCalendar(currentCalendarMonth);
 
     const focusList = document.getElementById('focus-list');
     if (!focusList) return;
@@ -563,7 +615,7 @@ window.selectDate = (dateStr) => {
 
     let statusHtml = '';
     if (isOverloaded) statusHtml = `<span style="font-size:0.8rem; color:red; background:#ffe6e6; padding:2px 8px; border-radius:4px; margin-left:5px;">🔥 Rất bận (${Math.round(busyPercent)}%)</span>`;
-    
+
     focusList.innerHTML = `<h4 style="margin:0 0 10px 0; color:#333;">📅 Lịch ngày ${displayDate}: ${statusHtml}</h4>`;
 
     if (events.length === 0 && tasks.length === 0) {
@@ -591,7 +643,7 @@ window.selectDate = (dateStr) => {
 
     // --- XỬ LÝ NÚT ĐẶT HẸN ---
     const btnAppt = document.querySelector('.focus-panel .btn-submit');
-    if(btnAppt) {
+    if (btnAppt) {
         if (isPast) {
             btnAppt.innerHTML = `⛔ Ngày đã qua`;
             btnAppt.disabled = true;
@@ -599,13 +651,13 @@ window.selectDate = (dateStr) => {
             btnAppt.style.cursor = 'not-allowed';
             btnAppt.style.background = '#666';
             btnAppt.onclick = null;
-        } 
+        }
         else if (isOverloaded) {
             btnAppt.innerHTML = `⚠️ Lịch đã kín (${Math.round(busyPercent)}%) - Không nhận hẹn`;
             btnAppt.disabled = true;
             btnAppt.style.opacity = '0.8';
             btnAppt.style.cursor = 'not-allowed';
-            btnAppt.style.background = '#e74c3c'; 
+            btnAppt.style.background = '#e74c3c';
             btnAppt.onclick = () => alert("Ngày này tôi đã quá bận, vui lòng chọn ngày khác!");
         }
         else {
@@ -625,7 +677,7 @@ window.selectDate = (dateStr) => {
 // ==================================================================
 
 window.openApptModal = (dateStr) => {
-    if(dateStr) document.getElementById('appt-date').value = dateStr;
+    if (dateStr) document.getElementById('appt-date').value = dateStr;
     document.getElementById('appt-modal').style.display = 'flex';
 }
 window.closeApptModal = () => {
@@ -673,13 +725,13 @@ window.switchTab = (tabId) => {
     document.querySelectorAll('.pf-tab-content').forEach(el => el.classList.remove('active'));
     document.querySelectorAll('.pf-tab-btn').forEach(el => el.classList.remove('active'));
     document.getElementById(tabId).classList.add('active');
-    
+
     const btns = document.querySelectorAll('.pf-tab-btn');
     btns.forEach(btn => {
-        if(btn.getAttribute('onclick').includes(tabId)) btn.classList.add('active');
+        if (btn.getAttribute('onclick').includes(tabId)) btn.classList.add('active');
     });
-    
-    if(window.scrollY > 300) document.querySelector('.pf-tabs').scrollIntoView({behavior: 'smooth'});
+
+    if (window.scrollY > 300) document.querySelector('.pf-tabs').scrollIntoView({ behavior: 'smooth' });
 }
 
 function initMessageBoard() {
@@ -719,7 +771,7 @@ function initMessageBoard() {
 
 window.toggleQR = (show) => {
     const overlay = document.getElementById('qr-overlay');
-    if(overlay) overlay.style.display = show ? 'flex' : 'none';
+    if (overlay) overlay.style.display = show ? 'flex' : 'none';
 }
 
 window.openLightbox = (photos, index) => {
@@ -728,15 +780,15 @@ window.openLightbox = (photos, index) => {
     const modal = document.getElementById('lightbox-modal');
     const img = document.getElementById('lightbox-img');
     const caption = document.getElementById('lightbox-caption');
-    
-    if(!modal || !img) return;
-    
+
+    if (!modal || !img) return;
+
     const p = currentLightboxPhotos[currentLightboxIndex];
     const url = typeof p === 'string' ? p : p.url;
     const text = typeof p === 'string' ? '' : p.caption;
 
     img.src = url;
-    if(caption) caption.textContent = text || `Ảnh ${currentLightboxIndex + 1}`;
+    if (caption) caption.textContent = text || `Ảnh ${currentLightboxIndex + 1}`;
     modal.style.display = 'flex';
 }
 window.closeLightbox = () => document.getElementById('lightbox-modal').style.display = 'none';
@@ -749,7 +801,7 @@ window.changeLightboxSlide = (n) => {
 window.openStoryModal = (album) => {
     const modal = document.getElementById('story-modal');
     const content = document.getElementById('story-content-wrapper');
-    if(!modal || !content) return;
+    if (!modal || !content) return;
 
     // 1. Lưu danh sách ảnh vào biến toàn cục
     window.currentStoryPhotos = album.photos || [];
@@ -762,7 +814,7 @@ window.openStoryModal = (album) => {
     if (window.currentStoryPhotos.length > 0) {
         window.currentStoryPhotos.forEach((p, index) => {
             const url = typeof p === 'string' ? p : p.url;
-            
+
             // --- ĐOẠN NÀY CÓ NÚT DOWNLOAD NÈ ---
             galleryHtml += `
                 <div class="story-img-item" onclick="window.openLightboxFromStory(${index})">
@@ -829,22 +881,22 @@ document.addEventListener('keydown', (e) => {
 });
 // --- INIT ---
 document.addEventListener('DOMContentLoaded', () => {
-    if(document.getElementById('qr-overlay')) document.getElementById('qr-overlay').style.display = 'none';
-    if(document.getElementById('lightbox-modal')) document.getElementById('lightbox-modal').style.display = 'none';
-    if(document.getElementById('appt-modal')) document.getElementById('appt-modal').style.display = 'none';
+    if (document.getElementById('qr-overlay')) document.getElementById('qr-overlay').style.display = 'none';
+    if (document.getElementById('lightbox-modal')) document.getElementById('lightbox-modal').style.display = 'none';
+    if (document.getElementById('appt-modal')) document.getElementById('appt-modal').style.display = 'none';
 
     loadOwnerPortfolio();
     initMessageBoard();
-    
+
     const btnSubmit = document.getElementById('btn-submit-appt');
-    if(btnSubmit) {
+    if (btnSubmit) {
         const newBtn = btnSubmit.cloneNode(true);
         btnSubmit.parentNode.replaceChild(newBtn, btnSubmit);
         newBtn.addEventListener('click', handleBookAppointment);
     }
 
     const scrollBtn = document.getElementById('btn-scroll-top');
-    if(scrollBtn) {
+    if (scrollBtn) {
         window.addEventListener('scroll', () => {
             scrollBtn.classList.toggle('visible', window.scrollY > 300);
             scrollBtn.style.display = window.scrollY > 300 ? 'flex' : 'none';

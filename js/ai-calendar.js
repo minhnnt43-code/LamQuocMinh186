@@ -466,8 +466,11 @@ Yêu cầu:
 };
 
 /**
- * [MỚI] Quick Add Event - Thêm sự kiện bằng ngôn ngữ tự nhiên
+ * [MỚI] Quick Add Event - Thêm sự kiện bằng ngôn ngữ tự nhiên (#91)
+ * Hiển thị bảng preview trước khi thêm, hỗ trợ nhiều sự kiện
  */
+let pendingEvents = []; // Lưu events đang chờ xác nhận
+
 const handleQuickAddEvent = async () => {
     const input = document.getElementById('quick-event-input');
     const btn = document.getElementById('btn-quick-add-event');
@@ -480,85 +483,80 @@ const handleQuickAddEvent = async () => {
 
     const originalBtnText = btn.innerHTML;
     btn.disabled = true;
-    btn.innerHTML = '⏳...';
+    btn.innerHTML = '⏳ AI đang phân tích...';
 
     try {
         const today = new Date();
-        const systemPrompt = `Bạn là trợ lý lịch biểu. Phân tích yêu cầu và trích xuất thông tin sự kiện.
+        const systemPrompt = `Bạn là trợ lý lịch biểu thông minh. Phân tích yêu cầu và trích xuất TẤT CẢ sự kiện được đề cập.
 
 Ngày hôm nay: ${today.toLocaleDateString('vi-VN')} (${['Chủ nhật', 'Thứ 2', 'Thứ 3', 'Thứ 4', 'Thứ 5', 'Thứ 6', 'Thứ 7'][today.getDay()]})
+Năm hiện tại: ${today.getFullYear()}
 
 Yêu cầu của người dùng: "${text}"
 
-Trả lời theo định dạng JSON (CHỈ JSON, không có text khác):
-{
-  "title": "Tên sự kiện",
-  "date": "YYYY-MM-DD",
-  "startTime": "HH:MM",
-  "endTime": "HH:MM",
-  "category": "Công việc/Học tập/Cá nhân/Họp/Khác",
-  "description": "Mô tả ngắn (nếu có)"
-}
+Trả lời theo định dạng JSON array (CHỈ JSON, không có text khác):
+[
+  {
+    "title": "Tên sự kiện",
+    "date": "YYYY-MM-DD",
+    "startTime": "HH:MM",
+    "endTime": "HH:MM",
+    "category": "Học tập/Công việc/Họp/Cá nhân/Khác"
+  }
+]
 
-Lưu ý:
-- "ngày mai" = ngày tiếp theo
+Lưu ý quan trọng:
+- Có thể có NHIỀU sự kiện trong 1 yêu cầu
+- "ngày mai" = ${new Date(today.getTime() + 86400000).toISOString().split('T')[0]}
 - "thứ 5" = thứ 5 tuần này hoặc tuần sau nếu đã qua
-- "2h chiều" = 14:00
-- "9h sáng" = 09:00
-- Nếu không có endTime, mặc định +1 giờ sau startTime`;
+- "2h chiều" = 14:00, "9h sáng" = 09:00
+- Nếu không có endTime, +1 giờ từ startTime
+- Maximum 100 events`;
 
         const result = await aiService.ask(text, { systemPrompt });
 
         // Parse JSON từ response
-        let eventData;
+        let eventsData;
         try {
-            // Tìm JSON trong response
-            const jsonMatch = result.match(/\{[\s\S]*?\}/);
+            // Tìm JSON array trong response
+            const jsonMatch = result.match(/\[[\s\S]*?\]/);
             if (jsonMatch) {
-                eventData = JSON.parse(jsonMatch[0]);
+                eventsData = JSON.parse(jsonMatch[0]);
             } else {
-                throw new Error('Không tìm thấy JSON');
+                // Thử parse single object
+                const singleMatch = result.match(/\{[\s\S]*?\}/);
+                if (singleMatch) {
+                    eventsData = [JSON.parse(singleMatch[0])];
+                } else {
+                    throw new Error('Không tìm thấy JSON');
+                }
             }
         } catch (e) {
-            showNotification('AI không thể phân tích. Vui lòng thử lại với câu rõ ràng hơn.', 'error');
+            showNotification('AI không thể phân tích. Vui lòng mô tả rõ hơn.', 'error');
             return;
         }
 
-        // Validate dữ liệu
-        if (!eventData.title || !eventData.date || !eventData.startTime) {
-            showNotification('Thiếu thông tin sự kiện. Vui lòng nhập rõ hơn.', 'error');
+        // Validate và chuẩn hóa dữ liệu
+        pendingEvents = eventsData
+            .filter(e => e.title && e.date && e.startTime)
+            .slice(0, 100) // Max 100 events
+            .map((e, i) => ({
+                tempId: Date.now() + i,
+                title: e.title,
+                date: e.date,
+                startTime: e.startTime,
+                endTime: e.endTime || calculateEndTime(e.startTime),
+                category: e.category || 'Chung',
+                selected: true
+            }));
+
+        if (pendingEvents.length === 0) {
+            showNotification('Không tìm thấy sự kiện hợp lệ. Vui lòng nhập rõ hơn.', 'error');
             return;
         }
 
-        // Thêm vào globalData
-        const newEvent = {
-            id: Date.now().toString(),
-            title: eventData.title,
-            date: eventData.date,
-            startTime: eventData.startTime,
-            endTime: eventData.endTime || (() => {
-                const [h, m] = eventData.startTime.split(':').map(Number);
-                return `${String(h + 1).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
-            })(),
-            category: eventData.category || 'Chung',
-            description: eventData.description || '',
-            createdAt: new Date().toISOString()
-        };
-
-        if (!globalData.calendarEvents) globalData.calendarEvents = [];
-        globalData.calendarEvents.push(newEvent);
-
-        // Lưu vào Firebase nếu có
-        if (window.saveUserData) {
-            await window.saveUserData(globalData);
-        }
-
-        // Render lại calendar nếu có function
-        if (window.renderCalendar) {
-            window.renderCalendar();
-        }
-
-        showNotification(`✅ Đã thêm: "${newEvent.title}" vào ${newEvent.date} lúc ${newEvent.startTime}`, 'success');
+        // Hiển thị preview table
+        showEventPreviewTable(pendingEvents);
         input.value = '';
 
     } catch (error) {
@@ -567,6 +565,239 @@ Lưu ý:
         btn.disabled = false;
         btn.innerHTML = originalBtnText;
     }
+};
+
+/**
+ * Tính endTime từ startTime (+1 giờ)
+ */
+const calculateEndTime = (startTime) => {
+    const [h, m] = startTime.split(':').map(Number);
+    return `${String(Math.min(h + 1, 23)).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
+};
+
+/**
+ * Hiển thị bảng preview sự kiện (#91)
+ */
+const showEventPreviewTable = (events) => {
+    const existingModal = document.getElementById('event-preview-modal');
+    if (existingModal) existingModal.remove();
+
+    const modal = document.createElement('div');
+    modal.id = 'event-preview-modal';
+    modal.style.cssText = `
+        position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+        background: rgba(0,0,0,0.7); z-index: 10001;
+        display: flex; align-items: center; justify-content: center;
+        padding: 20px; backdrop-filter: blur(5px);
+    `;
+
+    const selectedCount = events.filter(e => e.selected).length;
+
+    modal.innerHTML = `
+        <div style="background: white; border-radius: 16px; max-width: 900px; width: 100%; max-height: 85vh; overflow: hidden; box-shadow: 0 20px 60px rgba(0,0,0,0.4);">
+            <div style="padding: 18px 24px; background: linear-gradient(135deg, #4facfe, #00f2fe); color: white;">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <div>
+                        <h2 style="margin: 0; font-size: 1.2rem;">📅 Xem trước sự kiện</h2>
+                        <small style="opacity: 0.9;">Đã tìm thấy ${events.length} sự kiện - Chọn để thêm vào lịch</small>
+                    </div>
+                    <button id="close-preview-modal" style="background: rgba(255,255,255,0.2); border: none; color: white; font-size: 1.4rem; cursor: pointer; width: 36px; height: 36px; border-radius: 50%;">×</button>
+                </div>
+            </div>
+            
+            <div style="padding: 15px 20px; background: #f8f9fa; border-bottom: 1px solid #eee; display: flex; gap: 10px; flex-wrap: wrap;">
+                <label style="display: flex; align-items: center; gap: 6px; cursor: pointer;">
+                    <input type="checkbox" id="select-all-events" ${selectedCount === events.length ? 'checked' : ''}>
+                    <span style="font-size: 0.9rem;">Chọn tất cả</span>
+                </label>
+                <span style="color: #666; font-size: 0.85rem;">|</span>
+                <span id="selected-count" style="color: #4facfe; font-weight: 600; font-size: 0.9rem;">${selectedCount} đã chọn</span>
+            </div>
+            
+            <div style="max-height: 50vh; overflow-y: auto; padding: 10px 20px;">
+                <table style="width: 100%; border-collapse: collapse; font-size: 0.9rem;">
+                    <thead>
+                        <tr style="background: #f1f5f9; position: sticky; top: 0;">
+                            <th style="padding: 10px 8px; text-align: center; width: 40px;">✓</th>
+                            <th style="padding: 10px 8px; text-align: left;">Tên sự kiện</th>
+                            <th style="padding: 10px 8px; text-align: center; width: 110px;">Ngày</th>
+                            <th style="padding: 10px 8px; text-align: center; width: 100px;">Giờ</th>
+                            <th style="padding: 10px 8px; text-align: center; width: 90px;">Loại</th>
+                            <th style="padding: 10px 8px; text-align: center; width: 60px;">Xóa</th>
+                        </tr>
+                    </thead>
+                    <tbody id="preview-table-body">
+                        ${events.map((e, i) => `
+                            <tr data-id="${e.tempId}" style="border-bottom: 1px solid #eee;">
+                                <td style="padding: 10px 8px; text-align: center;">
+                                    <input type="checkbox" class="event-checkbox" data-id="${e.tempId}" ${e.selected ? 'checked' : ''}>
+                                </td>
+                                <td style="padding: 10px 8px;">
+                                    <input type="text" class="event-title" data-id="${e.tempId}" value="${escapeHTML(e.title)}" 
+                                        style="width: 100%; padding: 6px 8px; border: 1px solid #ddd; border-radius: 4px;">
+                                </td>
+                                <td style="padding: 10px 8px; text-align: center;">
+                                    <input type="date" class="event-date" data-id="${e.tempId}" value="${e.date}"
+                                        style="padding: 6px; border: 1px solid #ddd; border-radius: 4px;">
+                                </td>
+                                <td style="padding: 10px 8px; text-align: center;">
+                                    <input type="time" class="event-start" data-id="${e.tempId}" value="${e.startTime}"
+                                        style="width: 70px; padding: 4px; border: 1px solid #ddd; border-radius: 4px; font-size: 0.85rem;">
+                                    -
+                                    <input type="time" class="event-end" data-id="${e.tempId}" value="${e.endTime}"
+                                        style="width: 70px; padding: 4px; border: 1px solid #ddd; border-radius: 4px; font-size: 0.85rem;">
+                                </td>
+                                <td style="padding: 10px 8px; text-align: center;">
+                                    <select class="event-category" data-id="${e.tempId}" style="padding: 6px; border: 1px solid #ddd; border-radius: 4px; font-size: 0.85rem;">
+                                        <option value="Học tập" ${e.category === 'Học tập' ? 'selected' : ''}>📚 Học tập</option>
+                                        <option value="Công việc" ${e.category === 'Công việc' ? 'selected' : ''}>💼 Công việc</option>
+                                        <option value="Họp" ${e.category === 'Họp' ? 'selected' : ''}>🤝 Họp</option>
+                                        <option value="Cá nhân" ${e.category === 'Cá nhân' ? 'selected' : ''}>👤 Cá nhân</option>
+                                        <option value="Chung" ${e.category === 'Chung' ? 'selected' : ''}>📌 Chung</option>
+                                    </select>
+                                </td>
+                                <td style="padding: 10px 8px; text-align: center;">
+                                    <button class="btn-delete-event" data-id="${e.tempId}" style="background: #fee2e2; border: none; color: #dc2626; padding: 6px 10px; border-radius: 4px; cursor: pointer;">🗑️</button>
+                                </td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            </div>
+            
+            <div style="padding: 15px 24px; background: #f8f9fa; border-top: 1px solid #eee; display: flex; justify-content: space-between; align-items: center;">
+                <button id="btn-cancel-events" style="background: #f1f5f9; border: 1px solid #ddd; color: #666; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: 500;">
+                    ✖️ Hủy
+                </button>
+                <button id="btn-confirm-events" style="background: linear-gradient(135deg, #4facfe, #00f2fe); border: none; color: white; padding: 12px 28px; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 1rem;">
+                    ✅ Thêm <span id="confirm-count">${selectedCount}</span> sự kiện
+                </button>
+            </div>
+        </div>
+    `;
+
+    document.body.appendChild(modal);
+    setupPreviewTableEvents(modal);
+};
+
+/**
+ * Setup event handlers cho preview table
+ */
+const setupPreviewTableEvents = (modal) => {
+    // Close button
+    modal.querySelector('#close-preview-modal').onclick = () => {
+        pendingEvents = [];
+        modal.remove();
+    };
+
+    // Cancel button
+    modal.querySelector('#btn-cancel-events').onclick = () => {
+        pendingEvents = [];
+        modal.remove();
+    };
+
+    // Click outside
+    modal.onclick = (e) => {
+        if (e.target === modal) {
+            pendingEvents = [];
+            modal.remove();
+        }
+    };
+
+    // Select all checkbox
+    modal.querySelector('#select-all-events').onchange = (e) => {
+        const checkboxes = modal.querySelectorAll('.event-checkbox');
+        checkboxes.forEach(cb => {
+            cb.checked = e.target.checked;
+            const event = pendingEvents.find(ev => ev.tempId == cb.dataset.id);
+            if (event) event.selected = e.target.checked;
+        });
+        updateSelectedCount(modal);
+    };
+
+    // Individual checkboxes
+    modal.querySelectorAll('.event-checkbox').forEach(cb => {
+        cb.onchange = (e) => {
+            const event = pendingEvents.find(ev => ev.tempId == e.target.dataset.id);
+            if (event) event.selected = e.target.checked;
+            updateSelectedCount(modal);
+        };
+    });
+
+    // Input changes
+    modal.querySelectorAll('.event-title, .event-date, .event-start, .event-end, .event-category').forEach(input => {
+        input.onchange = (e) => {
+            const event = pendingEvents.find(ev => ev.tempId == e.target.dataset.id);
+            if (event) {
+                if (e.target.classList.contains('event-title')) event.title = e.target.value;
+                if (e.target.classList.contains('event-date')) event.date = e.target.value;
+                if (e.target.classList.contains('event-start')) event.startTime = e.target.value;
+                if (e.target.classList.contains('event-end')) event.endTime = e.target.value;
+                if (e.target.classList.contains('event-category')) event.category = e.target.value;
+            }
+        };
+    });
+
+    // Delete buttons
+    modal.querySelectorAll('.btn-delete-event').forEach(btn => {
+        btn.onclick = (e) => {
+            const id = parseInt(e.target.dataset.id);
+            pendingEvents = pendingEvents.filter(ev => ev.tempId !== id);
+            const row = modal.querySelector(`tr[data-id="${id}"]`);
+            if (row) row.remove();
+            updateSelectedCount(modal);
+            if (pendingEvents.length === 0) modal.remove();
+        };
+    });
+
+    // Confirm button
+    modal.querySelector('#btn-confirm-events').onclick = async () => {
+        const selectedEvents = pendingEvents.filter(e => e.selected);
+        if (selectedEvents.length === 0) {
+            showNotification('Vui lòng chọn ít nhất 1 sự kiện!', 'error');
+            return;
+        }
+
+        // Thêm vào globalData
+        if (!globalData.calendarEvents) globalData.calendarEvents = [];
+
+        selectedEvents.forEach(e => {
+            globalData.calendarEvents.push({
+                id: Date.now().toString() + Math.random().toString(36).substr(2, 5),
+                title: e.title,
+                date: e.date,
+                startTime: e.startTime,
+                endTime: e.endTime,
+                category: e.category,
+                createdAt: new Date().toISOString()
+            });
+        });
+
+        // Lưu Firebase
+        if (window.saveUserData) {
+            await window.saveUserData(globalData);
+        }
+
+        // Render calendar
+        if (window.renderCalendar) {
+            window.renderCalendar();
+        }
+
+        showNotification(`✅ Đã thêm ${selectedEvents.length} sự kiện vào lịch!`, 'success');
+        pendingEvents = [];
+        modal.remove();
+    };
+};
+
+/**
+ * Cập nhật số lượng đã chọn
+ */
+const updateSelectedCount = (modal) => {
+    const count = pendingEvents.filter(e => e.selected).length;
+    const countEl = modal.querySelector('#selected-count');
+    const confirmCountEl = modal.querySelector('#confirm-count');
+    if (countEl) countEl.textContent = `${count} đã chọn`;
+    if (confirmCountEl) confirmCountEl.textContent = count;
 };
 
 // Export

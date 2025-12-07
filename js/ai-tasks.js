@@ -60,6 +60,54 @@ const setupAITaskEvents = () => {
     if (suggestBtn) {
         suggestBtn.addEventListener('click', handleAISuggest);
     }
+
+    // [MỚI] Nút Eisenhower Matrix
+    const eisenhowerBtn = document.getElementById('btn-eisenhower-matrix');
+    if (eisenhowerBtn) {
+        eisenhowerBtn.addEventListener('click', showEisenhowerMatrix);
+    }
+
+    // [MỚI] Nút Auto Priority
+    const autoPriorityBtn = document.getElementById('btn-ai-auto-priority');
+    if (autoPriorityBtn) {
+        autoPriorityBtn.addEventListener('click', handleAIAutoPriority);
+    }
+
+    // [MỚI] Nút Task Review
+    const taskReviewBtn = document.getElementById('btn-ai-task-review');
+    if (taskReviewBtn) {
+        taskReviewBtn.addEventListener('click', handleAITaskReview);
+    }
+
+    // [MỚI] Nút Generate Subtasks
+    const subtasksBtn = document.getElementById('btn-generate-subtasks');
+    if (subtasksBtn) {
+        subtasksBtn.addEventListener('click', handleGenerateSubtasks);
+    }
+
+    // [MỚI] Nút Voice Input
+    const voiceBtn = document.getElementById('btn-voice-input');
+    if (voiceBtn) {
+        voiceBtn.addEventListener('click', () => {
+            if (window.startVoiceInput) {
+                window.startVoiceInput('ai-task-input');
+            } else {
+                // Fallback inline
+                if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+                    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+                    const recognition = new SpeechRecognition();
+                    recognition.lang = 'vi-VN';
+                    recognition.onresult = (e) => {
+                        const input = document.getElementById('ai-task-input');
+                        if (input) input.value = e.results[0][0].transcript;
+                        import('./common.js').then(m => m.showNotification('Đã nhận giọng nói!'));
+                    };
+                    recognition.start();
+                    import('./common.js').then(m => m.showNotification('🎤 Đang nghe...', 'info'));
+                }
+            }
+        });
+    }
 };
 
 /**
@@ -252,5 +300,362 @@ const showAIResultModal = (title, content) => {
     showAIModal(title, content, { icon: '🤖' });
 };
 
+/**
+ * #136 - AI Smart Deadline - Gợi ý ngày hạn phù hợp
+ */
+const handleAISmartDeadline = async (taskName, taskCategory = 'Chung') => {
+    try {
+        const existingTasks = (globalData.tasks || [])
+            .filter(t => t.status !== 'Hoàn thành')
+            .map(t => `${t.name} (${t.dueDate})`).join(', ');
+
+        const today = new Date();
+        const prompt = `Hôm nay: ${today.toISOString().split('T')[0]}
+Công việc mới: "${taskName}" (${taskCategory})
+Công việc hiện có: ${existingTasks || 'Không có'}
+
+Đề xuất ngày hạn hợp lý cho công việc này. Trả về JSON:
+{"suggestedDate": "YYYY-MM-DD", "reason": "lý do ngắn gọn"}`;
+
+        const response = await aiService.ask(prompt, {
+            systemPrompt: 'Bạn là trợ lý lập kế hoạch. Chỉ trả về JSON.'
+        });
+
+        const match = response.match(/\{[\s\S]*\}/);
+        if (match) {
+            return JSON.parse(match[0]);
+        }
+        return { suggestedDate: today.toISOString().split('T')[0], reason: 'Default' };
+    } catch (e) {
+        console.error('Smart deadline error:', e);
+        return null;
+    }
+};
+
+/**
+ * #137 - AI Auto Priority - Tự động đặt ưu tiên thông minh
+ */
+const handleAIAutoPriority = async () => {
+    const btn = document.getElementById('btn-ai-auto-priority');
+    const tasks = (globalData.tasks || []).filter(t => t.status !== 'Hoàn thành');
+
+    if (tasks.length === 0) {
+        showNotification('Không có công việc nào!', 'error');
+        return;
+    }
+
+    if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = '⏳...';
+    }
+
+    try {
+        const taskList = tasks.map(t => ({
+            id: t.id,
+            name: t.name,
+            dueDate: t.dueDate,
+            category: t.category,
+            currentPriority: t.priority
+        }));
+
+        const prompt = `Phân tích và đề xuất mức ưu tiên cho các công việc sau:
+${JSON.stringify(taskList, null, 2)}
+
+Ngày hôm nay: ${new Date().toISOString().split('T')[0]}
+
+Trả về JSON array với id và priority mới:
+[{"id": "...", "priority": "high|medium|low", "reason": "lý do"}]`;
+
+        const response = await aiService.ask(prompt, {
+            systemPrompt: 'Bạn là productivity expert. Ưu tiên dựa trên deadline, category. Chỉ trả về JSON.'
+        });
+
+        const match = response.match(/\[[\s\S]*\]/);
+        if (match) {
+            const updates = JSON.parse(match[0]);
+            let updatedCount = 0;
+
+            updates.forEach(u => {
+                const task = globalData.tasks.find(t => t.id === u.id);
+                if (task && task.priority !== u.priority) {
+                    task.priority = u.priority;
+                    updatedCount++;
+                }
+            });
+
+            if (updatedCount > 0) {
+                await saveUserData(currentUser.uid, { tasks: globalData.tasks });
+                if (window.renderTasks) window.renderTasks();
+                showNotification(`Đã cập nhật ưu tiên cho ${updatedCount} công việc! 🎯`);
+            } else {
+                showNotification('Ưu tiên hiện tại đã hợp lý!');
+            }
+        }
+    } catch (e) {
+        showNotification('Lỗi phân tích ưu tiên: ' + e.message, 'error');
+    } finally {
+        if (btn) {
+            btn.disabled = false;
+            btn.innerHTML = '🎯 Auto Priority';
+        }
+    }
+};
+
+/**
+ * #142 - AI Task Review - Đánh giá công việc tuần
+ */
+const handleAITaskReview = async () => {
+    const btn = document.getElementById('btn-ai-task-review');
+    const tasks = globalData.tasks || [];
+
+    if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = '⏳...';
+    }
+
+    try {
+        const completed = tasks.filter(t => t.status === 'Hoàn thành').length;
+        const pending = tasks.filter(t => t.status !== 'Hoàn thành');
+        const overdue = pending.filter(t => {
+            if (!t.dueDate) return false;
+            return new Date(t.dueDate) < new Date();
+        });
+        const highPriority = pending.filter(t => t.priority === 'high');
+
+        const prompt = `Đánh giá tình hình công việc:
+- Đã hoàn thành: ${completed}
+- Còn lại: ${pending.length}
+- Quá hạn: ${overdue.length} (${overdue.map(t => t.name).join(', ') || 'Không có'})
+- Ưu tiên cao chưa xong: ${highPriority.length}
+
+Tạo đánh giá ngắn gọn (3-5 câu):
+1. Điểm năng suất /10
+2. Vấn đề cần lưu ý
+3. 2-3 đề xuất cải thiện`;
+
+        const result = await aiService.ask(prompt, {
+            systemPrompt: 'Bạn là productivity coach. Đánh giá và động viên.'
+        });
+
+        showAIResultModal('📊 Đánh giá công việc', result);
+
+    } catch (e) {
+        showNotification('Lỗi: ' + e.message, 'error');
+    } finally {
+        if (btn) {
+            btn.disabled = false;
+            btn.innerHTML = '📊 Task Review';
+        }
+    }
+};
+
+// ============================================================
+// #129 - MA TRẬN EISENHOWER (Quan trọng / Gấp)
+// ============================================================
+const showEisenhowerMatrix = () => {
+    const tasks = (globalData?.tasks || []).filter(t => t.status !== 'Hoàn thành');
+
+    // Phân loại tasks
+    const urgent = tasks.filter(t => {
+        if (!t.dueDate) return false;
+        const days = Math.ceil((new Date(t.dueDate) - new Date()) / (1000 * 60 * 60 * 24));
+        return days <= 2;
+    });
+
+    const important = tasks.filter(t => t.priority === 'high');
+
+    const q1 = tasks.filter(t => urgent.includes(t) && important.includes(t)); // Urgent + Important
+    const q2 = tasks.filter(t => !urgent.includes(t) && important.includes(t)); // Important, not urgent
+    const q3 = tasks.filter(t => urgent.includes(t) && !important.includes(t)); // Urgent, not important
+    const q4 = tasks.filter(t => !urgent.includes(t) && !important.includes(t)); // Neither
+
+    const formatTasks = (list, color) => list.length === 0
+        ? '<p style="color:#999;font-style:italic;">Không có</p>'
+        : list.map(t => `<div style="padding:8px 12px;background:${color};border-radius:6px;margin:4px 0;font-size:0.9rem;">${escapeHTML(t.name)}</div>`).join('');
+
+    const matrixHTML = `
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:15px;">
+            <div style="background:#fee2e2;padding:15px;border-radius:12px;">
+                <h4 style="margin:0 0 10px;color:#dc2626;">🔥 Q1: LÀM NGAY (${q1.length})</h4>
+                <small style="color:#666;">Gấp + Quan trọng</small>
+                ${formatTasks(q1, 'rgba(220,38,38,0.1)')}
+            </div>
+            <div style="background:#dbeafe;padding:15px;border-radius:12px;">
+                <h4 style="margin:0 0 10px;color:#2563eb;">📅 Q2: LÊN LỊCH (${q2.length})</h4>
+                <small style="color:#666;">Quan trọng, không gấp</small>
+                ${formatTasks(q2, 'rgba(37,99,235,0.1)')}
+            </div>
+            <div style="background:#fef9c3;padding:15px;border-radius:12px;">
+                <h4 style="margin:0 0 10px;color:#ca8a04;">📤 Q3: ỦY THÁC (${q3.length})</h4>
+                <small style="color:#666;">Gấp, không quan trọng</small>
+                ${formatTasks(q3, 'rgba(202,138,4,0.1)')}
+            </div>
+            <div style="background:#f3f4f6;padding:15px;border-radius:12px;">
+                <h4 style="margin:0 0 10px;color:#6b7280;">🗑️ Q4: LOẠI BỎ (${q4.length})</h4>
+                <small style="color:#666;">Không gấp, không quan trọng</small>
+                ${formatTasks(q4, 'rgba(107,114,128,0.1)')}
+            </div>
+        </div>
+    `;
+
+    // Hiển thị modal
+    const modal = document.createElement('div');
+    modal.id = 'eisenhower-modal';
+    modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.6);display:flex;align-items:center;justify-content:center;z-index:10000;';
+    modal.innerHTML = `
+        <div style="background:white;border-radius:16px;max-width:700px;width:95%;max-height:85vh;overflow:hidden;">
+            <div style="padding:20px;background:linear-gradient(135deg,#8b5cf6,#6366f1);color:white;display:flex;justify-content:space-between;align-items:center;">
+                <h2 style="margin:0;">📊 Ma trận Eisenhower</h2>
+                <button onclick="this.closest('#eisenhower-modal').remove()" style="background:rgba(255,255,255,0.2);border:none;color:white;width:32px;height:32px;border-radius:8px;cursor:pointer;font-size:18px;">&times;</button>
+            </div>
+            <div style="padding:20px;overflow-y:auto;max-height:65vh;">${matrixHTML}</div>
+        </div>
+    `;
+    document.body.appendChild(modal);
+    modal.onclick = (e) => { if (e.target === modal) modal.remove(); };
+};
+
+// ============================================================
+// #116 - SUBTASKS (Công việc con)
+// ============================================================
+const generateSubtasksWithAI = async (taskName) => {
+    try {
+        const prompt = `Chia nhỏ công việc "${taskName}" thành 3-5 subtasks cụ thể.
+
+Trả về JSON array:
+[{"name": "tên subtask", "estimatedMinutes": số phút ước tính}]
+
+Chỉ trả về JSON.`;
+
+        const response = await aiService.ask(prompt, {
+            systemPrompt: 'Bạn là chuyên gia chia nhỏ công việc. Chỉ trả về JSON.'
+        });
+
+        const match = response.match(/\[[\s\S]*\]/);
+        if (match) {
+            return JSON.parse(match[0]);
+        }
+        return [];
+    } catch (e) {
+        console.error('Generate subtasks error:', e);
+        return [];
+    }
+};
+
+const handleGenerateSubtasks = async () => {
+    const taskNameInput = document.getElementById('task-name');
+    const taskName = taskNameInput?.value?.trim();
+
+    if (!taskName) {
+        showNotification('Vui lòng nhập tên công việc trước!', 'error');
+        return;
+    }
+
+    const btn = document.getElementById('btn-generate-subtasks');
+    if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = '⏳...';
+    }
+
+    try {
+        const subtasks = await generateSubtasksWithAI(taskName);
+
+        if (subtasks.length === 0) {
+            showNotification('Không thể tạo subtasks!', 'error');
+            return;
+        }
+
+        // Hiển thị preview subtasks
+        const content = subtasks.map((s, i) =>
+            `${i + 1}. **${s.name}** (~${s.estimatedMinutes} phút)`
+        ).join('\n');
+
+        showAIModal('📋 Subtasks gợi ý', content, {
+            icon: '✂️',
+            footer: `<button id="btn-apply-subtasks" class="btn-submit" style="background:linear-gradient(135deg,#10b981,#059669);">✅ Áp dụng</button>`
+        });
+
+        // Handler cho nút áp dụng
+        setTimeout(() => {
+            document.getElementById('btn-apply-subtasks')?.addEventListener('click', () => {
+                // Lưu subtasks vào notes hoặc field riêng
+                const notesEl = document.getElementById('task-notes');
+                if (notesEl) {
+                    const subtaskText = subtasks.map((s, i) => `[ ] ${s.name} (~${s.estimatedMinutes}p)`).join('\n');
+                    notesEl.value = (notesEl.value ? notesEl.value + '\n\n' : '') + '--- Subtasks ---\n' + subtaskText;
+                }
+                document.getElementById('ai-result-modal')?.remove();
+                showNotification(`Đã thêm ${subtasks.length} subtasks vào ghi chú!`);
+            });
+        }, 100);
+
+    } catch (e) {
+        showNotification('Lỗi: ' + e.message, 'error');
+    } finally {
+        if (btn) {
+            btn.disabled = false;
+            btn.innerHTML = '✂️ Tạo Subtasks';
+        }
+    }
+};
+
+// ============================================================
+// #122 - TIME TRACKING (Theo dõi thời gian)
+// ============================================================
+let activeTimer = null;
+let timerStartTime = null;
+let timerTaskId = null;
+
+const startTaskTimer = (taskId) => {
+    if (activeTimer) {
+        stopTaskTimer();
+    }
+
+    timerTaskId = taskId;
+    timerStartTime = Date.now();
+
+    activeTimer = setInterval(() => {
+        const elapsed = Math.floor((Date.now() - timerStartTime) / 1000);
+        const mins = Math.floor(elapsed / 60);
+        const secs = elapsed % 60;
+        const timerDisplay = document.getElementById(`timer-${taskId}`);
+        if (timerDisplay) {
+            timerDisplay.textContent = `⏱️ ${mins}:${secs.toString().padStart(2, '0')}`;
+        }
+    }, 1000);
+
+    showNotification('Timer bắt đầu! ⏱️');
+};
+
+const stopTaskTimer = () => {
+    if (activeTimer) {
+        clearInterval(activeTimer);
+        const elapsed = Math.floor((Date.now() - timerStartTime) / 60000); // minutes
+
+        // Lưu thời gian vào task
+        const task = globalData?.tasks?.find(t => t.id === timerTaskId);
+        if (task) {
+            task.timeSpent = (task.timeSpent || 0) + elapsed;
+        }
+
+        showNotification(`Đã dừng! Tổng: ${elapsed} phút`);
+        activeTimer = null;
+        timerStartTime = null;
+        timerTaskId = null;
+    }
+};
+
 // Export để có thể gọi từ bên ngoài
-export { handleAIAddTask, handleAIPrioritize, handleAISuggest };
+export {
+    handleAIAddTask,
+    handleAIPrioritize,
+    handleAISuggest,
+    handleAISmartDeadline,
+    handleAIAutoPriority,
+    handleAITaskReview,
+    showEisenhowerMatrix,
+    generateSubtasksWithAI,
+    handleGenerateSubtasks,
+    startTaskTimer,
+    stopTaskTimer
+};
