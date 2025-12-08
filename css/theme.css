@@ -309,17 +309,26 @@ body.dark-mode .composer-toolbar input {
     color: var(--text-color-primary);
 }
 
+body.dark-mode .outline-list-item {
+    background: #1e293b;
+    border-color: #334155;
+    color: #e2e8f0;
+}
+
 body.dark-mode .outline-list-item:hover {
-    background-color: var(--primary-blue);
+    background: linear-gradient(135deg, #334155, #475569);
+    border-color: #475569;
 }
 
 body.dark-mode .outline-list-item.active {
-    background-color: var(--primary-orange);
-    color: var(--text-color-primary);
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: white;
+    border-color: transparent;
 }
 
-body.dark-mode .outline-list-item.active .delete-outline-btn {
-    color: var(--text-color-primary);
+body.dark-mode .outline-list-item.active .delete-outline-btn,
+body.dark-mode .outline-list-item.active .btn-delete-draft {
+    color: rgba(255, 255, 255, 0.9);
 }
 
 body.dark-mode .outline-editor-header h2 {

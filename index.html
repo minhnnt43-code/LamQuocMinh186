@@ -11,9 +11,8 @@
     <meta property="og:title" content="Lâm Quốc Minh - Dashboard">
     <meta property="og:image" content="https://placehold.co/600x400?text=LQM+System">
 
-    <!-- Favicon -->
-    <link rel="icon" type="image/svg+xml"
-        href="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzIiIGhlaWdodD0iMzIiIHZpZXdCb3g9IjAgMCAzMiAzMiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjMyIiBoZWlnaHQ9IjMyIiBmaWxsPSIjMDA1Qjk2Ii8+Cjx0ZXh0IHg9IjE2IiB5PSIyMCIgZm9udC1mYW1pbHk9IkFyaWFsIiBmb250LXNpemU9IjE4IiBmb250LXNpemU9IjE4IiBmb250LXNpemU9IjE4IiBmb250LXNpemU9IjE4IiBmb250LXNpemU9IjE4IiBmaWxsPSJ3aGl0ZSIgdGV4dC1hbmNob3I9Im1pZGRsZSI+QzwvdGV4dD4KPC9zdmc+">
+    <!-- Favicon LQM -->
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
 
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -29,6 +28,8 @@
 
     <!-- [MỚI] UI/UX Overhaul - Phase 9 (30 nâng cấp với UTM Avo & Montserrat) -->
     <link rel="stylesheet" href="css/ui-overhaul.css">
+    <!-- [MỚI] Lifestyle Sections Modern Styling -->
+    <link rel="stylesheet" href="css/lifestyle.css">
 </head>
 
 <body>
@@ -37,21 +38,41 @@
     <div id="login-container">
         <div class="login-box">
             <div class="login-welcome-text">CHÚC BẠN MỘT NGÀY TỐT LÀNH</div>
-            <h2>Đăng nhập hệ thống</h2>
+
+            <!-- Auth Tabs -->
+            <div class="auth-tabs" style="display:flex; justify-content:center; gap:30px; margin-bottom:20px;">
+                <h2 id="tab-login" class="auth-tab active"
+                    style="cursor:pointer; border-bottom: 2px solid var(--primary-orange); padding-bottom:5px;">Đăng
+                    nhập</h2>
+                <h2 id="tab-register" class="auth-tab"
+                    style="cursor:pointer; color:#ccc; border-bottom: 2px solid transparent; padding-bottom:5px;">Đăng
+                    ký</h2>
+            </div>
+
+            <div class="login-form-group" id="group-name" style="display:none;">
+                <label>Tên hiển thị</label>
+                <input type="text" id="auth-name" class="login-input" placeholder="VD: Quốc Minh">
+            </div>
 
             <div class="login-form-group">
                 <label>Email</label>
-                <input type="text" class="login-input" placeholder="admin@example.com">
+                <input type="text" id="auth-email" class="login-input" placeholder="email@example.com">
             </div>
+
             <div class="login-form-group">
                 <label>Mật khẩu</label>
                 <div class="password-wrapper">
-                    <input type="password" class="login-input" placeholder="••••••">
-                    <span class="eye-icon">👁️</span>
+                    <input type="password" id="auth-password" class="login-input" placeholder="••••••">
+                    <span class="eye-icon" onclick="togglePasswordVisibility(this)">👁️</span>
                 </div>
             </div>
 
-            <button class="btn-login-submit">Đăng nhập</button>
+            <div class="login-form-group" id="group-confirm-pass" style="display:none;">
+                <label>Nhập lại mật khẩu</label>
+                <input type="password" id="auth-confirm-pass" class="login-input" placeholder="••••••">
+            </div>
+
+            <button id="btn-auth-submit" class="btn-login-submit">Đăng nhập</button>
             <div class="separator"><span>hoặc</span></div>
 
             <button id="btn-login-google" class="btn-google-custom">
@@ -165,6 +186,27 @@
                     </ul>
                 </li>
 
+                <!-- [MỚI] PHONG CÁCH SỐNG -->
+                <li class="nav-group">
+                    <button class="nav-group-toggle"
+                        style="background: linear-gradient(135deg, #10b981, #06b6d4); color: white;">🧘 Phong cách
+                        sống</button>
+                    <ul class="nav-submenu">
+                        <li><button class="nav-btn" data-target="daily-journal" style="color: #10b981;">📔 Nhật ký hàng
+                                ngày</button></li>
+                        <li><button class="nav-btn" data-target="habit-tracker" style="color: #f59e0b;">🎯 Theo dõi Thói
+                                quen</button></li>
+                        <li><button class="nav-btn" data-target="goals" style="color: #8b5cf6;">🏆 Mục tiêu</button>
+                        </li>
+                        <li><button class="nav-btn" data-target="finance" style="color: #ef4444;">💰 Quản lý Tài
+                                chính</button></li>
+                        <li><button class="nav-btn" data-target="productivity" style="color: #667eea;">⚡ Năng
+                                suất</button></li>
+                        <li><button class="nav-btn" data-target="health" style="color: #10b981;">💚 Sức khỏe</button>
+                        </li>
+                    </ul>
+                </li>
+
                 <!-- [MỚI] AI TOOLS -->
                 <li class="nav-group">
                     <button class="nav-group-toggle"
@@ -202,27 +244,346 @@
 
             <!-- DASHBOARD -->
             <section id="dashboard" class="content-section active">
-                <h1>Tổng quan</h1>
+                <h1>🏠 Tổng quan</h1>
+
+                <!-- NEW: Premium Widgets Row -->
+                <div
+                    style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; margin-bottom: 25px;">
+
+                    <!-- Lịch Vạn Niên Widget -->
+                    <div id="lunar-calendar-widget" style="min-width: 300px;">
+                        <div
+                            style="background: var(--card-bg); padding: 20px; border-radius: 16px; text-align: center; color: #64748b;">
+                            📅 Đang tải Lịch Vạn Niên...
+                        </div>
+                    </div>
+
+                    <!-- Right Column Widgets -->
+                    <div style="display: flex; flex-direction: column; gap: 20px;">
+                        <!-- AI Quote -->
+                        <div id="ai-quote-widget">
+                            <div
+                                style="background: linear-gradient(135deg, #667eea, #764ba2); padding: 25px; border-radius: 16px; color: white; text-align: center;">
+                                💬 Đang tạo châm ngôn...
+                            </div>
+                        </div>
+
+                        <!-- Weather -->
+                        <div id="weather-widget">
+                            <div
+                                style="background: linear-gradient(135deg, #0ea5e9, #06b6d4); padding: 25px; border-radius: 16px; color: white; text-align: center;">
+                                🌤️ Đang tải thời tiết...
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Week at Glance & Upcoming Deadlines -->
+                <div
+                    style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; margin-bottom: 25px;">
+                    <div id="week-glance-widget">
+                        <div
+                            style="background: var(--card-bg); padding: 20px; border-radius: 16px; text-align: center; color: #64748b;">
+                            📊 Đang tải thống kê tuần...
+                        </div>
+                    </div>
+                    <div id="upcoming-deadlines-widget">
+                        <div
+                            style="background: var(--card-bg); padding: 20px; border-radius: 16px; text-align: center; color: #64748b;">
+                            🔔 Đang tải deadline...
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Original Dashboard Cards -->
                 <div id="dashboard-grid">
                     <div class="dashboard-card">
-                        <h3>Hôm nay làm gì?</h3>
+                        <h3>📌 Hôm nay làm gì?</h3>
                         <ul class="dashboard-list" id="dashboard-today-tasks"></ul>
                         <p class="empty-state" id="dashboard-today-tasks-empty">Thảnh thơi, không có việc.</p>
                     </div>
                     <div class="dashboard-card">
-                        <h3>Sắp tới</h3>
+                        <h3>📅 Sắp tới</h3>
                         <ul class="dashboard-list" id="dashboard-upcoming-events"></ul>
                         <p class="empty-state" id="dashboard-upcoming-events-empty">Không có sự kiện.</p>
                     </div>
                     <div class="dashboard-card">
-                        <h3>Việc vặt (To-do)</h3>
+                        <h3>✅ Việc vặt (To-do)</h3>
                         <ul class="dashboard-list" id="dashboard-todo-list"></ul>
                         <p class="empty-state" id="dashboard-todo-list-empty">Trống.</p>
                     </div>
                     <div class="dashboard-card">
-                        <h3>Nháp mới</h3>
+                        <h3>📝 Nháp mới</h3>
                         <ul class="dashboard-list" id="dashboard-recent-drafts"></ul>
                         <p class="empty-state" id="dashboard-recent-drafts-empty">Chưa có bản nháp.</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- TASKS (Công việc) -->
+            <section id="todo-list" class="content-section">
+                <h1>📋 To-do List</h1>
+
+                <!-- AI Todo Toolbar -->
+                <div class="ai-toolbar"
+                    style="background: linear-gradient(135deg, #667eea, #764ba2); padding: 15px 20px; border-radius: 12px; margin-bottom: 15px;">
+                    <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center;">
+                        <span style="color:white; font-weight:600; margin-right:5px;">🤖 AI To-do:</span>
+                        <button id="btn-ai-prioritize" class="ai-btn">🧠 Phân tích ưu tiên</button>
+                        <button id="btn-ai-suggest" class="ai-btn">💡 Gợi ý công việc</button>
+                        <button id="btn-ai-auto-priority" class="ai-btn">🎯 Auto Priority</button>
+                        <button id="todo-btn-generate-subtasks" class="ai-btn">🔀 Chia nhỏ task</button>
+                        <button id="btn-ai-task-review" class="ai-btn">📊 Task Review</button>
+                    </div>
+                </div>
+
+                <!-- Group Creation Bar -->
+                <div class="todo-group-creator"
+                    style="background:linear-gradient(135deg, #f59e0b, #f97316); padding:15px 20px; border-radius:12px; margin-bottom:15px;">
+                    <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center;">
+                        <span style="color:white; font-weight:600;">📁 Tạo nhóm mới:</span>
+                        <input type="text" id="new-group-name" placeholder="Tên nhóm (VD: Công việc Nhóm, Homework...)"
+                            style="flex:1; min-width:200px; padding:10px 15px; border:none; border-radius:8px; font-size:0.9rem;">
+                        <input type="date" id="new-group-deadline"
+                            style="padding:10px 15px; border:none; border-radius:8px; font-size:0.9rem;">
+                        <input type="color" id="new-group-color" value="#667eea"
+                            style="width:40px; height:40px; border:none; border-radius:8px; cursor:pointer;">
+                        <button id="btn-create-todo-group" class="ai-btn"
+                            style="background:rgba(255,255,255,0.9); color:#f59e0b; font-weight:700;">
+                            + Tạo nhóm
+                        </button>
+                    </div>
+                </div>
+
+                <div class="task-controls">
+                    <div class="search-box">
+                        <input type="text" id="task-search" placeholder="Tìm kiếm Task...">
+                    </div>
+                    <div class="task-filter-controls">
+                        <button class="filter-btn active" data-filter="all">Tất cả</button>
+                        <button class="filter-btn" data-filter="incomplete">Chưa xong</button>
+                        <button class="filter-btn" data-filter="important">Quan trọng</button>
+                        <button class="filter-btn" data-filter="today">Hôm nay</button>
+                    </div>
+                    <button class="btn-primary" id="todo-add-task-btn">+ Thêm Tasks</button>
+                </div>
+
+                <!-- Task Input Quick Add (legacy) -->
+                <div style="margin-bottom: 20px;">
+                    <input type="text" id="todo-quick-add-input" placeholder="Thêm nhanh công việc rồi nhấn Enter..."
+                        class="login-input" style="background:var(--card-bg); color:var(--text-color);">
+                </div>
+
+                <!-- Groups Container (Thêm mới) -->
+                <div id="todo-groups-container" style="margin-bottom:20px;"></div>
+
+                <!-- Main Task List Container (legacy - now uses todo-groups-container) -->
+                <div id="todo-task-list" class="task-list-container"></div>
+            </section>
+
+            <!-- TODO ENHANCED (To-do List - Groups) -->
+            <section id="todo-enhanced" class="content-section">
+                <h1>Danh sách Việc cần làm (To-do Groups)</h1>
+                <div class="todo-controls" style="display:flex; gap:10px; margin-bottom:20px; flex-wrap:wrap;">
+                    <input type="text" id="new-todo-group-name" placeholder="Tên nhóm mới..."
+                        style="flex:1; padding:10px; border-radius:8px; border:1px solid #ddd;">
+                    <input type="date" id="new-todo-group-date"
+                        style="padding:10px; border-radius:8px; border:1px solid #ddd;">
+                    <button id="btn-add-todo-group" class="btn-primary">+ Tạo nhóm</button>
+                </div>
+                <div id="todo-groups-container"></div>
+                <p id="todo-groups-empty" class="empty-state">Chưa có nhóm nào. Hãy tạo nhóm mới!</p>
+            </section>
+
+            <!-- PROJECTS -->
+            <section id="projects" class="content-section">
+                <h1>Quản lý Dự án</h1>
+                <div class="task-controls">
+                    <button class="btn-primary" id="btn-open-project-modal">+ Dự án mới</button>
+                </div>
+                <div id="project-list-container" class="project-grid">
+                    <!-- Projects rendered here by renderProjects -->
+                    <p class="empty-state" id="project-list-empty">Chưa có dự án nào.</p>
+                </div>
+            </section>
+
+            <!-- TIME MANAGEMENT (Calendar) -->
+            <section id="time-management" class="content-section">
+                <!-- AI Calendar Assistant Header (như backup cũ) -->
+                <div class="ai-calendar-header"
+                    style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 16px; padding: 20px; margin-bottom: 20px; color: white;">
+                    <div style="display:flex; align-items:center; gap:12px; margin-bottom:15px;">
+                        <span style="font-size:1.8rem;">🤖</span>
+                        <div>
+                            <h2 style="margin:0; font-size:1.3rem;">AI Calendar Assistant</h2>
+                            <p style="margin:0; opacity:0.85; font-size:0.85rem;">Nhập sự kiện bằng ngôn ngữ tự nhiên
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- AI Buttons Row 1 -->
+                    <div style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:12px;">
+                        <button id="btn-ai-cal-optimize" class="ai-btn-premium">🎯 Tối ưu hóa tuần</button>
+                        <button id="btn-ai-meeting" class="ai-btn-premium">🤝 Tìm giờ họp</button>
+                        <button id="btn-ai-time-block" class="ai-btn-premium">⏰ Chia block thời gian</button>
+                        <button id="btn-ai-conflict" class="ai-btn-premium">⚡ Xử lý xung đột</button>
+                        <button id="btn-ai-cal-analytics" class="ai-btn-premium">📊 Phân tích thời gian</button>
+                        <button id="btn-ai-smart-booking" class="ai-btn-premium">📌 Gợi ý slot hẹn</button>
+                        <button id="btn-ai-time-spent" class="ai-btn-premium">⏱️ Thống kê thời gian</button>
+                        <button id="btn-ai-focus-hours" class="ai-btn-premium">🧘 Bảo vệ tập trung</button>
+                    </div>
+
+                    <!-- Quick Add Event -->
+                    <div
+                        style="display:flex; gap:10px; align-items:center; background:rgba(255,255,255,0.15); padding:10px 15px; border-radius:10px;">
+                        <span style="font-size:1.1rem;">✨</span>
+                        <input type="text" id="quick-event-input"
+                            placeholder="Thêm sự kiện nhanh (VD: Họp với thầy thứ 5 lúc 2h chiều)..."
+                            style="flex:1; padding:10px 15px; border:none; border-radius:8px; font-size:0.9rem; background:white;">
+                        <button id="btn-quick-add-event"
+                            style="background:#10b981; color:white; border:none; padding:10px 20px; border-radius:8px; cursor:pointer; font-weight:600;">+
+                            Thêm</button>
+                    </div>
+                </div>
+
+                <!-- Calendar Controls Bar (Row 1) -->
+                <div class="calendar-controls-row"
+                    style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px; margin-bottom:10px; padding:12px 16px; background:var(--card-bg); border-radius:12px; box-shadow:0 2px 8px rgba(0,0,0,0.05);">
+                    <!-- Left: Sync & Export -->
+                    <div style="display:flex; gap:8px;">
+                        <button id="btn-google-sync" class="btn-secondary">🔄 Đồng bộ Google</button>
+                        <button id="btn-export-calendar-csv" class="btn-secondary">📤 Xuất CSV</button>
+                    </div>
+
+                    <!-- Center: Navigation -->
+                    <div style="display:flex; align-items:center; gap:8px;">
+                        <button id="cal-prev-btn" class="nav-btn">&lt;</button>
+                        <span id="current-view-range"
+                            style="font-weight:700; padding:10px 20px; background:linear-gradient(135deg, #667eea, #764ba2); color:white; border-radius:10px; min-width:180px; text-align:center; font-size:0.95rem; box-shadow:0 3px 12px rgba(102,126,234,0.3);"></span>
+                        <button id="cal-next-btn" class="nav-btn">&gt;</button>
+                        <button id="cal-today-btn" class="nav-btn" style="margin-left:8px;">📍 Hôm nay</button>
+                    </div>
+
+                    <!-- Right: Placeholder for alignment -->
+                    <div style="width:200px;"></div>
+                </div>
+
+                <!-- Calendar Controls Bar (Row 2) - View Mode Buttons -->
+                <div class="calendar-controls-row"
+                    style="display:flex; align-items:center; justify-content:center; gap:8px; margin-bottom:15px; padding:10px 16px; background:var(--card-bg); border-radius:12px; box-shadow:0 2px 8px rgba(0,0,0,0.05);">
+                    <span style="font-weight:600; color:#64748b; margin-right:8px;">👁️ Chế độ xem:</span>
+                    <button class="view-btn active" data-calendar-view="week">📅 Tuần</button>
+                    <button class="view-btn" data-calendar-view="month">📆 Tháng</button>
+                    <button class="view-btn" data-calendar-view="year">🗓️ Năm</button>
+                    <button class="view-btn" data-calendar-view="list">📋 List</button>
+                    <button class="view-btn" data-calendar-view="kanban">📊 Kanban</button>
+                    <button class="view-btn" data-calendar-view="timeline">⏳ Timeline</button>
+                </div>
+
+                <!-- Calendar View Container -->
+                <div id="calendar-view" class="calendar-container"
+                    style="background:var(--card-bg); border-radius:12px; padding:15px; min-height:400px;">
+                    <table class="calendar-table" style="width:100%; border-collapse:collapse;">
+                        <thead>
+                            <tr id="calendar-header">
+                                <!-- JS Header -->
+                            </tr>
+                        </thead>
+                        <tbody id="calendar-body">
+                            <!-- JS Body -->
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- DRAFTS -->
+            <section id="drafts" class="content-section">
+                <h1>Bản Nháp</h1>
+
+                <!-- AI Writing Studio Header (like old backup) -->
+                <div class="ai-writing-studio"
+                    style="background: linear-gradient(135deg, #667eea 0%, #f093fb 50%, #f5576c 100%); border-radius: 16px; padding: 20px; margin-bottom: 20px; color: white;">
+                    <div style="display:flex; align-items:center; gap:12px; margin-bottom:15px;">
+                        <span style="font-size:1.8rem;">✨</span>
+                        <div>
+                            <h2 style="margin:0; font-size:1.3rem;">AI Writing Studio</h2>
+                            <p style="margin:0; opacity:0.9; font-size:0.85rem;">Hỗ trợ soạn thảo nội dung chuyên nghiệp
+                                với AI</p>
+                        </div>
+                    </div>
+
+                    <!-- Tone Buttons Row -->
+                    <div style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:12px;">
+                        <span style="font-weight:600; margin-right:8px; opacity:0.9;">🎭 Giọng văn:</span>
+                        <button class="tone-btn active" data-tone="natural">🌿 Tự nhiên</button>
+                        <button class="tone-btn" data-tone="professional">💼 Chuyên nghiệp</button>
+                        <button class="tone-btn" data-tone="creative">🎨 Sáng tạo</button>
+                        <button class="tone-btn" data-tone="friendly">💕 Thân thiện</button>
+                    </div>
+
+                    <!-- AI Action Buttons Row (Colorful) -->
+                    <div style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:12px;">
+                        <button id="btn-ai-write-assist" class="ai-writing-btn"
+                            style="background:linear-gradient(135deg, #4facfe, #00f2fe);">✍️ Viết lại văn bản</button>
+                        <button id="btn-ai-rephrase" class="ai-writing-btn"
+                            style="background:linear-gradient(135deg, #f093fb, #f5576c);">💡 Đặt ý khác</button>
+                        <button id="btn-ai-tone" class="ai-writing-btn"
+                            style="background:linear-gradient(135deg, #667eea, #764ba2);">🎭 Chỉnh giọng văn</button>
+                        <button id="btn-ai-rewrite" class="ai-writing-btn"
+                            style="background:linear-gradient(135deg, #f59e0b, #ef4444);">🔄 Viết lại</button>
+                        <button id="btn-ai-expand" class="ai-writing-btn"
+                            style="background:linear-gradient(135deg, #10b981, #059669);">📈 Mở rộng</button>
+                        <button id="btn-ai-summarize" class="ai-writing-btn"
+                            style="background:linear-gradient(135deg, #8b5cf6, #6366f1);">📄 Tóm tắt</button>
+                        <button id="btn-ai-proofread" class="ai-writing-btn"
+                            style="background:linear-gradient(135deg, #ec4899, #be185d);">✏️ Sửa lỗi chính tả</button>
+                        <button id="btn-ai-translate" class="ai-writing-btn"
+                            style="background:linear-gradient(135deg, #06b6d4, #0891b2);">🌐 Dịch</button>
+                    </div>
+
+                    <!-- Input Textarea -->
+                    <div style="background:rgba(255,255,255,0.15); padding:12px; border-radius:10px;">
+                        <textarea id="ai-writing-input"
+                            placeholder="Nhập hoặc paste nội dung cần AI xử lý... (hoặc chọn text trong editor)"
+                            style="width:100%; padding:12px 15px; border:none; border-radius:8px; resize:none; height:60px; font-size:0.9rem; box-sizing:border-box;"></textarea>
+                    </div>
+                </div>
+
+                <!-- Search & Create Row -->
+                <div style="display:flex; gap:10px; margin-bottom:15px; align-items:center;">
+                    <input type="text" id="drafts-search" placeholder="🔍 Tìm nháp..."
+                        style="flex:1; padding:10px 15px; border:2px solid #e2e8f0; border-radius:10px; font-size:0.9rem;">
+                    <button class="btn-primary" id="btn-create-draft"
+                        style="background:linear-gradient(135deg, #667eea, #764ba2); border:none; padding:10px 20px; border-radius:10px; color:white; font-weight:600; cursor:pointer;">+
+                        Tạo Mới</button>
+                </div>
+
+                <!-- Drafts Layout -->
+                <div class="drafts-layout" style="display: flex; gap: 20px;">
+                    <!-- Left Column: Drafts List -->
+                    <div class="drafts-sidebar"
+                        style="width: 280px; flex-shrink: 0; background: var(--card-bg); border-radius: 12px; padding: 15px; box-shadow:0 2px 8px rgba(0,0,0,0.05);">
+                        <h3 style="margin-top: 0; display:flex; align-items:center; gap:8px;">📋 Danh sách bản nháp</h3>
+                        <div id="drafts-list-column" class="list-container"
+                            style="max-height: 500px; overflow-y: auto;"></div>
+                    </div>
+
+                    <!-- Right Column: Editor -->
+                    <div class="drafts-editor"
+                        style="flex: 1; background: var(--card-bg); border-radius: 12px; padding: 20px; box-shadow:0 2px 8px rgba(0,0,0,0.05);">
+                        <div id="drafts-editor-welcome" style="text-align: center; padding: 50px; color: #666;">
+                            <div style="font-size:4rem; margin-bottom:15px;">📝</div>
+                            <h2 style="margin:0 0 10px;">Chọn bản nháp để xem</h2>
+                            <p style="color:#9ca3af;">Hoặc tạo bản nháp mới bằng nút "+ Tạo Mới" bên trên</p>
+                        </div>
+
+                        <div id="drafts-editor-content" style="display: none;">
+                            <input type="text" id="draft-title-input" placeholder="Tiêu đề bản nháp..."
+                                style="width: 100%; padding: 12px 15px; font-size: 1.2rem; font-weight: bold; border: 2px solid #e2e8f0; border-radius: 10px; margin-bottom: 15px; box-sizing: border-box;">
+                            <div id="editor-container"
+                                style="height: 400px; background: white; border-radius: 10px; border:1px solid #e2e8f0;">
+                            </div>
+                        </div>
                     </div>
                 </div>
             </section>
@@ -346,7 +707,8 @@
                     </div>
                 </div>
                 <div id="admin-timeline-list" style="margin-top:20px;"></div>
-                <p style="text-align:center; color:#666; margin-top:10px;">💡 Mẹo: Kéo thả các ô để thay đổi thứ tự hiển
+                <p style="text-align:center; color:#666; margin-top:10px;">💡 Mẹo: Kéo thả các ô để thay đổi thứ tự
+                    hiển
                     thị.</p>
             </section>
 
@@ -395,7 +757,8 @@
                         <div class="form-group"><label>Họ và tên</label><input type="text" id="pi-fullname"></div>
                         <div class="form-group"><label>Email</label><input type="text" id="pi-email"></div>
                         <div class="form-group"><label>SĐT</label><input type="text" id="pi-phone"></div>
-                        <div class="form-group"><label>Nghề nghiệp</label><input type="text" id="pi-occupation"></div>
+                        <div class="form-group"><label>Nghề nghiệp</label><input type="text" id="pi-occupation">
+                        </div>
                     </div>
                     <h2 style="margin-top:20px; border-top:1px dashed #ccc; padding-top:10px;">2. Hiển thị trên
                         Portfolio</h2>
@@ -421,7 +784,8 @@
                         <h3 style="margin: 0;">Thêm bằng AI</h3>
                     </div>
                     <p style="opacity: 0.9; font-size: 0.9rem; margin-bottom: 15px;">
-                        Nhập tự nhiên như: "Họp với thầy thứ 5 lúc 2h chiều" hoặc "Nộp bài tập Luật Dân sự ngày 15/12 ưu
+                        Nhập tự nhiên như: "Họp với thầy thứ 5 lúc 2h chiều" hoặc "Nộp bài tập Luật Dân sự ngày
+                        15/12 ưu
                         tiên cao"
                     </p>
                     <div style="display: flex; gap: 10px;">
@@ -566,7 +930,8 @@
                         <span style="font-size: 1.8rem;">✍️</span>
                         <div>
                             <h2 style="margin: 0; font-size: 1.3rem;">AI Writing Studio</h2>
-                            <p style="margin: 0; opacity: 0.9; font-size: 0.9rem;">Bộ công cụ viết content chuyên nghiệp
+                            <p style="margin: 0; opacity: 0.9; font-size: 0.9rem;">Bộ công cụ viết content chuyên
+                                nghiệp
                                 với AI</p>
                         </div>
                     </div>
@@ -810,7 +1175,8 @@
                             <span style="font-size: 1.8rem;">🎓</span>
                             <div>
                                 <h2 style="margin: 0; font-size: 1.3rem;">AI Study Assistant</h2>
-                                <p style="margin: 0; opacity: 0.9; font-size: 0.9rem;">Lập kế hoạch học tập thông minh
+                                <p style="margin: 0; opacity: 0.9; font-size: 0.9rem;">Lập kế hoạch học tập thông
+                                    minh
                                     cho sinh viên Luật</p>
                             </div>
                         </div>
@@ -902,7 +1268,8 @@
                                 Nhập các môn học và thời gian bạn có, AI sẽ tối ưu lịch học hiệu quả nhất.
                             </p>
                             <div class="form-group" style="margin: 0;">
-                                <label style="color: white;">Các môn cần học (mỗi dòng: Tên môn - Số giờ cần)</label>
+                                <label style="color: white;">Các môn cần học (mỗi dòng: Tên môn - Số giờ
+                                    cần)</label>
                                 <textarea id="subjects-list" rows="4"
                                     placeholder="Luật Dân sự - 15 giờ&#10;Luật Hình sự - 10 giờ&#10;Luật Hiến pháp - 8 giờ&#10;Tiếng Anh pháp lý - 5 giờ"
                                     style="width: 100%;"></textarea>
@@ -959,7 +1326,8 @@
                             <span style="font-size: 1.8rem;">📅</span>
                             <div>
                                 <h2 style="margin: 0; font-size: 1.3rem;">AI Calendar Assistant</h2>
-                                <p style="margin: 0; opacity: 0.9; font-size: 0.9rem;">Tối ưu lịch và quản lý thời gian
+                                <p style="margin: 0; opacity: 0.9; font-size: 0.9rem;">Tối ưu lịch và quản lý thời
+                                    gian
                                     thông minh</p>
                             </div>
                         </div>
@@ -1009,13 +1377,14 @@
 
                         <!-- [MỚI] Quick Add Event bằng ngôn ngữ tự nhiên -->
                         <div style="margin-top: 15px; background: rgba(0,0,0,0.2); padding: 15px; border-radius: 12px;">
-                            <label style="color: white; font-weight: 600; margin-bottom: 8px; display: block;">⚡ Thêm sự
+                            <label style="color: white; font-weight: 600; margin-bottom: 8px; display: block;">⚡
+                                Thêm sự
                                 kiện nhanh</label>
                             <div style="display: flex; gap: 10px;">
-                                <input type="text" id="quick-event-input"
+                                <input type="text" id="modal-quick-event-input"
                                     placeholder='VD: "Họp với thầy thứ 5 lúc 2h chiều" hoặc "Học Luật Dân sự ngày mai từ 9h-11h"'
                                     style="flex: 1; padding: 12px 15px; border: none; border-radius: 8px; font-size: 1rem;">
-                                <button id="btn-quick-add-event" class="btn-submit"
+                                <button id="btn-modal-quick-add-event" class="btn-submit"
                                     style="background: white; color: #4facfe; font-weight: 600; white-space: nowrap;">
                                     ➕ Thêm
                                 </button>
@@ -1204,7 +1573,8 @@
                         <div id="ai-analytics-welcome" style="text-align: center; padding: 80px 20px; color: #64748b;">
                             <div style="font-size: 4rem; margin-bottom: 20px;">🧠</div>
                             <h2 style="color: #334155; margin-bottom: 10px;">AI Analytics Dashboard</h2>
-                            <p style="max-width: 400px; margin: 0 auto;">Chọn một phân tích từ sidebar để xem insight
+                            <p style="max-width: 400px; margin: 0 auto;">Chọn một phân tích từ sidebar để xem
+                                insight
                                 thông minh về năng suất và tiến độ của bạn.</p>
                         </div>
 
@@ -1293,9 +1663,11 @@
                             <input type="file" id="media-file-input" accept="image/*" style="display: none;">
                             <label for="media-file-input" style="cursor: pointer; display: block;">
                                 <span style="font-size: 2.5rem; display: block; margin-bottom: 10px;">📤</span>
-                                <span style="font-size: 1rem; color: #4f46e5; font-weight: 600;">Click hoặc kéo thả ảnh
+                                <span style="font-size: 1rem; color: #4f46e5; font-weight: 600;">Click hoặc kéo thả
+                                    ảnh
                                     vào đây</span>
-                                <div style="font-size: 0.85rem; color: #64748b; margin-top: 5px;">JPG, PNG, WebP (max
+                                <div style="font-size: 0.85rem; color: #64748b; margin-top: 5px;">JPG, PNG, WebP
+                                    (max
                                     10MB)</div>
                             </label>
                             <div id="media-preview" style="margin-top: 15px; display: none;">
@@ -1308,7 +1680,8 @@
                         <div id="ai-media-welcome" style="text-align: center; padding: 40px 20px; color: #64748b;">
                             <div style="font-size: 3rem; margin-bottom: 15px;">🎨</div>
                             <h3 style="color: #334155; margin-bottom: 10px;">AI Media Tools</h3>
-                            <p style="max-width: 350px; margin: 0 auto; font-size: 0.95rem;">Tải ảnh lên và chọn công cụ
+                            <p style="max-width: 350px; margin: 0 auto; font-size: 0.95rem;">Tải ảnh lên và chọn
+                                công cụ
                                 từ sidebar để bắt đầu xử lý với AI.</p>
                         </div>
 
@@ -1325,6 +1698,359 @@
                             </div>
                             <div id="media-result-content" style="line-height: 1.8; color: #334155;"></div>
                         </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ============================================================ -->
+            <!-- [MỚI] LIFESTYLE & WELLNESS SECTIONS - PHASE 1, 2, 3 -->
+            <!-- ============================================================ -->
+
+            <!-- DAILY JOURNAL -->
+            <section id="daily-journal" class="content-section">
+                <h1>📔 Nhật ký hàng ngày</h1>
+                <div class="journal-mood-picker"
+                    style="background: linear-gradient(135deg, #10b981, #06b6d4); padding: 20px; border-radius: 16px; margin-bottom: 20px; text-align: center;">
+                    <p style="color: white; font-weight: 600; margin-bottom: 15px;">Hôm nay bạn cảm thấy thế nào?</p>
+                    <div style="display: flex; justify-content: center; gap: 15px; flex-wrap: wrap;">
+                        <button class="mood-btn" data-mood="happy"
+                            style="font-size: 2.5rem; background: rgba(255,255,255,0.2); border: none; border-radius: 16px; padding: 15px 20px; cursor: pointer;">😊</button>
+                        <button class="mood-btn" data-mood="excited"
+                            style="font-size: 2.5rem; background: rgba(255,255,255,0.2); border: none; border-radius: 16px; padding: 15px 20px; cursor: pointer;">🤩</button>
+                        <button class="mood-btn" data-mood="neutral"
+                            style="font-size: 2.5rem; background: rgba(255,255,255,0.2); border: none; border-radius: 16px; padding: 15px 20px; cursor: pointer;">😐</button>
+                        <button class="mood-btn" data-mood="sad"
+                            style="font-size: 2.5rem; background: rgba(255,255,255,0.2); border: none; border-radius: 16px; padding: 15px 20px; cursor: pointer;">😢</button>
+                        <button class="mood-btn" data-mood="angry"
+                            style="font-size: 2.5rem; background: rgba(255,255,255,0.2); border: none; border-radius: 16px; padding: 15px 20px; cursor: pointer;">😡</button>
+                        <button class="mood-btn" data-mood="tired"
+                            style="font-size: 2.5rem; background: rgba(255,255,255,0.2); border: none; border-radius: 16px; padding: 15px 20px; cursor: pointer;">😴</button>
+                    </div>
+                    <p id="selected-mood-text" style="color: white; margin-top: 15px; font-size: 0.9rem; opacity: 0.9;">
+                    </p>
+                </div>
+                <div class="journal-entry-form"
+                    style="background: var(--card-bg); padding: 25px; border-radius: 16px; margin-bottom: 20px;">
+                    <div style="display: flex; gap: 15px; margin-bottom: 15px; align-items: center;">
+                        <input type="date" id="journal-date"
+                            style="padding: 12px 15px; border: 2px solid #e2e8f0; border-radius: 10px;">
+                        <h3 style="margin: 0; flex: 1;">✍️ Viết nhật ký hôm nay</h3>
+                    </div>
+                    <textarea id="journal-content" rows="6" placeholder="Hôm nay điều gì làm bạn vui?..."
+                        style="width: 100%; padding: 15px; border: 2px solid #e2e8f0; border-radius: 12px; resize: vertical;"></textarea>
+                    <div style="margin-top: 15px; display: flex; gap: 10px; flex-wrap: wrap;">
+                        <button class="btn-secondary" id="btn-journal-gratitude">🙏 Gợi ý biết ơn</button>
+                        <button class="btn-secondary" id="btn-journal-reflection">💭 Gợi ý suy ngẫm</button>
+                    </div>
+                    <div style="margin-top: 20px; display: flex; gap: 10px;">
+                        <button id="btn-save-journal" class="btn-primary"
+                            style="background: linear-gradient(135deg, #10b981, #06b6d4);">💾 Lưu nhật ký</button>
+                        <button id="btn-ai-analyze-mood" class="btn-submit"
+                            style="background: linear-gradient(135deg, #8b5cf6, #6366f1);">🧠 AI Phân tích cảm
+                            xúc</button>
+                    </div>
+                </div>
+                <div class="journal-history">
+                    <h3>📚 Lịch sử nhật ký</h3>
+                    <div id="journal-entries-list"
+                        style="display: grid; gap: 15px; max-height: 400px; overflow-y: auto;"></div>
+                    <p id="journal-empty" class="empty-state">Chưa có nhật ký nào. Bắt đầu viết ngay!</p>
+                </div>
+            </section>
+
+            <!-- HABIT TRACKER -->
+            <section id="habit-tracker" class="content-section">
+                <h1>🎯 Theo dõi Thói quen</h1>
+                <div class="habit-add-form"
+                    style="background: linear-gradient(135deg, #f59e0b, #f97316); padding: 20px; border-radius: 16px; margin-bottom: 20px;">
+                    <div style="display: flex; gap: 15px; flex-wrap: wrap; align-items: center;">
+                        <input type="text" id="new-habit-name" placeholder="Tên thói quen mới..."
+                            style="flex: 1; min-width: 250px; padding: 14px 18px; border: none; border-radius: 12px;">
+                        <select id="new-habit-frequency" style="padding: 14px 18px; border: none; border-radius: 12px;">
+                            <option value="daily">Hàng ngày</option>
+                            <option value="weekly">Hàng tuần</option>
+                        </select>
+                        <button id="btn-add-habit" class="btn-primary"
+                            style="background: white; color: #f59e0b; font-weight: 700;">+ Thêm</button>
+                    </div>
+                </div>
+                <div class="habits-today"
+                    style="background: var(--card-bg); padding: 25px; border-radius: 16px; margin-bottom: 20px;">
+                    <div
+                        style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                        <h3 style="margin: 0;">📅 Thói quen hôm nay</h3>
+                        <span id="habits-completed-count"
+                            style="background: #dcfce7; color: #16a34a; padding: 8px 15px; border-radius: 20px; font-weight: 600;">0/0</span>
+                    </div>
+                    <div id="habits-list" style="display: grid; gap: 12px;"></div>
+                    <p id="habits-empty" class="empty-state">Chưa có thói quen nào.</p>
+                </div>
+                <div class="habit-stats"
+                    style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
+                    <div
+                        style="background: linear-gradient(135deg, #10b981, #06b6d4); padding: 20px; border-radius: 16px; color: white; text-align: center;">
+                        <div style="font-size: 2rem; font-weight: 700;" id="habit-current-streak">0</div>
+                        <div style="opacity: 0.9;">🔥 Streak hiện tại</div>
+                    </div>
+                    <div
+                        style="background: linear-gradient(135deg, #8b5cf6, #6366f1); padding: 20px; border-radius: 16px; color: white; text-align: center;">
+                        <div style="font-size: 2rem; font-weight: 700;" id="habit-longest-streak">0</div>
+                        <div style="opacity: 0.9;">🏆 Streak dài nhất</div>
+                    </div>
+                    <div
+                        style="background: linear-gradient(135deg, #f59e0b, #f97316); padding: 20px; border-radius: 16px; color: white; text-align: center;">
+                        <div style="font-size: 2rem; font-weight: 700;" id="habit-completion-rate">0%</div>
+                        <div style="opacity: 0.9;">📊 Tỷ lệ hoàn thành</div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- GOALS -->
+            <section id="goals" class="content-section">
+                <h1>🏆 Mục tiêu cá nhân</h1>
+                <div class="goal-add-form"
+                    style="background: linear-gradient(135deg, #8b5cf6, #6366f1); padding: 20px; border-radius: 16px; margin-bottom: 20px;">
+                    <div style="display: flex; gap: 15px; flex-wrap: wrap; align-items: center;">
+                        <input type="text" id="new-goal-name" placeholder="Mục tiêu của bạn..."
+                            style="flex: 2; min-width: 250px; padding: 14px 18px; border: none; border-radius: 12px;">
+                        <input type="date" id="new-goal-deadline"
+                            style="padding: 14px 18px; border: none; border-radius: 12px;">
+                        <select id="new-goal-category" style="padding: 14px 18px; border: none; border-radius: 12px;">
+                            <option value="personal">Cá nhân</option>
+                            <option value="career">Sự nghiệp</option>
+                            <option value="health">Sức khỏe</option>
+                            <option value="finance">Tài chính</option>
+                        </select>
+                        <button id="btn-add-goal" class="btn-primary"
+                            style="background: white; color: #8b5cf6; font-weight: 700;">+ Thêm</button>
+                    </div>
+                </div>
+                <div id="goals-list" style="display: grid; gap: 20px;"></div>
+                <p id="goals-empty" class="empty-state">Chưa có mục tiêu nào.</p>
+                <div style="margin-top: 25px; display: flex; gap: 15px; flex-wrap: wrap;">
+                    <button id="btn-ai-suggest-goals" class="btn-submit"
+                        style="background: linear-gradient(135deg, #667eea, #764ba2);">💡 AI Gợi ý mục tiêu</button>
+                    <button id="btn-ai-goal-breakdown" class="btn-submit"
+                        style="background: linear-gradient(135deg, #10b981, #06b6d4);">📋 Chia nhỏ mục tiêu</button>
+                    <button id="btn-ai-weekly-review" class="btn-submit"
+                        style="background: linear-gradient(135deg, #f59e0b, #f97316);">📊 Tổng kết tuần</button>
+                </div>
+            </section>
+
+            <!-- FINANCE -->
+            <section id="finance" class="content-section">
+                <h1>💰 Quản lý Tài chính</h1>
+                <div class="finance-overview"
+                    style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 15px; margin-bottom: 25px;">
+                    <div
+                        style="background: linear-gradient(135deg, #10b981, #06b6d4); padding: 25px; border-radius: 16px; color: white;">
+                        <div style="opacity: 0.9; margin-bottom: 8px;">💵 Thu nhập tháng này</div>
+                        <div style="font-size: 1.8rem; font-weight: 700;" id="finance-income">0 ₫</div>
+                    </div>
+                    <div
+                        style="background: linear-gradient(135deg, #ef4444, #f97316); padding: 25px; border-radius: 16px; color: white;">
+                        <div style="opacity: 0.9; margin-bottom: 8px;">💸 Chi tiêu tháng này</div>
+                        <div style="font-size: 1.8rem; font-weight: 700;" id="finance-expense">0 ₫</div>
+                    </div>
+                    <div
+                        style="background: linear-gradient(135deg, #8b5cf6, #6366f1); padding: 25px; border-radius: 16px; color: white;">
+                        <div style="opacity: 0.9; margin-bottom: 8px;">💎 Số dư</div>
+                        <div style="font-size: 1.8rem; font-weight: 700;" id="finance-balance">0 ₫</div>
+                    </div>
+                </div>
+                <div class="finance-add-form"
+                    style="background: var(--card-bg); padding: 25px; border-radius: 16px; margin-bottom: 25px;">
+                    <h3 style="margin-top: 0;">➕ Thêm giao dịch</h3>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px;">
+                        <div style="display: flex; gap: 10px;">
+                            <label><input type="radio" name="transaction-type" value="income" checked> Thu nhập</label>
+                            <label><input type="radio" name="transaction-type" value="expense"> Chi tiêu</label>
+                        </div>
+                        <input type="number" id="transaction-amount" placeholder="Số tiền"
+                            style="padding: 12px 15px; border: 2px solid #e2e8f0; border-radius: 10px;">
+                        <select id="transaction-category"
+                            style="padding: 12px 15px; border: 2px solid #e2e8f0; border-radius: 10px;">
+                            <option value="food">🍜 Ăn uống</option>
+                            <option value="transport">🚗 Di chuyển</option>
+                            <option value="shopping">🛍️ Mua sắm</option>
+                            <option value="bills">📄 Hóa đơn</option>
+                            <option value="salary">💼 Lương</option>
+                            <option value="other">📦 Khác</option>
+                        </select>
+                        <input type="text" id="transaction-note" placeholder="Ghi chú..."
+                            style="padding: 12px 15px; border: 2px solid #e2e8f0; border-radius: 10px;">
+                        <button id="btn-add-transaction" class="btn-primary"
+                            style="background: linear-gradient(135deg, #10b981, #06b6d4);">+ Thêm</button>
+                    </div>
+                </div>
+                <div
+                    style="background: linear-gradient(135deg, #667eea, #764ba2); padding: 20px; border-radius: 16px; margin-bottom: 25px;">
+                    <div style="display: flex; gap: 15px; flex-wrap: wrap; align-items: center;">
+                        <span style="color: white; font-weight: 600;">🧠 AI Tài chính:</span>
+                        <button id="btn-ai-budget-advice" class="ai-btn">💡 Tư vấn tiết kiệm</button>
+                        <button id="btn-ai-spending-analysis" class="ai-btn">📊 Phân tích chi tiêu</button>
+                    </div>
+                </div>
+                <div style="background: var(--card-bg); padding: 25px; border-radius: 16px;">
+                    <h3 style="margin-top: 0;">📋 Lịch sử giao dịch</h3>
+                    <div id="transactions-list" style="max-height: 400px; overflow-y: auto;"></div>
+                    <p id="transactions-empty" class="empty-state">Chưa có giao dịch nào.</p>
+                </div>
+            </section>
+
+            <!-- PRODUCTIVITY -->
+            <section id="productivity" class="content-section">
+                <h1>⚡ Năng suất cá nhân</h1>
+                <div class="productivity-score"
+                    style="background: linear-gradient(135deg, #667eea, #764ba2); padding: 30px; border-radius: 20px; text-align: center; margin-bottom: 25px;">
+                    <div style="font-size: 4rem; font-weight: 800; color: white;" id="productivity-score-value">--</div>
+                    <div style="color: rgba(255,255,255,0.9); font-size: 1.2rem; margin-bottom: 15px;">🏆 Điểm năng suất
+                        hôm nay</div>
+                    <div
+                        style="display: flex; justify-content: center; gap: 30px; flex-wrap: wrap; color: rgba(255,255,255,0.8);">
+                        <div>✅ <span id="prod-tasks-done">0</span> tasks</div>
+                        <div>⏱️ <span id="prod-focus-time">0h</span> tập trung</div>
+                        <div>🎯 <span id="prod-habits-done">0</span> thói quen</div>
+                    </div>
+                </div>
+                <div
+                    style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 25px;">
+                    <div style="background: var(--card-bg); padding: 20px; border-radius: 16px; text-align: center;">
+                        <div style="font-size: 2rem;">📈</div>
+                        <div style="font-size: 1.5rem; font-weight: 700; color: #10b981;" id="prod-week-avg">--</div>
+                        <div style="color: #64748b;">Trung bình tuần</div>
+                    </div>
+                    <div style="background: var(--card-bg); padding: 20px; border-radius: 16px; text-align: center;">
+                        <div style="font-size: 2rem;">🔥</div>
+                        <div style="font-size: 1.5rem; font-weight: 700; color: #f59e0b;" id="prod-streak">0</div>
+                        <div style="color: #64748b;">Ngày liên tiếp</div>
+                    </div>
+                    <div style="background: var(--card-bg); padding: 20px; border-radius: 16px; text-align: center;">
+                        <div style="font-size: 2rem;">⭐</div>
+                        <div style="font-size: 1.5rem; font-weight: 700; color: #8b5cf6;" id="prod-best-day">--</div>
+                        <div style="color: #64748b;">Ngày tốt nhất</div>
+                    </div>
+                </div>
+                <div style="background: var(--card-bg); padding: 25px; border-radius: 16px; margin-bottom: 25px;">
+                    <h3 style="margin-top: 0;">🧠 AI Productivity Assistant</h3>
+                    <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+                        <button id="btn-ai-smart-schedule" class="btn-submit"
+                            style="background: linear-gradient(135deg, #667eea, #764ba2);">📅 Tự động xếp lịch</button>
+                        <button id="btn-ai-focus-suggest" class="btn-submit"
+                            style="background: linear-gradient(135deg, #10b981, #06b6d4);">🎯 Đề xuất Focus
+                            Time</button>
+                        <button id="btn-ai-burnout-check" class="btn-submit"
+                            style="background: linear-gradient(135deg, #ef4444, #f97316);">⚠️ Kiểm tra Burnout</button>
+                    </div>
+                </div>
+                <div style="background: var(--card-bg); padding: 25px; border-radius: 16px;">
+                    <h3 style="margin-top: 0;">🔥 Biểu đồ nhiệt thời gian</h3>
+                    <div id="time-heatmap"
+                        style="min-height: 150px; display: flex; align-items: center; justify-content: center; color: #64748b;">
+                        <p>📊 Bắt đầu làm việc để xem biểu đồ!</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- HEALTH & WELLNESS -->
+            <section id="health" class="content-section">
+                <h1>💚 Sức khỏe & Wellness</h1>
+
+                <!-- Health Stats -->
+                <div
+                    style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; margin-bottom: 25px;">
+                    <div
+                        style="background: linear-gradient(135deg, #06b6d4, #0ea5e9); padding: 25px; border-radius: 16px; color: white; text-align: center;">
+                        <div style="font-size: 2.5rem;">💧</div>
+                        <div style="font-size: 1.8rem; font-weight: 700;" id="health-water-count">0</div>
+                        <div style="opacity: 0.9;">/ 8 ly nước</div>
+                    </div>
+                    <div
+                        style="background: linear-gradient(135deg, #8b5cf6, #a855f7); padding: 25px; border-radius: 16px; color: white; text-align: center;">
+                        <div style="font-size: 2.5rem;">😴</div>
+                        <div style="font-size: 1.8rem; font-weight: 700;" id="health-sleep-hours">--</div>
+                        <div style="opacity: 0.9;">giờ ngủ</div>
+                    </div>
+                    <div
+                        style="background: linear-gradient(135deg, #f59e0b, #f97316); padding: 25px; border-radius: 16px; color: white; text-align: center;">
+                        <div style="font-size: 2.5rem;">🏃</div>
+                        <div style="font-size: 1.8rem; font-weight: 700;" id="health-exercise-mins">0</div>
+                        <div style="opacity: 0.9;">phút vận động</div>
+                    </div>
+                    <div
+                        style="background: linear-gradient(135deg, #10b981, #06b6d4); padding: 25px; border-radius: 16px; color: white; text-align: center;">
+                        <div style="font-size: 2.5rem;">💆</div>
+                        <div style="font-size: 1.8rem; font-weight: 700;" id="health-stress-level">--</div>
+                        <div style="opacity: 0.9;">mức stress</div>
+                    </div>
+                </div>
+
+                <!-- Water Tracker -->
+                <div style="background: var(--card-bg); padding: 25px; border-radius: 16px; margin-bottom: 25px;">
+                    <h3 style="margin-top: 0;">💧 Theo dõi nước uống</h3>
+                    <div style="display: flex; gap: 10px; flex-wrap: wrap; align-items: center;">
+                        <div id="water-glasses" style="display: flex; gap: 8px; flex-wrap: wrap;"></div>
+                        <button id="btn-add-water" class="btn-primary"
+                            style="background: linear-gradient(135deg, #06b6d4, #0ea5e9);">+ Thêm ly</button>
+                        <button id="btn-reset-water"
+                            style="background: #f1f5f9; border: none; padding: 10px 15px; border-radius: 10px; cursor: pointer;">🔄
+                            Reset</button>
+                    </div>
+                </div>
+
+                <!-- Log Activities -->
+                <div style="background: var(--card-bg); padding: 25px; border-radius: 16px; margin-bottom: 25px;">
+                    <h3 style="margin-top: 0;">📝 Ghi nhận hoạt động</h3>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
+                        <div>
+                            <label style="font-size: 0.9rem; color: #64748b;">😴 Giờ ngủ tối qua</label>
+                            <input type="number" id="health-sleep-input" placeholder="VD: 7" min="0" max="24" step="0.5"
+                                style="width: 100%; padding: 12px; border: 2px solid #e2e8f0; border-radius: 10px; margin-top: 8px;">
+                        </div>
+                        <div>
+                            <label style="font-size: 0.9rem; color: #64748b;">🏃 Phút vận động</label>
+                            <input type="number" id="health-exercise-input" placeholder="VD: 30" min="0" step="5"
+                                style="width: 100%; padding: 12px; border: 2px solid #e2e8f0; border-radius: 10px; margin-top: 8px;">
+                        </div>
+                        <div>
+                            <label style="font-size: 0.9rem; color: #64748b;">💆 Mức stress (1-10)</label>
+                            <input type="range" id="health-stress-input" min="1" max="10" value="5"
+                                style="width: 100%; margin-top: 15px;">
+                        </div>
+                    </div>
+                    <button id="btn-save-health" class="btn-primary"
+                        style="margin-top: 20px; background: linear-gradient(135deg, #10b981, #06b6d4);">💾 Lưu hôm
+                        nay</button>
+                </div>
+
+                <!-- AI Health Tools -->
+                <div
+                    style="background: linear-gradient(135deg, #10b981, #06b6d4); padding: 20px; border-radius: 16px; margin-bottom: 25px;">
+                    <div style="display: flex; gap: 15px; flex-wrap: wrap; align-items: center;">
+                        <span style="color: white; font-weight: 600;">🧠 AI Sức khỏe:</span>
+                        <button id="btn-ai-health-tips" class="ai-btn">💡 Mẹo sức khỏe</button>
+                        <button id="btn-ai-meal-suggest" class="ai-btn">🍽️ Gợi ý bữa ăn</button>
+                        <button id="btn-ai-sleep-analysis" class="ai-btn">😴 Phân tích giấc ngủ</button>
+                    </div>
+                </div>
+
+                <!-- Break Reminder -->
+                <div style="background: var(--card-bg); padding: 25px; border-radius: 16px;">
+                    <h3 style="margin-top: 0;">⏰ Nhắc nghỉ giải lao</h3>
+                    <div style="display: flex; gap: 15px; align-items: center; flex-wrap: wrap;">
+                        <select id="break-interval"
+                            style="padding: 12px 15px; border: 2px solid #e2e8f0; border-radius: 10px;">
+                            <option value="25">Mỗi 25 phút (Pomodoro)</option>
+                            <option value="45">Mỗi 45 phút</option>
+                            <option value="60">Mỗi 60 phút</option>
+                        </select>
+                        <button id="btn-start-break-timer" class="btn-primary"
+                            style="background: linear-gradient(135deg, #8b5cf6, #6366f1);">▶️ Bắt đầu</button>
+                        <button id="btn-stop-break-timer"
+                            style="background: #f1f5f9; border: none; padding: 10px 15px; border-radius: 10px; cursor: pointer;">⏹️
+                            Dừng</button>
+                        <span id="break-timer-display"
+                            style="font-size: 1.5rem; font-weight: 700; color: #667eea;">--:--</span>
                     </div>
                 </div>
             </section>
@@ -1420,7 +2146,8 @@
                     <!-- [MỚI] Theme Presets -->
                     <div class="settings-card" style="grid-column: span 2;">
                         <h3>🎨 Theme Presets</h3>
-                        <p style="color:#666;font-size:0.85rem;margin-bottom:12px;">Chọn giao diện màu sắc yêu thích</p>
+                        <p style="color:#666;font-size:0.85rem;margin-bottom:12px;">Chọn giao diện màu sắc yêu thích
+                        </p>
                         <div style="display:flex;gap:8px;flex-wrap:wrap;">
                             <button class="theme-btn" data-theme="default"
                                 style="padding:10px 16px;background:#667eea;color:white;border:none;border-radius:8px;cursor:pointer;">Mặc
@@ -1449,11 +2176,63 @@
                         </div>
                     </div>
 
+                    <!-- [MỚI] HOROSCOPE SETTINGS - Tử vi cá nhân hóa -->
+                    <div class="settings-card" id="horoscope-settings-form" style="grid-column: span 2;">
+                        <h3>🔮 Cài đặt Tử vi & Châm ngôn</h3>
+                        <p style="color:#666;font-size:0.85rem;margin-bottom:15px;">Cá nhân hóa châm ngôn và tử vi theo
+                            thông tin của bạn</p>
+                        <div
+                            style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
+                            <div>
+                                <label style="font-size: 0.9rem; color: #64748b; display: block; margin-bottom: 8px;">🎂
+                                    Ngày sinh</label>
+                                <input type="date" id="horoscope-birthdate"
+                                    style="width: 100%; padding: 12px; border: 2px solid #e2e8f0; border-radius: 10px;">
+                            </div>
+                            <div>
+                                <label style="font-size: 0.9rem; color: #64748b; display: block; margin-bottom: 8px;">⭐
+                                    Cung hoàng đạo</label>
+                                <select id="horoscope-zodiac"
+                                    style="width: 100%; padding: 12px; border: 2px solid #e2e8f0; border-radius: 10px;">
+                                    <option value="">-- Chọn cung --</option>
+                                    <option value="Bạch Dương">♈ Bạch Dương (21/3 - 19/4)</option>
+                                    <option value="Kim Ngưu">♉ Kim Ngưu (20/4 - 20/5)</option>
+                                    <option value="Song Tử">♊ Song Tử (21/5 - 20/6)</option>
+                                    <option value="Cự Giải">♋ Cự Giải (21/6 - 22/7)</option>
+                                    <option value="Sư Tử">♌ Sư Tử (23/7 - 22/8)</option>
+                                    <option value="Xử Nữ">♍ Xử Nữ (23/8 - 22/9)</option>
+                                    <option value="Thiên Bình">♎ Thiên Bình (23/9 - 22/10)</option>
+                                    <option value="Bọ Cạp">♏ Bọ Cạp (23/10 - 21/11)</option>
+                                    <option value="Nhân Mã">♐ Nhân Mã (22/11 - 21/12)</option>
+                                    <option value="Ma Kết">♑ Ma Kết (22/12 - 19/1)</option>
+                                    <option value="Bảo Bình">♒ Bảo Bình (20/1 - 18/2)</option>
+                                    <option value="Song Ngư">♓ Song Ngư (19/2 - 20/3)</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label style="font-size: 0.9rem; color: #64748b; display: block; margin-bottom: 8px;">👤
+                                    Giới tính</label>
+                                <select id="horoscope-gender"
+                                    style="width: 100%; padding: 12px; border: 2px solid #e2e8f0; border-radius: 10px;">
+                                    <option value="">-- Chọn --</option>
+                                    <option value="Nam">Nam</option>
+                                    <option value="Nữ">Nữ</option>
+                                    <option value="Khác">Khác</option>
+                                </select>
+                            </div>
+                        </div>
+                        <button id="btn-save-horoscope" class="btn-submit"
+                            style="margin-top: 20px; background: linear-gradient(135deg, #8b5cf6, #6366f1);">
+                            💾 Lưu cài đặt tử vi
+                        </button>
+                    </div>
+
                     <!-- [MỚI] CÀI ĐẶT AI - Hỗ trợ nhiều providers với Auto-Fallback -->
                     <div class="settings-card" style="grid-column: span 2;">
                         <h3>🤖 Trợ lý AI</h3>
                         <p style="color: #666; margin-bottom: 15px; font-size: 0.9rem;">
-                            Cấu hình API để sử dụng các tính năng AI thông minh. Khuyến nghị dùng Groq (miễn phí 100%).
+                            Cấu hình API để sử dụng các tính năng AI thông minh. Khuyến nghị dùng Groq (miễn phí
+                            100%).
                         </p>
 
                         <!-- Active Provider Info -->
@@ -1467,7 +2246,8 @@
                             style="display: flex; justify-content: space-between; align-items: center; padding: 12px 15px; background: #e8f5e9; border-radius: 10px; margin-bottom: 15px;">
                             <div>
                                 <strong style="color: #2e7d32;">🔄 Auto-Fallback</strong>
-                                <p style="margin: 0; font-size: 0.8rem; color: #558b2f;">Tự động chuyển provider khi gặp
+                                <p style="margin: 0; font-size: 0.8rem; color: #558b2f;">Tự động chuyển provider khi
+                                    gặp
                                     lỗi/rate limit</p>
                             </div>
                             <label class="toggle-switch">
@@ -1555,7 +2335,8 @@
                                         style="flex: 1; background: #2e7d32;">🧪 Test</button>
                                 </div>
                                 <a href="https://console.groq.com" target="_blank"
-                                    style="font-size: 0.75rem; color: #1b5e20; display: block; margin-top: 8px;">🔗 Lấy
+                                    style="font-size: 0.75rem; color: #1b5e20; display: block; margin-top: 8px;">🔗
+                                    Lấy
                                     API Key miễn phí</a>
                             </div>
 
@@ -1569,7 +2350,8 @@
                                         style="font-size: 0.75rem; padding: 2px 8px; border-radius: 10px; background: #fff3cd; color: #856404;">Chưa
                                         cấu hình</span>
                                 </div>
-                                <p style="font-size: 0.75rem; color: #1565c0; margin-bottom: 10px;">DeepSeek V3 - Rất
+                                <p style="font-size: 0.75rem; color: #1565c0; margin-bottom: 10px;">DeepSeek V3 -
+                                    Rất
                                     mạnh, tặng $5 credit khi đăng ký</p>
                                 <input type="password" id="deepseek-api-key"
                                     placeholder="Nhập DeepSeek API Key (sk-...)"
@@ -1581,7 +2363,8 @@
                                         style="flex: 1; background: #1565c0;">🧪 Test</button>
                                 </div>
                                 <a href="https://platform.deepseek.com" target="_blank"
-                                    style="font-size: 0.75rem; color: #0d47a1; display: block; margin-top: 8px;">🔗 Lấy
+                                    style="font-size: 0.75rem; color: #0d47a1; display: block; margin-top: 8px;">🔗
+                                    Lấy
                                     API Key (tặng $5)</a>
                             </div>
 
@@ -1589,22 +2372,26 @@
                             <div style="padding: 15px; background: #f9f9f9; border-radius: 10px;">
                                 <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
                                     <input type="radio" name="ai-provider" id="provider-google" value="google">
-                                    <label for="provider-google" style="font-weight: 600;">✨ Google AI (Gemini)</label>
+                                    <label for="provider-google" style="font-weight: 600;">✨ Google AI
+                                        (Gemini)</label>
                                     <span id="google-ai-status"
                                         style="font-size: 0.75rem; padding: 2px 8px; border-radius: 10px; background: #eee;">Chưa
                                         cấu hình</span>
                                 </div>
-                                <p style="font-size: 0.75rem; color: #666; margin-bottom: 10px;">Gemini 2.0 Flash - Free
+                                <p style="font-size: 0.75rem; color: #666; margin-bottom: 10px;">Gemini 2.0 Flash -
+                                    Free
                                     tier giới hạn</p>
                                 <input type="password" id="google-api-key" placeholder="Nhập Google AI API Key..."
                                     style="width: 100%; padding: 10px; border: 2px solid #ddd; border-radius: 8px; margin-bottom: 10px;">
                                 <div style="display: flex; gap: 10px;">
-                                    <button class="btn-submit" id="btn-save-google-key" style="flex: 1;">💾 Lưu</button>
+                                    <button class="btn-submit" id="btn-save-google-key" style="flex: 1;">💾
+                                        Lưu</button>
                                     <button class="btn-submit" id="btn-test-google-ai"
                                         style="flex: 1; background: #4285F4;">🧪 Test</button>
                                 </div>
                                 <a href="https://aistudio.google.com/app/apikey" target="_blank"
-                                    style="font-size: 0.75rem; color: #4285F4; display: block; margin-top: 8px;">🔗 Lấy
+                                    style="font-size: 0.75rem; color: #4285F4; display: block; margin-top: 8px;">🔗
+                                    Lấy
                                     API Key</a>
                             </div>
 
@@ -1617,17 +2404,20 @@
                                         style="font-size: 0.75rem; padding: 2px 8px; border-radius: 10px; background: #eee;">Chưa
                                         cấu hình</span>
                                 </div>
-                                <p style="font-size: 0.75rem; color: #666; margin-bottom: 10px;">GPT-3.5/4 - Cần trả phí
+                                <p style="font-size: 0.75rem; color: #666; margin-bottom: 10px;">GPT-3.5/4 - Cần trả
+                                    phí
                                 </p>
                                 <input type="password" id="openai-api-key" placeholder="Nhập OpenAI API Key..."
                                     style="width: 100%; padding: 10px; border: 2px solid #ddd; border-radius: 8px; margin-bottom: 10px;">
                                 <div style="display: flex; gap: 10px;">
-                                    <button class="btn-submit" id="btn-save-openai-key" style="flex: 1;">💾 Lưu</button>
+                                    <button class="btn-submit" id="btn-save-openai-key" style="flex: 1;">💾
+                                        Lưu</button>
                                     <button class="btn-submit" id="btn-test-openai"
                                         style="flex: 1; background: #10A37F;">🧪 Test</button>
                                 </div>
                                 <a href="https://platform.openai.com/api-keys" target="_blank"
-                                    style="font-size: 0.75rem; color: #10A37F; display: block; margin-top: 8px;">🔗 Lấy
+                                    style="font-size: 0.75rem; color: #10A37F; display: block; margin-top: 8px;">🔗
+                                    Lấy
                                     API Key</a>
                             </div>
                         </div>
@@ -1641,8 +2431,38 @@
                     </div>
                     <div class="settings-card">
                         <h3>Dữ liệu</h3>
-                        <button class="btn-submit" style="background:var(--danger-color);" id="btn-clear-data">Xóa dữ
+                        <button class="btn-submit" style="background:var(--danger-color);" id="btn-clear-data">Xóa
+                            dữ
                             liệu</button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SECTION: QUẢN LÝ TÀI KHOẢN (ADMIN ONLY) -->
+            <section id="admin-user-management" class="content-section">
+                <h1>Quản lý Tài khoản (Admin Mode)</h1>
+                <div class="form-container">
+                    <div style="display: flex; gap: 10px; margin-bottom: 20px;">
+                        <input type="text" id="admin-search-user" placeholder="Tìm kiếm người dùng (Tên, Email)..."
+                            style="flex: 1; padding: 12px; border-radius: 8px; border: 1px solid #ccc;">
+                    </div>
+
+                    <div class="proof-table-container">
+                        <table class="proof-table" id="admin-users-table">
+                            <thead>
+                                <tr>
+                                    <th>Avatar</th>
+                                    <th>Tên hiển thị</th>
+                                    <th>Email</th>
+                                    <th>Ngày tạo</th>
+                                    <th>Vai trò</th>
+                                    <th>Hành động</th>
+                                </tr>
+                            </thead>
+                            <tbody id="admin-user-list-body">
+                                <!-- User list populated by JS -->
+                            </tbody>
+                        </table>
                     </div>
                 </div>
             </section>
@@ -1959,6 +2779,8 @@
     <!-- SortableJS (Quan trọng cho Timeline) -->
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
     <script type="module" src="js/main.js"></script>
+
+
 
 </body>
 

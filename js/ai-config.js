@@ -42,7 +42,10 @@ export const AI_CONFIG = {
         calendarOptimizer: true,
         smartSearch: true,
         chatbot: true
-    }
+    },
+
+    // [MỚI] Global Shared Keys (Load từ Firebase system_config)
+    globalKeys: {}
 };
 
 // Danh sách tất cả providers được hỗ trợ
@@ -77,10 +80,33 @@ export const SUPPORTED_PROVIDERS = {
     }
 };
 
-// Hàm lấy API key từ localStorage
+// Hàm lấy API key: Ưu tiên LocalStorage > Global Shared Key
 export const getApiKey = (provider = AI_CONFIG.provider) => {
-    const key = localStorage.getItem(`ai_api_key_${provider}`);
-    return key || '';
+    // 1. Check Personal Key
+    const localKey = localStorage.getItem(`ai_api_key_${provider}`);
+    if (localKey && localKey.length > 5) return localKey;
+
+    // 2. Check Global Key (Shared)
+    if (AI_CONFIG.globalKeys && AI_CONFIG.globalKeys[provider]) {
+        return AI_CONFIG.globalKeys[provider];
+    }
+
+    return '';
+};
+
+// [MỚI] Fetch global keys từ Firebase
+export const fetchGlobalKeys = async () => {
+    try {
+        // Dynamic import để tránh cycle dependency nếu không cẩn thận
+        const { getSystemConfig } = await import('./firebase.js');
+        const config = await getSystemConfig('ai_keys');
+        if (config) {
+            AI_CONFIG.globalKeys = config;
+            console.log('Processed Global AI Keys:', Object.keys(config));
+        }
+    } catch (e) {
+        console.warn('Cannot fetch global AI keys:', e);
+    }
 };
 
 // Hàm lưu API key vào localStorage (tự động làm sạch ký tự không hợp lệ)
@@ -88,15 +114,12 @@ export const setApiKey = (provider, key) => {
     // Loại bỏ ký tự không phải ASCII và khoảng trắng thừa
     const sanitizedKey = key.replace(/[^\x00-\x7F]/g, '').trim();
     localStorage.setItem(`ai_api_key_${provider}`, sanitizedKey);
-    if (provider === 'google') {
-        AI_CONFIG.googleApiKey = sanitizedKey;
-    } else if (provider === 'openai') {
-        AI_CONFIG.openaiApiKey = sanitizedKey;
-    } else if (provider === 'groq') {
-        AI_CONFIG.groqApiKey = sanitizedKey;
-    } else if (provider === 'deepseek') {
-        AI_CONFIG.deepseekApiKey = sanitizedKey;
-    }
+
+    // Update config instance ngay lập tức
+    if (provider === 'google') AI_CONFIG.googleApiKey = sanitizedKey;
+    else if (provider === 'openai') AI_CONFIG.openaiApiKey = sanitizedKey;
+    else if (provider === 'groq') AI_CONFIG.groqApiKey = sanitizedKey;
+    else if (provider === 'deepseek') AI_CONFIG.deepseekApiKey = sanitizedKey;
 };
 
 // Hàm lấy provider hiện tại

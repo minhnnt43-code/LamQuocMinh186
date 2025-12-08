@@ -2,20 +2,23 @@
 
 // 1. IMPORT THƯ VIỆN TỪ CDN (GIỮ NGUYÊN ĐỂ CHẠY TRÊN TRÌNH DUYỆT)
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-import { 
-    getAuth, 
-    signInWithPopup, 
-    GoogleAuthProvider, 
-    signOut, 
-    onAuthStateChanged 
+import {
+    getAuth,
+    signInWithPopup,
+    GoogleAuthProvider,
+    signOut,
+    onAuthStateChanged,
+    createUserWithEmailAndPassword,
+    signInWithEmailAndPassword,
+    updateProfile
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 
-import { 
-    getFirestore, 
-    doc, 
-    getDoc, 
-    setDoc, 
-    collection, 
+import {
+    getFirestore,
+    doc,
+    getDoc,
+    setDoc,
+    collection,
     getDocs,
     addDoc,
     deleteDoc,
@@ -25,23 +28,23 @@ import {
     where
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-import { 
-    getStorage, 
-    ref, 
-    uploadBytes, 
-    getDownloadURL, 
-    deleteObject 
+import {
+    getStorage,
+    ref,
+    uploadBytes,
+    getDownloadURL,
+    deleteObject
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-storage.js";
 
 // 2. CẤU HÌNH FIREBASE (ĐÃ CẬP NHẬT SANG DỰ ÁN MỚI: lamquocminhidvn)
 const firebaseConfig = {
-  apiKey: "AIzaSyBcmFqZahUIqeCcqszwRB641nBQySydF6c",
-  authDomain: "websitecualqm.firebaseapp.com",
-  projectId: "websitecualqm",
-  storageBucket: "websitecualqm.firebasestorage.app",
-  messagingSenderId: "55037681358",
-  appId: "1:55037681358:web:ab13413fdb63bf2f8dba9f",
-  measurementId: "G-F34WEDPYW5"
+    apiKey: "AIzaSyBcmFqZahUIqeCcqszwRB641nBQySydF6c",
+    authDomain: "websitecualqm.firebaseapp.com",
+    projectId: "websitecualqm",
+    storageBucket: "websitecualqm.firebasestorage.app",
+    messagingSenderId: "55037681358",
+    appId: "1:55037681358:web:ab13413fdb63bf2f8dba9f",
+    measurementId: "G-F34WEDPYW5"
 };
 
 // 3. KHỞI TẠO APP
@@ -55,15 +58,37 @@ export const storage = getStorage(app);
 export const provider = new GoogleAuthProvider();
 
 // Quyền 1: Để xem Lịch (cho module Lịch biểu)
-provider.addScope('https://www.googleapis.com/auth/calendar.events.readonly'); 
+provider.addScope('https://www.googleapis.com/auth/calendar.events.readonly');
 
 // Quyền 2: Để xem file và dung lượng Google Drive (cho module Drive)
 // QUAN TRỌNG: Bạn phải bật API này trên Google Cloud của dự án "lamquocminhidvn"
-provider.addScope('https://www.googleapis.com/auth/drive.readonly'); 
+provider.addScope('https://www.googleapis.com/auth/drive.readonly');
 
 // ============================================================
 // A. CÁC HÀM XÁC THỰC (AUTH)
 // ============================================================
+
+export const registerWithEmail = async (email, password, displayName) => {
+    try {
+        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+        const user = userCredential.user;
+        await updateProfile(user, { displayName: displayName });
+        return user;
+    } catch (error) {
+        console.error("Lỗi đăng ký:", error);
+        throw error;
+    }
+};
+
+export const loginWithEmail = async (email, password) => {
+    try {
+        const userCredential = await signInWithEmailAndPassword(auth, email, password);
+        return userCredential.user;
+    } catch (error) {
+        console.error("Lỗi đăng nhập Email:", error);
+        throw error;
+    }
+};
 
 export const loginWithGoogle = async () => {
     try {
@@ -71,10 +96,10 @@ export const loginWithGoogle = async () => {
         // Lấy Google Access Token để gọi API
         const credential = GoogleAuthProvider.credentialFromResult(result);
         const token = credential.accessToken;
-        
+
         // Lưu token vào localStorage để dùng cho drive.js và calendar
         if (token) localStorage.setItem('google_access_token', token);
-        
+
         return result.user;
     } catch (error) {
         console.error("Lỗi đăng nhập:", error);
@@ -139,8 +164,35 @@ export const getAllUsers = async () => {
 };
 
 // ============================================================
-// C. FIRESTORE: SUB-COLLECTIONS
+// B2. FIRESTORE: SYSTEM CONFIG (SHARED API KEYS)
 // ============================================================
+
+/**
+ * Lấy cấu hình hệ thống (VD: API Key chung)
+ */
+export const getSystemConfig = async (configId) => {
+    try {
+        const docRef = doc(db, "system_config", configId);
+        const docSnap = await getDoc(docRef);
+        return docSnap.exists() ? docSnap.data() : null;
+    } catch (error) {
+        console.error(`Lỗi lấy system_config/${configId}:`, error);
+        return null; // Không throw lỗi để app vẫn chạy
+    }
+};
+
+/**
+ * Lưu cấu hình hệ thống (Chỉ Admin mới gọi được - check auth ở UI)
+ */
+export const saveSystemConfig = async (configId, data) => {
+    try {
+        const docRef = doc(db, "system_config", configId);
+        await setDoc(docRef, { ...data, updatedAt: new Date().toISOString() }, { merge: true });
+    } catch (error) {
+        console.error(`Lỗi lưu system_config/${configId}:`, error);
+        throw error;
+    }
+};
 
 export const addSubCollectionDoc = async (uid, subColName, data) => {
     try {
@@ -193,11 +245,11 @@ export const getAppointmentRequests = async (uid, status = 'all') => {
     try {
         const colRef = collection(db, `users/${uid}/appointment_requests`);
         let q = query(colRef, orderBy('createdAt', 'desc'));
-        
+
         if (status !== 'all') {
             q = query(colRef, where('status', '==', status), orderBy('createdAt', 'desc'));
         }
-        
+
         const snapshot = await getDocs(q);
         return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
     } catch (error) {
@@ -215,7 +267,7 @@ export const uploadFileToStorage = async (file, path) => {
         const storageRef = ref(storage, path);
         const snapshot = await uploadBytes(storageRef, file);
         const downloadURL = await getDownloadURL(snapshot.ref);
-        
+
         return {
             name: file.name,
             type: file.type,
@@ -256,9 +308,9 @@ export const getGlobalTemplates = async () => {
 
 export const createGlobalTemplate = async (templateData) => {
     try {
-        await addDoc(collection(db, "global_templates"), { 
-            ...templateData, 
-            createdAt: new Date().toISOString() 
+        await addDoc(collection(db, "global_templates"), {
+            ...templateData,
+            createdAt: new Date().toISOString()
         });
     } catch (error) {
         console.error("Lỗi tạo mẫu:", error);

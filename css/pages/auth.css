@@ -129,19 +129,27 @@
 .login-input {
     width: 100%;
     padding: 14px;
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: #ffffff;
+    /* FORCE WHITE BG */
+    border: 1px solid #e2e8f0;
     border-radius: 12px;
     font-size: 1rem;
-    color: var(--white);
+    color: #1e293b;
+    /* FORCE DARK TEXT */
+    font-weight: 600;
     transition: all 0.3s;
+}
+
+.login-input::placeholder {
+    color: #94a3b8;
+    font-weight: 500;
 }
 
 .login-input:focus {
     border-color: var(--aura-color-1);
     outline: none;
-    background: rgba(255, 255, 255, 0.1);
-    box-shadow: 0 0 15px rgba(0, 91, 150, 0.3);
+    background: #ffffff;
+    box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
 }
 
 .password-wrapper {

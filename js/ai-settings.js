@@ -8,23 +8,34 @@ import {
     setProvider,
     isApiConfigured,
     getConfiguredProviders,
-    isFallbackEnabled,
     setFallbackEnabled,
-    SUPPORTED_PROVIDERS
+    isFallbackEnabled,
+    SUPPORTED_PROVIDERS,
+    fetchGlobalKeys
 } from './ai-config.js';
 import { aiService } from './ai-service.js';
 import { showNotification } from './common.js';
+import { auth, saveSystemConfig } from './firebase.js';
 
 /**
  * Khởi tạo UI Settings cho AI
  */
-export const setupAISettings = () => {
+export const setupAISettings = async () => {
+    // [MỚI] Load Shared Keys từ Firebase
+    await fetchGlobalKeys();
+
     // Load trạng thái hiện tại
     updateAIStatusUI();
     loadSavedKeys();
     loadSavedProvider();
     loadFallbackSetting();
-    updateTokenStatsUI(); // (#51) Load token stats
+    updateTokenStatsUI();
+
+    // Kiểm tra ADMIN để hiện menu cài đặt hệ thống
+    const user = auth.currentUser;
+    if (user && user.email === 'lqm186005@gmail.com') {
+        renderAdminAISettings();
+    }
 
     // Reset Token Button (#51)
     const resetTokenBtn = document.getElementById('btn-reset-tokens');
@@ -333,3 +344,70 @@ const updateTokenStatsUI = () => {
 
 // Export để có thể gọi từ bên ngoài sau mỗi request
 export { updateTokenStatsUI };
+
+/**
+ * Render Admin AI Settings (System Keys)
+ */
+const renderAdminAISettings = () => {
+    const container = document.getElementById('ai-settings-container');
+    if (!container) return; // Bảo vệ nếu chưa có container (hoặc phải append vào đâu đó)
+
+    // Tìm vị trí để chèn (ví dụ: cuối danh sách cài đặt)
+    // Giả sử có 1 div id="ai-main-settings" hoặc chèn vào cuối modal-body
+    const settingsBody = document.querySelector('#settings-modal .modal-body');
+    if (!settingsBody) return;
+
+    // Tạo section mới
+    const adminSection = document.createElement('div');
+    adminSection.className = 'settings-group admin-only-section';
+    adminSection.style.border = '2px dashed #dc2626';
+    adminSection.style.background = '#fef2f2';
+    adminSection.style.marginTop = '20px';
+
+    adminSection.innerHTML = `
+        <h3 style="color:#dc2626; display:flex; align-items:center; gap:10px;">
+            🛡️ ADMIN ZONE: System Shared Keys
+            <span style="font-size:0.7rem; background:#dc2626; color:white; padding:2px 6px; border-radius:4px;">Chỉ bạn thấy</span>
+        </h3>
+        <p style="font-size:0.9rem; color:#666;">Các key nhập ở đây sẽ được chia sẻ cho toàn bộ User của hệ thống "lamquocminh".</p>
+        
+        <div class="form-group" style="margin-top:10px;">
+            <label>Shared Groq Key:</label>
+            <div style="display:flex; gap:10px;">
+                <input type="password" id="sys-groq-key" class="form-control" placeholder="gsk_system_..." style="flex:1;">
+                <button id="btn-save-sys-groq" class="btn btn-sm" style="background:#dc2626; color:white;">Lưu</button>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label>Shared Google Key:</label>
+            <div style="display:flex; gap:10px;">
+                <input type="password" id="sys-google-key" class="form-control" placeholder="AIza_system_..." style="flex:1;">
+                <button id="btn-save-sys-google" class="btn btn-sm" style="background:#dc2626; color:white;">Lưu</button>
+            </div>
+        </div>
+        
+        <div id="sys-key-status" style="margin-top:10px; font-size:0.85rem; color:#15803d; font-style:italic;"></div>
+    `;
+
+    settingsBody.appendChild(adminSection);
+
+    // Xử lý sự kiện lưu
+    const saveKey = async (provider, inputId) => {
+        const input = document.getElementById(inputId);
+        const key = input.value.trim();
+        if (!key) return alert('Key rỗng!');
+
+        try {
+            await saveSystemConfig('ai_keys', { [provider]: key });
+            showNotification(`Đã lưu System Key cho ${provider}!`, 'success');
+            document.getElementById('sys-key-status').textContent = `✅ Đã update key ${provider} lúc ${new Date().toLocaleTimeString()}`;
+            input.value = ''; // Clear để bảo mật
+        } catch (e) {
+            alert('Lỗi lưu: ' + e.message);
+        }
+    };
+
+    document.getElementById('btn-save-sys-groq').onclick = () => saveKey('groq', 'sys-groq-key');
+    document.getElementById('btn-save-sys-google').onclick = () => saveKey('google', 'sys-google-key');
+};

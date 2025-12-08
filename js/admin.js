@@ -29,21 +29,51 @@ export const initAdminModule = async (user) => {
     const sidebarMenu = document.querySelector('.nav-menu');
     if (!sidebarMenu) return;
 
-    // A. Thêm nút Dashboard Admin
+    // A. Thêm nút Dashboard Admin & Quản lý Tài khoản (Hệ thống)
     if (!document.querySelector('.nav-item-admin')) {
         const adminLi = document.createElement('li');
-        adminLi.className = 'nav-item-admin';
-        adminLi.innerHTML = `<button class="nav-btn" style="color: #ffeb3b; font-weight: bold; border: 1px dashed rgba(255, 235, 59, 0.3);">👮 Dashboard Admin</button>`;
+        adminLi.className = 'nav-item-admin nav-group';
+        adminLi.innerHTML = `
+            <button class="nav-group-toggle" style="background: linear-gradient(135deg, #FFB75E, #ED8F03); color: white;">👮 Admin Zone</button>
+            <ul class="nav-submenu">
+                <li><button class="nav-btn" data-target="admin-user-management">👥 Quản lý Tài khoản</button></li>
+                <li><button class="nav-btn" id="btn-admin-dashboard-modal">📊 Dashboard & Cấu hình</button></li>
+            </ul>
+        `;
         sidebarMenu.insertBefore(adminLi, sidebarMenu.firstChild);
 
-        adminLi.querySelector('button').addEventListener('click', () => {
-            renderAnalytics();
-            renderUserList();
-            renderTemplateManager();
-            renderMessageManager();
-            renderRoleManager();
-            openModal('admin-modal');
-        });
+        // Sự kiện nút "Quản lý Tài khoản" -> Chuyển Section
+        const btnUserMan = adminLi.querySelector('[data-target="admin-user-management"]');
+        if (btnUserMan) {
+            btnUserMan.addEventListener('click', () => {
+                // 1. UI Switching Logic (Manual vì nút này sinh ra sau khi setupNavigation chạy)
+                document.querySelectorAll('.content-section').forEach(s => {
+                    s.classList.remove('active');
+                    s.style.display = ''; // Clear inline styles
+                });
+                document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+
+                btnUserMan.classList.add('active');
+                const targetSec = document.getElementById('admin-user-management');
+                if (targetSec) targetSec.classList.add('active');
+
+                // 2. Render Data
+                renderUserManagementSection();
+            });
+        }
+
+        // Sự kiện nút Dashboard cũ (vẫn mở Modal)
+        const btnDashboard = adminLi.querySelector('#btn-admin-dashboard-modal');
+        if (btnDashboard) {
+            btnDashboard.addEventListener('click', () => {
+                renderAnalytics();
+                // renderUserList(); // Không cần render list vào modal nữa
+                renderTemplateManager();
+                renderMessageManager();
+                renderRoleManager(); // Vẫn giữ role manager trong modal nếu muốn, hoặc bỏ
+                openModal('admin-modal');
+            });
+        }
     }
 
     // B. Gán sự kiện
@@ -626,5 +656,96 @@ async function renderRoleManager() {
     } catch (e) {
         console.error(e);
         tbody.innerHTML = '<tr><td colspan="3" style="color:red">Lỗi tải danh sách</td></tr>';
+    }
+}
+
+// ============================================================
+// PHẦN 8: QUẢN LÝ TÀI KHOẢN (GIAO DIỆN MỚI)
+// ============================================================
+async function renderUserManagementSection() {
+    const tbody = document.getElementById('admin-user-list-body');
+    const searchInput = document.getElementById('admin-search-user');
+    if (!tbody) {
+        console.warn('DEBUG: Không tìm thấy users table body');
+        return;
+    }
+
+    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;">Đang tải dữ liệu...</td></tr>';
+
+    try {
+        const users = await getAllUsers();
+        let filteredUsers = users;
+
+        const render = () => {
+            tbody.innerHTML = '';
+            if (filteredUsers.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;">Không tìm thấy người dùng.</td></tr>';
+                return;
+            }
+
+            filteredUsers.forEach(u => {
+                const tr = document.createElement('tr');
+                const role = u.role || 'user';
+                const avatar = u.photoURL || `https://ui-avatars.com/api/?name=${encodeURIComponent(u.displayName || 'User')}`;
+
+                tr.innerHTML = `
+                    <td><img src="${avatar}" style="width:40px; height:40px; border-radius:50%; object-fit:cover;"></td>
+                    <td><strong>${u.displayName || 'Chưa đặt tên'}</strong></td>
+                    <td style="color:#666;">${u.email}</td>
+                    <td>${u.createdAt ? formatDate(u.createdAt) : 'N/A'}</td>
+                    <td>
+                        <select class="role-select-ui form-select" style="padding: 6px; border-radius: 6px; border:1px solid #ddd;">
+                            <option value="user" ${role === 'user' ? 'selected' : ''}>User</option>
+                            <option value="editor" ${role === 'editor' ? 'selected' : ''}>Editor</option>
+                            <option value="admin" ${role === 'admin' ? 'selected' : ''}>Admin</option>
+                        </select>
+                    </td>
+                    <td>
+                        <button class="btn-save-user-role" style="background:var(--primary-blue); color:white; border:none; padding:6px 12px; border-radius:6px; cursor:pointer;">
+                            💾 Lưu
+                        </button>
+                    </td>
+                `;
+
+                // Event Listener cho nút Lưu
+                const btnSave = tr.querySelector('.btn-save-user-role');
+                btnSave.addEventListener('click', async () => {
+                    const newRole = tr.querySelector('.role-select-ui').value;
+                    if (confirm(`Xác nhận đổi quyền của ${u.email} thành "${newRole}"?`)) {
+                        try {
+                            btnSave.textContent = '...';
+                            await setDoc(doc(db, "users", u.id), { role: newRole }, { merge: true });
+                            showNotification(`Đã cập nhật quyền cho ${u.email}`, 'success');
+                            btnSave.textContent = '💾 Lưu';
+                        } catch (err) {
+                            console.error(err);
+                            showNotification('Lỗi cập nhật: ' + err.message, 'error');
+                            btnSave.textContent = '❌ Lỗi';
+                        }
+                    }
+                });
+
+                tbody.appendChild(tr);
+            });
+        };
+
+        // Initial Render
+        render();
+
+        // Search Logic
+        if (searchInput) {
+            searchInput.oninput = (e) => {
+                const term = e.target.value.toLowerCase();
+                filteredUsers = users.filter(u =>
+                    (u.displayName && u.displayName.toLowerCase().includes(term)) ||
+                    (u.email && u.email.toLowerCase().includes(term))
+                );
+                render();
+            };
+        }
+
+    } catch (error) {
+        console.error("Lỗi tải user:", error);
+        tbody.innerHTML = `<tr><td colspan="6" style="color:red; text-align:center;">Lỗi tải dữ liệu: ${error.message}</td></tr>`;
     }
 }

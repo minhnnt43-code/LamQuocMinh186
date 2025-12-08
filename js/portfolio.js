@@ -737,34 +737,69 @@ window.switchTab = (tabId) => {
 function initMessageBoard() {
     const container = document.getElementById('message-wall');
     const btnSend = document.getElementById('btn-send-msg');
+
+    // Nếu không tìm thấy element thì thoát
     if (!container || !btnSend) return;
 
-    const q = query(collection(db, `users/${OWNER_UID}/public_messages`), orderBy('timestamp', 'desc'), limit(10));
-    onSnapshot(q, (snapshot) => {
-        container.innerHTML = '';
-        if (snapshot.empty) {
-            container.innerHTML = '<p style="color:#999; text-align:center;">Chưa có lời nhắn.</p>';
-            return;
-        }
-        snapshot.forEach(doc => {
-            const msg = doc.data();
-            container.innerHTML += `
-                <div style="background:#fff; padding:15px; border-radius:8px; border:1px solid #eee;">
-                    <div style="font-weight:bold; color:#005B96; margin-bottom:5px;">${msg.sender || 'Ẩn danh'}</div>
-                    <div style="color:#555;">"${msg.content}"</div>
-                </div>`;
-        });
-    });
+    // Lắng nghe dữ liệu Real-time
+    try {
+        const q = query(collection(db, `users/${OWNER_UID}/public_messages`), orderBy('timestamp', 'desc'), limit(10));
+        onSnapshot(q, (snapshot) => {
+            container.innerHTML = '';
+            if (snapshot.empty) {
+                container.innerHTML = '<p style="color:#999; text-align:center;">Chưa có lời nhắn nào. Hãy là người đầu tiên!</p>';
+                return;
+            }
 
+            snapshot.forEach(doc => {
+                const msg = doc.data();
+                // Sử dụng class .msg-bubble từ pf-effects.js
+                container.innerHTML += `
+                    <div class="msg-bubble">
+                        <div style="font-weight:bold; color:#005B96; margin-bottom:5px;">${msg.sender || 'Ẩn danh'}</div>
+                        <div style="color:#333;">${msg.content}</div>
+                        <div style="font-size:0.75rem; color:#999; text-align:right; margin-top:5px;">${formatDateVN(msg.timestamp?.split('T')[0])}</div>
+                    </div>`;
+            });
+        }, (error) => {
+            console.error("Lỗi đồng bộ tin nhắn:", error);
+            container.innerHTML = `<p style="color:red; text-align:center;">Mất kết nối với hộp thư: ${error.message}</p>`;
+        });
+    } catch (err) {
+        console.error("Lỗi khởi tạo Guestbook:", err);
+    }
+
+    // Xử lý gửi tin nhắn
     btnSend.addEventListener('click', async () => {
-        const name = document.getElementById('guest-name').value.trim() || 'Ẩn danh';
-        const content = document.getElementById('guest-msg').value.trim();
-        if (!content) return alert("Nhập nội dung!");
+        const nameInp = document.getElementById('guest-name');
+        const msgInp = document.getElementById('guest-msg');
+
+        const name = nameInp.value.trim() || 'Ẩn danh';
+        const content = msgInp.value.trim();
+
+        if (!content) return alert("Bạn chưa nhập nội dung nhắn gửi!");
+
+        btnSend.disabled = true;
+        btnSend.textContent = "Đang gửi...";
+
         try {
-            await addDoc(collection(db, `users/${OWNER_UID}/public_messages`), { sender: name, content, timestamp: new Date().toISOString() });
-            document.getElementById('guest-msg').value = '';
+            await addDoc(collection(db, `users/${OWNER_UID}/public_messages`), {
+                sender: name,
+                content,
+                timestamp: new Date().toISOString()
+            });
+
+            msgInp.value = '';
+            if (window.showToast) window.showToast("Đã gửi lời nhắn thành công!", "success");
+
+            // Nếu là tin nhắn đầu tiên, onSnapshot sẽ tự cập nhật UI
+
         } catch (e) {
-            alert("Lỗi gửi tin nhắn (Permission Denied).");
+            console.error("Lỗi gửi tin nhắn:", e);
+            alert("Không thể gửi tin nhắn. Có thể do lỗi quyền truy cập (Permission Denied).");
+        } finally {
+            btnSend.disabled = false;
+            btnSend.textContent = "Gửi đi 🚀";
         }
     });
 }
@@ -774,37 +809,25 @@ window.toggleQR = (show) => {
     if (overlay) overlay.style.display = show ? 'flex' : 'none';
 }
 
-window.openLightbox = (photos, index) => {
-    currentLightboxPhotos = photos;
-    currentLightboxIndex = index;
-    const modal = document.getElementById('lightbox-modal');
-    const img = document.getElementById('lightbox-img');
-    const caption = document.getElementById('lightbox-caption');
-
-    if (!modal || !img) return;
-
-    const p = currentLightboxPhotos[currentLightboxIndex];
-    const url = typeof p === 'string' ? p : p.url;
-    const text = typeof p === 'string' ? '' : p.caption;
-
-    img.src = url;
-    if (caption) caption.textContent = text || `Ảnh ${currentLightboxIndex + 1}`;
-    modal.style.display = 'flex';
-}
-window.closeLightbox = () => document.getElementById('lightbox-modal').style.display = 'none';
-window.changeLightboxSlide = (n) => {
-    currentLightboxIndex = (currentLightboxIndex + n + currentLightboxPhotos.length) % currentLightboxPhotos.length;
-    window.openLightbox(currentLightboxPhotos, currentLightboxIndex);
-}
+// --- LIGHTBOX ĐÃ ĐƯỢC CHUYỂN SANG PF-EFFECTS.JS (Phiên bản Pro) ---
+// Giữ lại các hàm này dưới dạng alias để tương thích ngược nếu cần
+// window.openLightbox = ... (Đã xử lý bên pf-effects.js)
+// window.closeLightbox = ...
+// window.changeLightboxSlide = ...
 
 // --- [REPLACE] HÀM MỞ MODAL CHI TIẾT ALBUM (CÓ NÚT DOWNLOAD) ---
+// --- HÀM MỞ MODAL CHI TIẾT ALBUM (STORY MODE) ---
 window.openStoryModal = (album) => {
     const modal = document.getElementById('story-modal');
     const content = document.getElementById('story-content-wrapper');
     if (!modal || !content) return;
 
-    // 1. Lưu danh sách ảnh vào biến toàn cục
-    window.currentStoryPhotos = album.photos || [];
+    // 1. Lưu danh sách ảnh vào biến toàn cục để Lightbox sử dụng
+    // Chuyển đổi format sang object {url, caption} cho Lightbox Pro
+    window.currentStoryPhotos = (album.photos || []).map(p => {
+        if (typeof p === 'string') return { url: p, caption: album.title };
+        return { url: p.url, caption: p.caption || album.title };
+    });
 
     const displayDate = album.eventDate ? formatDateVN(album.eventDate) : '';
     const locationText = album.location ? `tại <strong>${album.location}</strong>` : '';
@@ -813,20 +836,14 @@ window.openStoryModal = (album) => {
     let galleryHtml = '';
     if (window.currentStoryPhotos.length > 0) {
         window.currentStoryPhotos.forEach((p, index) => {
-            const url = typeof p === 'string' ? p : p.url;
-
-            // --- ĐOẠN NÀY CÓ NÚT DOWNLOAD NÈ ---
             galleryHtml += `
-                <div class="story-img-item" onclick="window.openLightboxFromStory(${index})">
-                    <img src="${url}" loading="lazy" alt="Khoảnh khắc">
-                    
-                    <!-- Nút tải ảnh (có stopPropagation để không mở lightbox) -->
+                <div class="story-img-item" onclick="window.openLightbox(window.currentStoryPhotos, ${index})">
+                    <img src="${p.url}" loading="lazy" alt="Khoảnh khắc">
                     <button class="btn-download-img" title="Tải ảnh gốc" 
-                        onclick="event.stopPropagation(); window.open('${url}', '_blank');">
+                        onclick="event.stopPropagation(); window.open('${p.url}', '_blank');">
                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
                     </button>
                 </div>`;
-            // ------------------------------------
         });
     } else {
         galleryHtml = '<p style="text-align:center; color:#999; width:100%;">Album này chưa có ảnh chi tiết.</p>';
@@ -849,21 +866,7 @@ window.openStoryModal = (album) => {
 };
 
 // --- [NEW] HÀM TRUNG GIAN ĐỂ MỞ LIGHTBOX TỪ STORY ---
-window.openLightboxFromStory = (index) => {
-    // Gọi lại hàm openLightbox cũ nhưng truyền danh sách ảnh của Story
-    window.openLightbox(window.currentStoryPhotos, index);
-};
-
-// --- Dán đoạn này vào cuối file js/portfolio.js ---
-
-// Hàm trung gian để mở Lightbox từ Story (Bắt buộc phải có hàm này)
-window.openLightboxFromStory = (index) => {
-    if (window.currentStoryPhotos && window.currentStoryPhotos.length > 0) {
-        window.openLightbox(window.currentStoryPhotos, index);
-    } else {
-        console.error("Không tìm thấy danh sách ảnh để mở!");
-    }
-};
+// Đã xóa hàm trùng lặp
 
 // Hỗ trợ bàn phím (Mũi tên trái/phải)
 document.addEventListener('keydown', (e) => {

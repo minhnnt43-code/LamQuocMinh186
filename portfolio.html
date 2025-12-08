@@ -142,8 +142,7 @@
             background: linear-gradient(-45deg, #ffffff, #f0f7ff, #fff5e6, #fff);
             background-size: 400% 400%;
             animation: gradientBG 15s ease infinite;
-            cursor: none;
-            /* Ẩn chuột mặc định để dùng Custom Cursor */
+            /* cursor: none; -> Đã xóa để hiện chuột lại */
         }
 
         /* Lớp hạt nhiễu (Noise) tạo chất liệu giấy sang trọng */
@@ -282,36 +281,7 @@
         }
 
         /* --- 4. NHÓM WOW FACTORS --- */
-        /* Con trỏ chuột */
-        #custom-cursor {
-            width: 20px;
-            height: 20px;
-            border: 2px solid var(--blue);
-            border-radius: 50%;
-            position: fixed;
-            pointer-events: none;
-            z-index: 9999;
-            transform: translate(-50%, -50%);
-            transition: transform 0.1s;
-            mix-blend-mode: difference;
-        }
 
-        #cursor-dot {
-            width: 6px;
-            height: 6px;
-            background: var(--orange);
-            border-radius: 50%;
-            position: fixed;
-            pointer-events: none;
-            z-index: 10000;
-            transform: translate(-50%, -50%);
-        }
-
-        .hovered-cursor {
-            transform: translate(-50%, -50%) scale(2.5) !important;
-            background: rgba(255, 122, 0, 0.1);
-            border-color: transparent !important;
-        }
 
         /* Màn hình chờ */
         #preloader {
@@ -326,7 +296,7 @@
             justify-content: center;
             align-items: center;
             flex-direction: column;
-            animation: fadeOutLoad 0.5s ease 2.2s forwards;
+            animation: fadeOutLoad 0.4s ease 0.9s forwards;
         }
 
         .loader-text {
@@ -350,7 +320,7 @@
             width: 0%;
             height: 100%;
             background: var(--grad-main);
-            animation: fillLoad 2s ease-in-out forwards;
+            animation: fillLoad 0.8s ease-in-out forwards;
         }
 
         @keyframes fillLoad {
@@ -865,26 +835,6 @@
                 btns.forEach(btn => { if (btn.getAttribute('onclick').includes(tabId)) btn.classList.add('active'); });
                 if (window.scrollY > 400) document.querySelector('.pf-tabs').scrollIntoView({ behavior: 'smooth' });
             }
-            function openApptModal() { document.getElementById('appt-modal').style.display = 'flex'; }
-            function closeApptModal() { document.getElementById('appt-modal').style.display = 'none'; }
-
-            /* --- SCRIPT CHO HIỆU ỨNG WOW --- */
-            const cursor = document.getElementById('custom-cursor');
-            const cursorDot = document.getElementById('cursor-dot');
-
-            if (window.matchMedia("(min-width: 769px)").matches) {
-                document.addEventListener('mousemove', (e) => {
-                    cursor.style.left = e.clientX + 'px';
-                    cursor.style.top = e.clientY + 'px';
-                    cursorDot.style.left = e.clientX + 'px';
-                    cursorDot.style.top = e.clientY + 'px';
-                });
-                // Hiệu ứng hover
-                document.querySelectorAll('a, button, .pf-card, .album-card, input').forEach(el => {
-                    el.addEventListener('mouseenter', () => cursor.classList.add('hovered-cursor'));
-                    el.addEventListener('mouseleave', () => cursor.classList.remove('hovered-cursor'));
-                });
-            }
 
             // Scroll Progress Logic
             window.addEventListener('scroll', () => {
@@ -1232,32 +1182,11 @@
                 document.getElementById('like-count').innerText = `${savedLikes} người đã thích`;
             });
 
-            // 3. KẾT NỐI VỚI NÚT GỬI GUESTBOOK (Để gửi tin nhắn cũng có pháo hoa)
-            const btnGuestbook = document.getElementById('btn-send-msg');
-            if (btnGuestbook) {
-                // Ghi đè sự kiện click cũ hoặc thêm mới
-                btnGuestbook.addEventListener('click', function () {
-                    const name = document.getElementById('guest-name').value;
-                    const msg = document.getElementById('guest-msg').value;
-
-                    if (name && msg) {
-                        // Tạo tin nhắn giả lập ngay lập tức
-                        const wall = document.getElementById('message-wall');
-                        const newMsg = document.createElement('div');
-                        newMsg.innerHTML = `<div>${name} <span style="font-size:0.7rem; color:#999; font-weight:normal;">(Vừa xong)</span></div><div>${msg}</div>`;
-                        wall.prepend(newMsg); // Thêm lên đầu
-
-                        // Hiệu ứng
-                        fireConfetti();
-                        showToast('Đã gửi tin nhắn thành công!', 'success');
-
-                        // Xóa ô nhập
-                        document.getElementById('guest-msg').value = '';
-                    } else {
-                        showToast('Vui lòng nhập tên và nội dung!', 'info');
-                    }
-                });
-            }
+            // 3. KẾT NỐI VỚI NÚT GỬI GUESTBOOK (Đã chuyển sang portfolio.js để đồng bộ Firebase Realtime)
+            /* 
+               Code cũ đã được loại bỏ để tránh xung đột sự kiện (Duplicate Event Listener).
+               Logic gửi tin nhắn hiện tại nằm trong hàm initMessageBoard() của file js/portfolio.js.
+            */
             /* =========================================
                SCRIPT ĐỢT 1: STATUS & FOOTER LOGIC
                ========================================= */

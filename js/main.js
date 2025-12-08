@@ -21,13 +21,14 @@ import { loadProfileDataToForm, setupProfileListeners } from './profile.js';
 
 // [MỚI] Import AI modules
 import { setupAISettings } from './ai-settings.js';
-import { initAITasks } from './ai-tasks.js';
+// import { initAITasks } from './ai-tasks.js'; // [XÓA] Dùng ai-tasks-lite thay thế
 import { initAIStudy, setupStudyAssistantEvents } from './ai-study.js';
 import { initAICalendar } from './ai-calendar.js';
 import { initAIWriting } from './ai-writing.js';
 import { initAIAnalytics } from './ai-analytics.js';
 import { initAIChatbot } from './ai-chatbot.js';
 import { initAIMedia } from './ai-media.js';
+import { initEmailAuth } from './auth-email.js';
 
 // [MỚI] Phase D, H, J modules
 import { initAIAutomation } from './ai-automation.js';
@@ -36,6 +37,9 @@ import { initUIEnhancements } from './ui-enhancements.js';
 import { initCalendarViews } from './calendar-views.js'; // Phase C
 import { initAdvancedFeatures } from './advanced-features.js'; // 3 features cuối
 import { initDashboardToolbar } from './dashboard-toolbar.js'; // AI Mega Toolbar
+import { initLifestyleModule } from './lifestyle.js'; // [MỚI] Lifestyle: Journal, Habits, Goals, Finance, Productivity
+import { initDashboardWidgets } from './dashboard-widgets.js'; // Dashboard Widgets
+import { initAITasksLite } from './ai-tasks-lite.js'; // AI Task buttons (LITE version)
 
 // Dữ liệu mặc định cho tài khoản mới tinh (tránh lỗi null)
 const DEFAULT_DATA = {
@@ -50,6 +54,14 @@ const DEFAULT_DATA = {
     outlines: [],
     calendarEvents: [],
     personalInfo: {},
+    // [MỚI] Lifestyle data
+    journal: [],
+    habits: [],
+    goals: [],
+    transactions: [],
+    productivityLog: [],
+    healthLog: [],
+    horoscopeSettings: {},
     settings: {
         darkMode: false,
         primaryColor: '#005B96',
@@ -64,6 +76,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- BẮT ĐẦU ĐỒNG HỒ THỜI GIAN THỰC ---
     startRealTimeClock();
+
+    // [MỚI] INIT EMAIL AUTH
+    initEmailAuth();
 
     // 1. LẮNG NGHE TRẠNG THÁI ĐĂNG NHẬP
     subscribeToAuthChanges(async (user) => {
@@ -126,7 +141,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 loadProfileDataToForm(currentUserData); // [MỚI] Truyền currentUserData
                 setupProfileListeners(currentUserData); // [MỚI] Setup listeners
                 setupAISettings(); // [MỚI] Setup AI Settings
-                initAITasks(currentUserData, user); // [MỚI] Setup AI Tasks
+                // initAITasks đã được thay bằng initAITasksLite (line 162)
                 initAIStudy(); // [MỚI] Setup AI Study
                 setupStudyAssistantEvents(); // [MỚI] Setup 3 tính năng Study: #36, #58, #60
                 initAICalendar(currentUserData, user); // [MỚI] Setup 8 tính năng Calendar: #71-95 (trừ #80)
@@ -142,6 +157,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 initCalendarViews(currentUserData, user); // Phase C: Month, Year, List views
                 initAdvancedFeatures(); // Drag Resize, Dependencies, Infinite Scroll
                 initDashboardToolbar(currentUserData, user); // AI Mega Toolbar events
+                initLifestyleModule(currentUserData, user); // [MỚI] Lifestyle module
+                initDashboardWidgets(currentUserData, user); // Dashboard Widgets
+                initAITasksLite(currentUserData, user); // AI Task buttons LITE
 
                 showNotification(`Chào mừng trở lại, ${user.displayName}!`);
 

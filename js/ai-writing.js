@@ -9,7 +9,25 @@ import { showNotification, escapeHTML, showAIModal, formatAIContent } from './co
  */
 export const initAIWriting = () => {
     setupWritingTabs();
+    setupToneButtons();  // [MỚI] Setup tone buttons
     setupWritingEvents();
+};
+
+/**
+ * Setup Tone Buttons (Tự nhiên, Chuyên nghiệp, Sáng tạo, Thân thiện)
+ */
+let currentTone = 'natural';
+const setupToneButtons = () => {
+    document.querySelectorAll('.tone-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            // Remove active from all
+            document.querySelectorAll('.tone-btn').forEach(b => b.classList.remove('active'));
+            // Add active to clicked
+            btn.classList.add('active');
+            currentTone = btn.dataset.tone;
+            showNotification(`Đã chọn giọng văn: ${btn.textContent.trim()}`);
+        });
+    });
 };
 
 /**

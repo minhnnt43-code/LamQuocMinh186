@@ -2,7 +2,7 @@
 // AI cho quản lý công việc - Phase 2
 
 import { aiService } from './ai-service.js';
-import { showNotification, generateID, toLocalISOString, escapeHTML, showAIModal } from './common.js';
+import { showNotification, generateID, toLocalISOString } from './common.js';
 import { saveUserData } from './firebase.js';
 
 let globalData = null;
@@ -130,45 +130,87 @@ const handleAIAddTask = async () => {
     addBtn.innerHTML = '⏳ Đang phân tích...';
 
     try {
-        // System prompt để parse task
+        // System prompt để parse task (Batch Support)
         const systemPrompt = `Bạn là parser chuyên phân tích câu tiếng Việt thành thông tin công việc.
-Trả về JSON thuần, KHÔNG giải thích.
+Trả về JSON Array (kể cả 1 task cũng trả về mảng), KHÔNG giải thích.
 
 Ngày hôm nay: ${new Date().toLocaleDateString('vi-VN')} (${toLocalISOString(new Date())})
 
 Format trả về:
-{
+[
+  {
     "name": "tên công việc ngắn gọn",
     "dueDate": "YYYY-MM-DD" (tính từ ngày hôm nay, VD: "thứ 5" -> ngày thứ 5 tuần này),
     "dueTime": "HH:mm" (nếu có đề cập giờ, VD: "2h chiều" -> "14:00"),
     "priority": "high" hoặc "medium" hoặc "low" (mặc định medium),
     "category": "Học tập" hoặc "Công việc" hoặc "Cá nhân" hoặc "Gia đình" hoặc "Khác",
     "notes": "ghi chú bổ sung nếu có"
-}`;
+  }
+]`;
 
         const response = await aiService.ask(text, { systemPrompt, temperature: 0.3 });
 
-        // Parse JSON từ response
-        const jsonMatch = response.match(/\{[\s\S]*\}/);
+        // Parse JSON từ response (tìm mảng [])
+        const jsonMatch = response.match(/\[[\s\S]*\]/);
         if (!jsonMatch) {
-            throw new Error('Không thể phân tích câu này');
+            // Fallback: Thử tìm object {} wrap lại thành mảng nếu AI lỡ trả 1 object
+            const objMatch = response.match(/\{[\s\S]*\}/);
+            if (objMatch) {
+                pendingAITask = [JSON.parse(objMatch[0])];
+            } else {
+                throw new Error('Không thể phân tích câu này');
+            }
+        } else {
+            pendingAITask = JSON.parse(jsonMatch[0]);
         }
 
-        pendingAITask = JSON.parse(jsonMatch[0]);
+        // Đảm bảo pendingAITask luôn là mảng
+        if (!Array.isArray(pendingAITask)) pendingAITask = [pendingAITask];
 
-        // Hiển thị preview
-        previewContent.innerHTML = `
-            <div style="display: grid; grid-template-columns: auto 1fr; gap: 5px 15px;">
-                <strong>📌 Tên:</strong> <span>${escapeHTML(pendingAITask.name)}</span>
-                <strong>📅 Hạn:</strong> <span>${pendingAITask.dueDate || 'Không có'} ${pendingAITask.dueTime || ''}</span>
-                <strong>🎯 Ưu tiên:</strong> <span>${pendingAITask.priority === 'high' ? '🔴 Cao' : pendingAITask.priority === 'low' ? '🟢 Thấp' : '🟡 Trung bình'}</span>
-                <strong>📂 Loại:</strong> <span>${pendingAITask.category || 'Chung'}</span>
-                ${pendingAITask.notes ? `<strong>📝 Ghi chú:</strong> <span>${escapeHTML(pendingAITask.notes)}</span>` : ''}
-            </div>
-        `;
+        // Hiển thị preview (Loop qua mảng)
+        let html = `<div style="max-height: 350px; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; padding-right: 5px;">`;
+
+        pendingAITask.forEach((task, index) => {
+            // Format Date
+            let dateDisplay = task.dueDate || 'Không có';
+            if (task.dueDate && task.dueDate.match(/^\d{4}-\d{2}-\d{2}$/)) {
+                const [y, m, d] = task.dueDate.split('-');
+                dateDisplay = `${d}/${m}/${y}`;
+            }
+
+            html += `
+                <div style="background: white; padding: 12px; border-radius: 10px; border-left: 4px solid #667eea; box-shadow: 0 2px 5px rgba(0,0,0,0.05); margin-bottom: 5px;">
+                    <div style="display:flex; justify-content:space-between; align-items:start; margin-bottom: 8px;">
+                        <div style="font-weight: 700; color: #1f2937; font-size: 1.05rem;">#${index + 1}: ${escapeHTML(task.name)}</div>
+                        <span style="font-size:0.75rem; background:#f3f4f6; padding:2px 8px; border-radius:12px; color:#6b7280;">${task.category || 'Chung'}</span>
+                    </div>
+                    
+                    <div style="display: grid; grid-template-columns: auto 1fr; gap: 4px 15px; font-size: 0.9rem;">
+                        <div style="color: #4b5563; font-weight: 600;">📅 Hạn:</div>
+                        <div style="color: #111;">${dateDisplay} ${task.dueTime ? `<span style="color:#2563eb; font-weight:500;">(${task.dueTime})</span>` : ''}</div>
+                        
+                        <div style="color: #4b5563; font-weight: 600;">🎯 Ưu tiên:</div>
+                        <div>
+                            ${task.priority === 'high' ? '<span style="color:#dc2626;font-weight:bold;">🔴 Cao</span>' :
+                    task.priority === 'low' ? '<span style="color:#16a34a;font-weight:bold;">🟢 Thấp</span>' :
+                        '<span style="color:#ca8a04;font-weight:bold;">🟡 Trung bình</span>'}
+                        </div>
+                        
+                        ${task.notes ? `
+                        <div style="color: #4b5563; font-weight: 600;">📝 Note:</div>
+                        <div style="color: #374151; font-style:italic;">${escapeHTML(task.notes)}</div>
+                        ` : ''}
+                    </div>
+                </div>
+            `;
+        });
+        html += `</div>`;
+        html += `<div style="margin-top: 12px; font-size: 0.9rem; text-align: right; color: #6b7280;">Đã nhận diện <b>${pendingAITask.length}</b> công việc từ nội dung của bạn.</div>`;
+
+        previewContent.innerHTML = html;
         preview.style.display = 'block';
 
-        showNotification('AI đã phân tích xong! Xem preview và xác nhận.', 'success');
+        showNotification(`AI đã tìm thấy ${pendingAITask.length} công việc! Xác nhận để thêm.`, 'success');
 
     } catch (error) {
         console.error('AI Parse Error:', error);
@@ -183,26 +225,28 @@ Format trả về:
  * Xác nhận thêm task từ AI
  */
 const handleConfirmAITask = async () => {
-    if (!pendingAITask) return;
+    if (!pendingAITask || pendingAITask.length === 0) return;
 
-    const taskData = {
+    // pendingAITask giờ là Array
+    const newTasks = pendingAITask.map(item => ({
         id: generateID('task'),
-        name: pendingAITask.name,
-        priority: pendingAITask.priority || 'medium',
-        category: pendingAITask.category || 'Chung',
-        dueDate: pendingAITask.dueDate || toLocalISOString(new Date()),
+        name: item.name,
+        priority: item.priority || 'medium',
+        category: item.category || 'Chung',
+        dueDate: item.dueDate || toLocalISOString(new Date()),
+        dueTime: item.dueTime || '', // Thêm dueTime nếu có
         status: 'Chưa thực hiện',
         project: '',
         recurrence: 'none',
         link: '',
         tags: 'AI-created',
-        notes: pendingAITask.notes || '',
+        notes: item.notes || '',
         createdByAI: true
-    };
+    }));
 
     // Thêm vào globalData
     if (!globalData.tasks) globalData.tasks = [];
-    globalData.tasks.push(taskData);
+    globalData.tasks.push(...newTasks);
 
     await saveUserData(currentUser.uid, { tasks: globalData.tasks });
 
@@ -216,7 +260,7 @@ const handleConfirmAITask = async () => {
     if (window.renderDashboard) window.renderDashboard();
     if (window.renderCalendar) window.renderCalendar();
 
-    showNotification(`Đã thêm "${taskData.name}" từ AI! 🎉`);
+    showNotification(`Đã thêm ${newTasks.length} công việc từ AI! 🎉`);
 };
 
 /**
@@ -544,11 +588,16 @@ Chỉ trả về JSON.`;
 
 const handleGenerateSubtasks = async () => {
     const taskNameInput = document.getElementById('task-name');
-    const taskName = taskNameInput?.value?.trim();
+    let taskName = taskNameInput?.value?.trim();
 
+    // Nếu không có task name từ input, hỏi user
     if (!taskName) {
-        showNotification('Vui lòng nhập tên công việc trước!', 'error');
-        return;
+        taskName = prompt('Nhập tên công việc cần chia nhỏ:');
+        if (!taskName || !taskName.trim()) {
+            showNotification('Vui lòng nhập tên công việc!', 'error');
+            return;
+        }
+        taskName = taskName.trim();
     }
 
     const btn = document.getElementById('btn-generate-subtasks');

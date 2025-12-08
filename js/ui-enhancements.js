@@ -211,27 +211,86 @@ const renderTimelineView = (items, containerId) => {
     const container = document.getElementById(containerId);
     if (!container) return;
 
-    // Sort by date
-    const sortedItems = [...items].sort((a, b) =>
-        new Date(a.date || a.dueDate) - new Date(b.date || b.dueDate)
-    );
+    // 1. Separate Items: Upcoming vs Past
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const upcoming = [];
+    const past = [];
+
+    items.forEach(item => {
+        const d = new Date(item.date || item.dueDate);
+        if (d >= today) {
+            upcoming.push(item);
+        } else {
+            past.push(item);
+        }
+    });
+
+    // 2. Sort: Upcoming ASC (Nearest first), Past DESC (Nearest past first)
+    upcoming.sort((a, b) => new Date(a.date || a.dueDate) - new Date(b.date || b.dueDate));
+    past.sort((a, b) => new Date(b.date || b.dueDate) - new Date(a.date || a.dueDate));
+
+    const sortedItems = [...upcoming, ...past];
+
+    // Helper: Format Date DD/MM/YYYY
+    const formatDate = (dateStr) => {
+        if (!dateStr) return 'Không có ngày';
+        const d = new Date(dateStr);
+        const day = String(d.getDate()).padStart(2, '0');
+        const month = String(d.getMonth() + 1).padStart(2, '0');
+        const year = d.getFullYear();
+        return `${day}/${month}/${year}`;
+    };
 
     container.innerHTML = `
-        <div class="timeline" style="position:relative;padding-left:30px;">
+        <div class="timeline" style="position:relative;padding-left:30px;padding-top:10px;">
             <div style="position:absolute;left:10px;top:0;bottom:0;width:2px;background:linear-gradient(to bottom,#667eea,#764ba2);"></div>
-            ${sortedItems.map((item, i) => `
-                <div class="timeline-item" style="position:relative;padding:15px 0 15px 20px;
-                            ${i < sortedItems.length - 1 ? 'border-bottom:1px dashed #e5e7eb;' : ''}">
-                    <div style="position:absolute;left:-20px;top:18px;width:12px;height:12px;
-                                background:${item.status === 'Hoàn thành' ? '#10b981' : '#667eea'};
-                                border-radius:50%;border:2px solid white;box-shadow:0 0 0 2px #667eea;"></div>
-                    <div style="font-size:0.75rem;color:#6b7280;margin-bottom:4px;">
-                        📅 ${item.date || item.dueDate || 'Không có ngày'}
+            
+            ${sortedItems.length === 0 ? '<p style="color:#9ca3af;font-style:italic;">Chưa có hoạt động nào.</p>' : ''}
+
+            ${sortedItems.map((item, i) => {
+        const dateRaw = new Date(item.date || item.dueDate);
+        const isPast = dateRaw < today;
+        const isToday = dateRaw.toDateString() === today.toDateString();
+
+        return `
+                <div class="timeline-item" style="position:relative;padding:15px 0 15px 25px;
+                            ${i < sortedItems.length - 1 ? 'border-bottom:1px dashed #e5e7eb;' : ''}
+                            ${isPast ? 'opacity:0.6;' : ''}">
+                    
+                    <!-- Centered Dot on Line -->
+                    <div style="position:absolute;left:-25px;top:50%;transform:translateY(-50%);
+                                width:12px;height:12px;
+                                background:${item.status === 'Hoàn thành' ? '#10b981' : isToday ? '#f59e0b' : '#667eea'};
+                                border-radius:50%;border:2px solid white;box-shadow:0 0 0 2px ${item.status === 'Hoàn thành' ? '#10b981' : isToday ? '#f59e0b' : '#667eea'};
+                                z-index:2;">
                     </div>
-                    <div style="font-weight:600;color:#1f2937;">${item.title || item.name}</div>
-                    ${item.description || item.notes ? `<div style="font-size:0.85rem;color:#6b7280;margin-top:4px;">${(item.description || item.notes).substring(0, 100)}...</div>` : ''}
+
+                    <div style="font-size:0.75rem;color:${isToday ? '#f59e0b' : '#6b7280'};font-weight:${isToday ? 'bold' : 'normal'};margin-bottom:4px;">
+                        📅 ${formatDate(item.date || item.dueDate)} ${isToday ? '(Hôm nay)' : ''}
+                    </div>
+                    
+                    <div style="font-weight:600;color:#1f2937;font-size:1rem;margin-bottom:4px;">
+                        ${item.title || item.name}
+                    </div>
+                    
+                    ${item.description || item.notes ?
+                `<div style="font-size:0.85rem;color:#6b7280;line-height:1.4;">
+                            ${(item.description || item.notes).substring(0, 100)}...
+                        </div>` : ''}
+
+                    ${item.status ? `
+                        <div style="margin-top:5px;">
+                            <span style="font-size:0.7rem;padding:2px 8px;border-radius:10px;
+                                         background:${item.status === 'Hoàn thành' ? '#d1fae5' : '#e0e7ff'};
+                                         color:${item.status === 'Hoàn thành' ? '#065f46' : '#3730a3'};">
+                                ${item.status}
+                            </span>
+                        </div>
+                    `: ''}
                 </div>
-            `).join('')}
+            `}).join('')}
         </div>
     `;
 };

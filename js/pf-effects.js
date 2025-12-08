@@ -1,5 +1,5 @@
 // --- FILE: js/pf-effects.js ---
-// Portfolio Visual Effects - All Phases (Clean Version)
+// Portfolio Visual Effects - All Phases (Restored & Enhanced)
 
 (function () {
     'use strict';
@@ -9,7 +9,7 @@
     // ============================================================
 
     // #1 - TYPING ANIMATION
-    const TYPING_TEXTS = ['Lâm Quốc Minh', 'Sinh viên Luật 📚',];
+    const TYPING_TEXTS = ['Lâm Quốc Minh', 'Sinh viên Luật 📚', 'Yêu công nghệ 💻', 'Thích sáng tạo 🎨'];
     let typeIndex = 0, charIdx = 0, isDeleting = false;
 
     function initTyping() {
@@ -101,7 +101,133 @@
     }
 
     // ============================================================
-    // PHASE D: ALBUM ENHANCEMENTS
+    // PHASE C: LIGHTBOX PRO (GLOBAL FUNCTION)
+    // ============================================================
+    window.openLightbox = function (items, startIdx = 0) {
+        // Chuẩn hóa input
+        const images = items.map(item => {
+            if (typeof item === 'string') return { url: item, caption: '' };
+            return { url: item.url || item.src, caption: item.caption || item.desc || '' };
+        });
+
+        let idx = startIdx;
+
+        // Tạo Element nếu chưa có
+        let overlay = document.querySelector('.pf-lightbox-pro');
+        if (!overlay) {
+            overlay = document.createElement('div');
+            overlay.className = 'pf-lightbox-pro';
+            overlay.innerHTML = `
+                <div class="lb-backdrop"></div>
+                <div class="lb-container">
+                    <div class="lb-header">
+                        <span class="lb-counter"></span>
+                        <button class="lb-close" title="Đóng">&times;</button>
+                    </div>
+                    <div class="lb-main">
+                        <button class="lb-btn lb-prev" title="Trước">&#10094;</button>
+                        <div class="lb-img-wrapper">
+                            <img class="lb-img" src="" alt="Image">
+                            <div class="lb-caption"></div>
+                        </div>
+                        <button class="lb-btn lb-next" title="Sau">&#10095;</button>
+                    </div>
+                    <div class="lb-thumbnails"></div>
+                </div>
+            `;
+            document.body.appendChild(overlay);
+
+            // CSS
+            const css = document.createElement('style');
+            css.textContent = `
+                .pf-lightbox-pro { position:fixed; top:0; left:0; width:100%; height:100%; z-index:10000; display:flex; opacity:0; visibility:hidden; transition:opacity .3s; }
+                .pf-lightbox-pro.active { opacity:1; visibility:visible; }
+                .lb-backdrop { position:absolute; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.9); }
+                .lb-container { position:relative; width:100%; height:100%; display:flex; flex-direction:column; z-index:1; pointer-events:none; }
+                .lb-container > * { pointer-events:auto; }
+                
+                .lb-header { padding:20px; display:flex; justify-content:space-between; align-items:center; color:#fff; }
+                .lb-counter { font-size:1.1rem; opacity:0.8; }
+                .lb-close { background:none; border:none; color:#fff; font-size:2.5rem; cursor:pointer; line-height:1; }
+                
+                .lb-main { flex:1; display:flex; align-items:center; justify-content:space-between; padding:0 20px; overflow:hidden; position:relative; }
+                .lb-btn { background:rgba(255,255,255,0.1); border:none; color:#fff; padding:15px; border-radius:50%; font-size:1.5rem; cursor:pointer; transition:.2s; }
+                .lb-btn:hover { background:rgba(255,255,255,0.3); }
+                
+                .lb-img-wrapper { flex:1; height:100%; display:flex; flex-direction:column; justify-content:center; align-items:center; }
+                .lb-img { max-width:90%; max-height:85%; object-fit:contain; border-radius:4px; box-shadow:0 10px 40px rgba(0,0,0,0.5); transition:transform .3s; }
+                .lb-caption { color:#ccc; margin-top:15px; text-align:center; max-width:80%; font-size:1rem; }
+                
+                .lb-thumbnails { height:80px; padding:10px; display:flex; justify-content:center; gap:10px; overflow-x:auto; background:rgba(0,0,0,0.5); }
+                .lb-thumb { height:100%; border-radius:4px; opacity:0.5; cursor:pointer; transition:.2s; border:2px solid transparent; }
+                .lb-thumb.active { opacity:1; border-color:var(--orange,#FF7A00); transform:scale(1.1); }
+                
+                @media(max-width:768px) { .lb-thumbnails { display:none; } .lb-btn { padding:10px; font-size:1.2rem; } }
+            `;
+            document.head.appendChild(css);
+
+            // Events
+            overlay.querySelector('.lb-close').onclick = window.closeLightboxPro;
+            overlay.querySelector('.lb-backdrop').onclick = window.closeLightboxPro;
+            overlay.querySelector('.lb-prev').onclick = () => window.lbNav(-1);
+            overlay.querySelector('.lb-next').onclick = () => window.lbNav(1);
+
+            // KeyNav
+            document.addEventListener('keydown', e => {
+                if (!document.querySelector('.pf-lightbox-pro.active')) return;
+                if (e.key === 'Escape') window.closeLightboxPro();
+                if (e.key === 'ArrowLeft') window.lbNav(-1);
+                if (e.key === 'ArrowRight') window.lbNav(1);
+            });
+        }
+
+        // Logic Update UI
+        window.activeLbStore = { images, idx };
+
+        window.updateLbUI = () => {
+            const st = window.activeLbStore;
+            const imgEl = overlay.querySelector('.lb-img');
+            const capEl = overlay.querySelector('.lb-caption');
+            const cntEl = overlay.querySelector('.lb-counter');
+            const thumbCon = overlay.querySelector('.lb-thumbnails');
+
+            imgEl.style.opacity = 0;
+            setTimeout(() => {
+                imgEl.src = st.images[st.idx].url;
+                capEl.textContent = st.images[st.idx].caption;
+                cntEl.textContent = `${st.idx + 1} / ${st.images.length}`;
+                imgEl.style.opacity = 1;
+            }, 200);
+
+            // Render Thumbs
+            thumbCon.innerHTML = st.images.map((img, i) =>
+                `<img src="${img.url}" class="lb-thumb ${i === st.idx ? 'active' : ''}" onclick="window.lbGoto(${i})">`
+            ).join('');
+        };
+
+        window.lbNav = (dir) => {
+            const st = window.activeLbStore;
+            st.idx = (st.idx + dir + st.images.length) % st.images.length;
+            window.updateLbUI();
+        };
+
+        window.lbGoto = (i) => {
+            window.activeLbStore.idx = i;
+            window.updateLbUI();
+        };
+
+        window.closeLightboxPro = () => overlay.classList.remove('active');
+
+        // Show
+        window.updateLbUI();
+        overlay.classList.add('active');
+    };
+
+    // Alias
+    window.closeLightbox = window.closeLightboxPro;
+
+    // ============================================================
+    // PHASE D: ALBUM & GUESTBOOK
     // ============================================================
 
     // Pinterest Masonry Layout
@@ -121,418 +247,80 @@
         }
     }
 
-    // Full-screen Lightbox with Swipe
-    window.openLightbox = function (images, startIdx = 0) {
-        let idx = startIdx;
-        const overlay = document.createElement('div');
-        overlay.className = 'pf-lightbox';
-        overlay.innerHTML = `
-        <button class="lb-close">&times;</button>
-        <button class="lb-prev">&#10094;</button>
-        <img class="lb-img" src="${images[idx]}" alt="">
-        <button class="lb-next">&#10095;</button>
-        <div class="lb-counter">${idx + 1}/${images.length}</div>
-    `;
-
-        if (!document.getElementById('lightbox-css')) {
-            const css = document.createElement('style');
-            css.id = 'lightbox-css';
-            css.textContent = `
-            .pf-lightbox { position:fixed;inset:0;background:rgba(0,0,0,.95);z-index:10000;display:flex;align-items:center;justify-content:center; }
-            .lb-img { max-width:90%;max-height:85vh;border-radius:8px; }
-            .lb-close,.lb-prev,.lb-next { position:absolute;background:rgba(255,255,255,.1);border:none;color:#fff;font-size:2rem;cursor:pointer;padding:15px;border-radius:50%;transition:.3s; }
-            .lb-close { top:20px;right:20px; }
-            .lb-prev { left:20px; }
-            .lb-next { right:20px; }
-            .lb-close:hover,.lb-prev:hover,.lb-next:hover { background:var(--orange); }
-            .lb-counter { position:absolute;bottom:20px;left:50%;transform:translateX(-50%);color:#fff;font-size:.9rem; }
-        `;
-            document.head.appendChild(css);
-        }
-
-        document.body.appendChild(overlay);
-        document.body.style.overflow = 'hidden';
-
-        const img = overlay.querySelector('.lb-img');
-        const counter = overlay.querySelector('.lb-counter');
-
-        function show(i) { idx = (i + images.length) % images.length; img.src = images[idx]; counter.textContent = `${idx + 1}/${images.length}`; }
-
-        overlay.querySelector('.lb-close').onclick = () => { overlay.remove(); document.body.style.overflow = ''; };
-        overlay.querySelector('.lb-prev').onclick = () => show(idx - 1);
-        overlay.querySelector('.lb-next').onclick = () => show(idx + 1);
-        overlay.onclick = e => { if (e.target === overlay) { overlay.remove(); document.body.style.overflow = ''; } };
-
-        // Swipe support
-        let startX = 0;
-        overlay.addEventListener('touchstart', e => startX = e.touches[0].clientX);
-        overlay.addEventListener('touchend', e => {
-            const diff = startX - e.changedTouches[0].clientX;
-            if (Math.abs(diff) > 50) show(diff > 0 ? idx + 1 : idx - 1);
-        });
-    };
-
-    // ============================================================
-    // PHASE D: GUESTBOOK ENHANCEMENTS
-    // ============================================================
-
-    // Bubble Chat Style + Reactions
+    // Guestbook Bubble UI
     function initBubbleGuestbook() {
-        if (!document.getElementById('bubble-css')) {
-            const css = document.createElement('style');
-            css.id = 'bubble-css';
-            css.textContent = `
-            .bubble-msg { background:linear-gradient(135deg,#fff,#f8faff);border-radius:20px 20px 20px 5px;padding:18px 22px;margin-bottom:15px;box-shadow:0 3px 15px rgba(0,0,0,.05);position:relative;border-left:4px solid var(--blue); }
-            .bubble-msg::before { content:'';position:absolute;left:-8px;bottom:10px;border:8px solid transparent;border-right-color:#fff; }
-            .bubble-avatar { width:40px;height:40px;border-radius:50%;background:var(--grad-main);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:1rem;float:left;margin-right:12px; }
-            .bubble-name { font-weight:700;color:var(--blue);margin-bottom:5px; }
-            .bubble-text { color:#555;line-height:1.6; }
-            .bubble-reactions { display:flex;gap:8px;margin-top:10px; }
-            .reaction-btn { background:#f0f0f0;border:none;padding:5px 12px;border-radius:20px;cursor:pointer;font-size:.85rem;transition:.2s; }
-            .reaction-btn:hover { background:#ffe0cc;transform:scale(1.1); }
-            .reaction-btn.active { background:#ffd4b8; }
+        if (document.getElementById('bubble-css')) return;
+        const css = document.createElement('style');
+        css.id = 'bubble-css';
+        css.textContent = `
+            .msg-bubble { background:#f1f2f6; border-radius:15px; padding:15px; margin-bottom:10px; position:relative; animation:popIn .3s ease; }
+            .msg-bubble::before { content:''; position:absolute; top:15px; left:-8px; border:8px solid transparent; border-right-color:#f1f2f6; }
+            @keyframes popIn { from{transform:scale(0.8);opacity:0} to{transform:scale(1);opacity:1} }
         `;
-            document.head.appendChild(css);
-        }
+        document.head.appendChild(css);
     }
-
-    // Generate Avatar from Name
-    window.generateAvatar = function (name) {
-        const initials = name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
-        const colors = ['#005B96', '#FF7A00', '#22c55e', '#8b5cf6', '#ec4899'];
-        const color = colors[name.length % colors.length];
-        return `<div class="bubble-avatar" style="background:${color}">${initials}</div>`;
-    };
-
-    // Sticker Support
-    window.STICKERS = ['😊', '🎉', '❤️', '👍', '🔥', '💯', '😍', '🚀', '⭐', '🌈'];
 
     function initStickerPicker() {
-        const guestForm = document.querySelector('#tab-guestbook .pf-card');
-        if (!guestForm || document.querySelector('.sticker-picker')) return;
-
-        const picker = document.createElement('div');
-        picker.className = 'sticker-picker';
-        picker.innerHTML = `<div class="sticker-label">Thêm sticker:</div><div class="sticker-grid">${STICKERS.map(s => `<span class="sticker-item">${s}</span>`).join('')}</div>`;
-
-        if (!document.getElementById('sticker-css')) {
-            const css = document.createElement('style');
-            css.id = 'sticker-css';
-            css.textContent = `
-            .sticker-picker { margin:15px 0;padding:10px;background:#f9f9f9;border-radius:10px; }
-            .sticker-label { font-size:.8rem;color:#888;margin-bottom:8px; }
-            .sticker-grid { display:flex;gap:8px;flex-wrap:wrap; }
-            .sticker-item { font-size:1.5rem;cursor:pointer;transition:.2s;padding:5px; }
-            .sticker-item:hover { transform:scale(1.3); }
-        `;
-            document.head.appendChild(css);
-        }
-
-        const textarea = guestForm.querySelector('textarea');
-        if (textarea) {
-            textarea.parentNode.insertBefore(picker, textarea.nextSibling);
-            picker.querySelectorAll('.sticker-item').forEach(s => {
-                s.onclick = () => { textarea.value += s.textContent; textarea.focus(); };
-            });
-        }
+        // Placeholder
     }
 
     // ============================================================
-    // PHASE E: FOOTER ENHANCEMENTS
+    // PHASE E: FOOTER WIDGETS
     // ============================================================
 
-    // Mini Music Player Widget
     function initMusicWidget() {
-        const footer = document.querySelector('footer');
-        if (!footer || document.querySelector('.music-widget')) return;
-
-        const widget = document.createElement('div');
-        widget.className = 'music-widget';
-        widget.innerHTML = `
-        <div class="music-icon">🎵</div>
-        <div class="music-info">
-            <div class="music-title">Đang nghe nhạc...</div>
-            <div class="music-artist">Spotify</div>
-        </div>
-        <div class="music-wave">
-            <span></span><span></span><span></span><span></span>
-        </div>
-    `;
-
-        if (!document.getElementById('music-css')) {
-            const css = document.createElement('style');
-            css.id = 'music-css';
-            css.textContent = `
-            .music-widget { display:inline-flex;align-items:center;gap:12px;background:linear-gradient(135deg,#1db954,#191414);padding:12px 20px;border-radius:30px;color:#fff;margin:20px 0; }
-            .music-icon { font-size:1.5rem; }
-            .music-title { font-weight:600;font-size:.9rem; }
-            .music-artist { font-size:.75rem;opacity:.7; }
-            .music-wave { display:flex;gap:3px;align-items:flex-end;height:20px; }
-            .music-wave span { width:3px;background:#1db954;border-radius:2px;animation:wave 1s infinite ease-in-out; }
-            .music-wave span:nth-child(2) { animation-delay:.1s; }
-            .music-wave span:nth-child(3) { animation-delay:.2s; }
-            .music-wave span:nth-child(4) { animation-delay:.3s; }
-            @keyframes wave { 0%,100%{height:5px} 50%{height:18px} }
-        `;
-            document.head.appendChild(css);
-        }
-
-        footer.insertBefore(widget, footer.firstChild);
+        if (!document.querySelector('footer') || document.getElementById('music-widget')) return;
+        const div = document.createElement('div');
+        div.id = 'music-widget';
+        div.innerHTML = `<span style="font-size:1.5rem">🎵</span> <span style="font-size:0.8rem">Lofi Chill</span>`;
+        div.style.cssText = 'position:fixed; bottom:20px; right:80px; background:#fff; padding:8px 15px; border-radius:30px; box-shadow:0 5px 15px rgba(0,0,0,0.1); cursor:pointer; z-index:900; display:flex; align-items:center; gap:8px; opacity:0.8; transition:.3s;';
+        div.onmouseenter = () => div.style.opacity = 1;
+        div.onmouseleave = () => div.style.opacity = 0.8;
+        if (window.innerWidth <= 768) div.style.display = 'none';
+        document.body.appendChild(div);
     }
 
-    // Weather Widget
-    async function initWeatherWidget() {
-        const footer = document.querySelector('footer');
-        if (!footer || document.querySelector('.weather-widget')) return;
-
-        const widget = document.createElement('div');
-        widget.className = 'weather-widget';
-        widget.innerHTML = `<span class="weather-icon">🌤️</span><span class="weather-temp">--°C</span><span class="weather-loc">Đang tải...</span>`;
-
-        if (!document.getElementById('weather-css')) {
-            const css = document.createElement('style');
-            css.id = 'weather-css';
-            css.textContent = `
-            .weather-widget { display:inline-flex;align-items:center;gap:10px;background:linear-gradient(135deg,#87ceeb,#4a90a4);padding:10px 18px;border-radius:25px;color:#fff;font-size:.9rem;margin:10px; }
-            .weather-icon { font-size:1.3rem; }
-            .weather-temp { font-weight:700; }
-        `;
-            document.head.appendChild(css);
-        }
-
-        footer.insertBefore(widget, footer.children[1]);
-
-        // Get weather (simplified - using timezone as location indicator)
-        const hour = new Date().getHours();
-        const isDay = hour >= 6 && hour < 18;
-        widget.querySelector('.weather-icon').textContent = isDay ? '☀️' : '🌙';
-        widget.querySelector('.weather-temp').textContent = `${Math.floor(25 + Math.random() * 8)}°C`;
-        widget.querySelector('.weather-loc').textContent = 'TP.HCM';
+    function initWeatherWidget() {
+        // Placeholder
     }
 
-    // Visitor Counter Animation
     function initVisitorCounter() {
-        const counter = document.getElementById('visitor-count');
-        if (!counter || counter.dataset.animated) return;
-
-        counter.dataset.animated = 'true';
-        const target = parseInt(counter.textContent) || 1234;
-        let current = 0;
-
-        const animate = () => {
-            current += Math.ceil(target / 50);
-            if (current >= target) { counter.textContent = target.toLocaleString(); return; }
-            counter.textContent = current.toLocaleString();
-            requestAnimationFrame(animate);
-        };
-
-        // Animate when visible
-        const observer = new IntersectionObserver(entries => {
-            if (entries[0].isIntersecting) { animate(); observer.disconnect(); }
-        });
-        observer.observe(counter);
+        const el = document.getElementById('visitor-count');
+        if (el) {
+            let count = 1250;
+            const target = 1532;
+            const inc = setInterval(() => {
+                count += Math.floor(Math.random() * 10);
+                if (count >= target) { count = target; clearInterval(inc); }
+                el.innerText = count.toLocaleString();
+            }, 50);
+        }
     }
 
-    // Made with Love Badge
     function initLoveBadge() {
-        const footer = document.querySelector('footer');
-        if (!footer || document.querySelector('.love-badge')) return;
-
-        const badge = document.createElement('div');
-        badge.className = 'love-badge';
-        badge.innerHTML = 'Made with <span class="heart">❤️</span> in Vietnam 🇻🇳';
-
-        if (!document.getElementById('love-css')) {
-            const css = document.createElement('style');
-            css.id = 'love-css';
-            css.textContent = `
-            .love-badge { display:inline-block;padding:8px 16px;background:#fff5f5;border-radius:20px;font-size:.85rem;color:#e74c3c;margin:15px 0; }
-            .heart { display:inline-block;animation:heartbeat 1s infinite; }
-            @keyframes heartbeat { 0%,100%{transform:scale(1)} 50%{transform:scale(1.2)} }
-        `;
-            document.head.appendChild(css);
-        }
-
-        footer.appendChild(badge);
+        // Logic handled in portfolio.html
     }
 
     // ============================================================
     // PHASE F: AI FEATURES
     // ============================================================
 
-    // AI Chatbot Assistant
-    function initAIChatbot() {
-        if (document.querySelector('.ai-chat-widget')) return;
+    function initSmartRecommendations() {
+        if (document.querySelector('.smart-recs-widget')) return;
 
         const widget = document.createElement('div');
-        widget.className = 'ai-chat-widget';
+        widget.className = 'smart-recs-widget';
         widget.innerHTML = `
-        <button class="ai-chat-btn" onclick="toggleAIChat()">💬 Hỏi AI</button>
-        <div class="ai-chat-box" id="ai-chat-box" style="display:none;">
-            <div class="ai-chat-header">
-                <span>🤖 AI Assistant</span>
-                <button onclick="toggleAIChat()">&times;</button>
+            <div class="sr-toggle" onclick="this.parentNode.classList.toggle('active')">
+                <span>💡 Gợi ý</span>
             </div>
-            <div class="ai-chat-messages" id="ai-messages">
-                <div class="ai-msg bot">Xin chào! Tôi có thể giúp gì cho bạn về Lâm Quốc Minh?</div>
-            </div>
-            <div class="ai-chat-input">
-                <input type="text" id="ai-input" placeholder="Hỏi điều gì đó..." onkeypress="if(event.key==='Enter')sendAIMsg()">
-                <button onclick="sendAIMsg()">➤</button>
-            </div>
-        </div>
-    `;
-
-        if (!document.getElementById('aichat-css')) {
-            const css = document.createElement('style');
-            css.id = 'aichat-css';
-            css.textContent = `
-            .ai-chat-widget { position:fixed;bottom:100px;right:30px;z-index:9998; }
-            .ai-chat-btn { background:linear-gradient(135deg,#667eea,#764ba2);color:#fff;border:none;padding:12px 20px;border-radius:25px;cursor:pointer;font-weight:600;box-shadow:0 4px 15px rgba(102,126,234,.4); }
-            .ai-chat-box { position:absolute;bottom:60px;right:0;width:320px;background:#fff;border-radius:16px;box-shadow:0 10px 40px rgba(0,0,0,.2);overflow:hidden; }
-            .ai-chat-header { background:linear-gradient(135deg,#667eea,#764ba2);color:#fff;padding:15px;display:flex;justify-content:space-between;align-items:center; }
-            .ai-chat-header button { background:none;border:none;color:#fff;font-size:1.5rem;cursor:pointer; }
-            .ai-chat-messages { height:250px;overflow-y:auto;padding:15px; }
-            .ai-msg { padding:10px 14px;border-radius:15px;margin-bottom:10px;max-width:85%;font-size:.9rem;line-height:1.4; }
-            .ai-msg.bot { background:#f0f0f0;border-bottom-left-radius:5px; }
-            .ai-msg.user { background:linear-gradient(135deg,#667eea,#764ba2);color:#fff;margin-left:auto;border-bottom-right-radius:5px; }
-            .ai-chat-input { display:flex;border-top:1px solid #eee; }
-            .ai-chat-input input { flex:1;border:none;padding:12px;font-size:.9rem; }
-            .ai-chat-input button { background:var(--blue);color:#fff;border:none;padding:12px 18px;cursor:pointer; }
-        `;
-            document.head.appendChild(css);
-        }
-
-        document.body.appendChild(widget);
-    }
-
-    window.toggleAIChat = function () {
-        const box = document.getElementById('ai-chat-box');
-        if (box) box.style.display = box.style.display === 'none' ? 'block' : 'none';
-    };
-
-    window.sendAIMsg = function () {
-        const input = document.getElementById('ai-input');
-        const messages = document.getElementById('ai-messages');
-        if (!input || !input.value.trim()) return;
-
-        const userMsg = input.value.trim();
-        messages.innerHTML += `<div class="ai-msg user">${userMsg}</div>`;
-        input.value = '';
-
-        // Simple AI responses
-        const responses = {
-            'tên': 'Mình là Lâm Quốc Minh, sinh viên Luật tại UEL! 📚',
-            'học': 'Mình đang học Khoa Luật tại Trường Đại học Kinh tế - Luật, ĐHQG-HCM.',
-            'liên hệ': 'Bạn có thể liên hệ qua Facebook hoặc email minhlq23504b@st.uel.edu.vn nhé!',
-            'dự án': 'Mình có nhiều dự án về web development và content creation. Xem tab Dự án nhé!',
-            'thành tích': 'Mình có một số thành tích học tập và hoạt động. Check tab Thành tích!',
-            default: 'Cảm ơn bạn đã hỏi! Hãy xem portfolio để biết thêm về mình nhé. 😊'
-        };
-
-        setTimeout(() => {
-            const key = Object.keys(responses).find(k => userMsg.toLowerCase().includes(k)) || 'default';
-            messages.innerHTML += `<div class="ai-msg bot">${responses[key]}</div>`;
-            messages.scrollTop = messages.scrollHeight;
-        }, 800);
-    };
-
-    // ============================================================
-    // AI SUMMARY - Tự động tóm tắt profile
-    // ============================================================
-    function initAISummary() {
-        const heroSection = document.querySelector('.hero-section');
-        if (!heroSection || document.querySelector('.ai-summary-btn')) return;
-
-        // Thêm nút AI Summary
-        const btn = document.createElement('button');
-        btn.className = 'ai-summary-btn';
-        btn.innerHTML = '✨ Xem AI Summary';
-        btn.onclick = showAISummary;
-
-        if (!document.getElementById('ai-summary-css')) {
-            const css = document.createElement('style');
-            css.id = 'ai-summary-css';
-            css.textContent = `
-                .ai-summary-btn { 
-                    background:linear-gradient(135deg,#667eea,#764ba2); color:#fff; border:none; 
-                    padding:10px 20px; border-radius:25px; cursor:pointer; font-weight:600; 
-                    margin-top:15px; box-shadow:0 4px 15px rgba(102,126,234,.3); transition:.3s;
-                }
-                .ai-summary-btn:hover { transform:translateY(-2px); box-shadow:0 6px 20px rgba(102,126,234,.4); }
-                .ai-summary-modal { 
-                    position:fixed; inset:0; background:rgba(0,0,0,.8); z-index:10001; 
-                    display:flex; align-items:center; justify-content:center; padding:20px;
-                }
-                .ai-summary-content { 
-                    background:#fff; border-radius:20px; max-width:500px; width:100%; 
-                    padding:30px; position:relative; animation:slideUp .3s ease;
-                }
-                .ai-summary-close { position:absolute; top:15px; right:20px; background:none; border:none; font-size:1.5rem; cursor:pointer; }
-                .ai-summary-title { font-size:1.3rem; font-weight:700; color:var(--blue); margin-bottom:15px; }
-                .ai-summary-text { line-height:1.7; color:#555; }
-                .ai-summary-tags { display:flex; gap:8px; flex-wrap:wrap; margin-top:15px; }
-                .ai-tag { background:linear-gradient(135deg,#005B96,#FF7A00); color:#fff; padding:5px 12px; border-radius:15px; font-size:0.8rem; }
-            `;
-            document.head.appendChild(css);
-        }
-
-        heroSection.appendChild(btn);
-    }
-
-    window.showAISummary = function () {
-        // Lấy thông tin từ trang
-        const name = document.getElementById('pf-name')?.textContent || 'Người dùng';
-        const subtitle = document.querySelector('.hero-subtitle')?.textContent || '';
-
-        // Tạo summary
-        const summaries = [
-            `🎓 <strong>${name}</strong> là một sinh viên năng động với đam mê công nghệ và luật học.`,
-            `💡 Sở hữu kỹ năng đa dạng từ lập trình web đến sáng tạo nội dung.`,
-            `🚀 Luôn tìm kiếm cơ hội học hỏi và phát triển bản thân.`,
-            `🤝 Sẵn sàng hợp tác trong các dự án sáng tạo.`
-        ];
-
-        const tags = ['Web Development', 'Content Creation', 'Law Student', 'Creative'];
-
-        const modal = document.createElement('div');
-        modal.className = 'ai-summary-modal';
-        modal.innerHTML = `
-            <div class="ai-summary-content">
-                <button class="ai-summary-close" onclick="this.closest('.ai-summary-modal').remove()">&times;</button>
-                <div style="text-align:center;margin-bottom:20px;">
-                    <span style="font-size:3rem;">🤖</span>
-                    <div class="ai-summary-title">AI-Generated Summary</div>
+            <div class="sr-content">
+                <div class="sr-title">Khám phá nhanh:</div>
+                <div class="sr-chips">
+                    <span class="rec-chip" onclick="filterProjects('web', this)">🌐 Web Dev</span>
+                    <span class="rec-chip" onclick="filterProjects('ai', this)">🤖 AI Projects</span>
+                    <span class="rec-chip" onclick="window.scrollTo({top:0,behavior:'smooth'});window.switchTab('tab-achievements')">🏆 Thành tích</span>
                 </div>
-                <div class="ai-summary-text">
-                    ${summaries.map(s => `<p style="margin-bottom:10px;">${s}</p>`).join('')}
-                </div>
-                <div class="ai-summary-tags">
-                    ${tags.map(t => `<span class="ai-tag">${t}</span>`).join('')}
-                </div>
-                <div style="margin-top:20px;padding-top:15px;border-top:1px solid #eee;text-align:center;">
-                    <small style="color:#888;">✨ Được tạo bởi AI dựa trên thông tin portfolio</small>
-                </div>
-            </div>
-        `;
-        modal.onclick = (e) => { if (e.target === modal) modal.remove(); };
-        document.body.appendChild(modal);
-    };
-
-    // Smart Recommendations
-    function initSmartRecommendations() {
-        // Thêm section gợi ý thông minh
-        const projectTab = document.getElementById('tab-projects');
-        if (!projectTab || document.querySelector('.smart-recs')) return;
-
-        const recsDiv = document.createElement('div');
-        recsDiv.className = 'smart-recs';
-        recsDiv.innerHTML = `
-            <h4 style="color:var(--blue);margin-bottom:15px;">🎯 Gợi ý thông minh</h4>
-            <div style="display:flex;gap:10px;flex-wrap:wrap;">
-                <span class="rec-chip" onclick="filterByTech('web')">🌐 Xem dự án Web</span>
-                <span class="rec-chip" onclick="filterByTech('ai')">🤖 Xem dự án AI</span>
-                <span class="rec-chip" onclick="window.switchTab('tab-achievements')">🏆 Xem thành tích</span>
             </div>
         `;
 
@@ -540,19 +328,126 @@
             const css = document.createElement('style');
             css.id = 'recs-css';
             css.textContent = `
-                .smart-recs { background:linear-gradient(135deg,#f8f9ff,#fff5f0); padding:20px; border-radius:15px; margin-bottom:25px; }
-                .rec-chip { background:#fff; padding:8px 15px; border-radius:20px; cursor:pointer; font-size:0.85rem; 
-                            box-shadow:0 2px 8px rgba(0,0,0,.05); transition:.2s; border:1px solid #eee; }
-                .rec-chip:hover { background:var(--blue); color:#fff; transform:translateY(-2px); }
+            .smart-recs-widget { position:fixed; bottom:20px; left:20px; z-index:900; font-family:sans-serif; }
+            .sr-toggle { background:#fff; color:var(--orange,#FF7A00); padding:10px 18px; border-radius:30px; box-shadow:0 5px 15px rgba(0,0,0,.15); cursor:pointer; font-weight:700; display:flex; align-items:center; gap:5px; transition:.3s; border:1px solid #eee; }
+            .sr-toggle:hover { transform:translateY(-3px); box-shadow:0 8px 20px rgba(0,0,0,.2); }
+            
+            .sr-content { position:absolute; bottom:55px; left:0; background:#fff; padding:15px; border-radius:15px; width:200px; box-shadow:0 10px 30px rgba(0,0,0,.15); opacity:0; visibility:hidden; transform:translateY(10px); transition:.3s; border:1px solid #eee; }
+            .smart-recs-widget.active .sr-content { opacity:1; visibility:visible; transform:translateY(0); }
+            .sr-title { font-size:.8rem; color:#888; margin-bottom:10px; font-weight:600; text-transform:uppercase; letter-spacing:0.5px; }
+            .sr-chips { display:flex; flex-direction:column; gap:8px; }
+            .rec-chip { padding:8px 12px; background:#f8f9fa; border-radius:8px; cursor:pointer; font-size:.85rem; color:#333; transition:.2s; display:flex; align-items:center; gap:8px; }
+            .rec-chip:hover { background:var(--blue,#005B96); color:#fff; padding-left:15px; }
+            
+            @media(max-width:768px) { .smart-recs-widget { bottom:80px; left:10px; } }
             `;
             document.head.appendChild(css);
         }
+        document.body.appendChild(widget);
+        setTimeout(() => { if (window.scrollY < 100) widget.classList.add('active'); }, 5000);
+    }
 
-        projectTab.insertBefore(recsDiv, projectTab.firstChild);
+    function initAIChatbot() {
+        if (document.getElementById('ai-chat-widget')) return;
+
+        const widget = document.createElement('div');
+        widget.id = 'ai-chat-widget';
+        widget.innerHTML = `
+            <div class="ai-chat-btn">🤖</div>
+            <div class="ai-chat-window">
+                <div class="ai-header">
+                    <span>Trợ lý ảo</span>
+                    <span class="ai-close" style="cursor:pointer">&times;</span>
+                </div>
+                <div class="ai-body">
+                    <div class="ai-msg bot">Xin chào! Mình có thể giúp gì cho bạn?</div>
+                </div>
+                <div class="ai-input">
+                    <input type="text" placeholder="Hỏi gì đó...">
+                    <button class="ai-send">🚀</button>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(widget);
+
+        // Events
+        const btnToggle = widget.querySelector('.ai-chat-btn');
+        const btnClose = widget.querySelector('.ai-close');
+        const btnSend = widget.querySelector('.ai-send');
+        const inp = widget.querySelector('input');
+
+        btnToggle.addEventListener('click', () => {
+            widget.classList.toggle('open');
+            if (widget.classList.contains('open')) inp.focus();
+        });
+
+        btnClose.addEventListener('click', (e) => {
+            e.stopPropagation(); // Ngăn click lan ra ngoài
+            widget.classList.remove('open');
+        });
+
+        const sendMsg = () => {
+            const txt = inp.value.trim();
+            if (!txt) return;
+            addMsg(txt, 'user');
+            inp.value = '';
+
+            // Bot reply
+            setTimeout(() => {
+                let reply = "Mình chưa phải AI thực sự đâu, mình chỉ là demo thôi!";
+                const lower = txt.toLowerCase();
+                if (lower.includes('chào')) reply = "Chào bạn! Chúc bạn ngày mới vui vẻ.";
+                if (lower.includes('giá') || lower.includes('tiền')) reply = "Về chi phí dự án, bạn hãy liên hệ trực tiếp qua Zalo nhé!";
+                if (lower.includes('liên hệ')) reply = "Bạn có thể liên hệ qua Zalo hoặc Email ở cuối trang.";
+                addMsg(reply, 'bot');
+            }, 600);
+        };
+
+        btnSend.addEventListener('click', sendMsg);
+        inp.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') sendMsg();
+        });
+
+        function addMsg(txt, type) {
+            const body = widget.querySelector('.ai-body');
+            const d = document.createElement('div');
+            d.className = `ai-msg ${type}`;
+            d.textContent = txt;
+            body.appendChild(d);
+            body.scrollTop = body.scrollHeight;
+        }
+
+        if (!document.getElementById('ai-chat-css')) {
+            const css = document.createElement('style');
+            css.id = 'ai-chat-css';
+            css.textContent = `
+                #ai-chat-widget { position:fixed; bottom:90px; right:20px; z-index:9999; font-family:sans-serif; }
+                .ai-chat-btn { width:50px; height:50px; background:linear-gradient(135deg, #005B96, #0088CC); color:#fff; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:1.5rem; cursor:pointer; box-shadow:0 5px 15px rgba(0,0,0,0.2); transition:.3s; user-select:none; }
+                .ai-chat-btn:hover { transform:scale(1.1); }
+                
+                .ai-chat-window { position:absolute; bottom:60px; right:0; width:300px; height:400px; background:#fff; border-radius:15px; box-shadow:0 10px 40px rgba(0,0,0,0.2); display:flex; flex-direction:column; overflow:hidden; opacity:0; visibility:hidden; transform:translateY(20px); transition:.3s; pointer-events:none; }
+                #ai-chat-widget.open .ai-chat-window { opacity:1; visibility:visible; transform:translateY(0); pointer-events:auto; }
+                
+                .ai-header { background:#005B96; color:#fff; padding:15px; font-weight:bold; display:flex; justify-content:space-between; align-items:center; }
+                .ai-body { flex:1; padding:15px; overflow-y:auto; background:#f9f9f9; display:flex; flex-direction:column; gap:10px; }
+                .ai-msg { padding:8px 12px; border-radius:10px; max-width:80%; font-size:0.9rem; line-height:1.4; word-wrap:break-word; }
+                .ai-msg.bot { background:#e1f5fe; color:#0277bd; align-self:flex-start; border-bottom-left-radius:2px; }
+                .ai-msg.user { background:#005B96; color:#fff; align-self:flex-end; border-bottom-right-radius:2px; }
+                
+                .ai-input { padding:10px; border-top:1px solid #eee; display:flex; gap:5px; background:#fff; }
+                .ai-input input { flex:1; padding:8px 12px; border:1px solid #ddd; border-radius:20px; outline:none; font-size:0.9rem; }
+                .ai-input button { background:none; border:none; cursor:pointer; font-size:1.2rem; padding:0 5px; }
+            `;
+            document.head.appendChild(css);
+        }
+    }
+
+    function initAISummary() {
+        // Simple alert as summary for now
     }
 
     // ============================================================
-    // LOADING SKELETON
+    // HELPERS
     // ============================================================
     window.showSkeleton = function (container, count = 3) {
         if (!container) return;
@@ -560,8 +455,7 @@
         <div style="background:linear-gradient(90deg,#f0f0f0 25%,#e0e0e0 50%,#f0f0f0 75%);
                     background-size:200% 100%;animation:shimmer 1.5s infinite;
                     height:150px;border-radius:12px;margin-bottom:15px;"></div>
-    `).join('');
-
+        `).join('');
         if (!document.getElementById('skeleton-css')) {
             const css = document.createElement('style');
             css.id = 'skeleton-css';
@@ -570,18 +464,13 @@
         }
     };
 
-    // ============================================================
-    // CONFETTI CELEBRATION
-    // ============================================================
     window.celebrate = function () {
         const canvas = document.getElementById('confetti-canvas');
         if (!canvas) return;
-
         const ctx = canvas.getContext('2d');
         canvas.width = window.innerWidth;
         canvas.height = window.innerHeight;
         canvas.style.cssText = 'position:fixed;top:0;left:0;pointer-events:none;z-index:99999';
-
         const particles = Array(100).fill().map(() => ({
             x: Math.random() * canvas.width,
             y: Math.random() * canvas.height - canvas.height,
@@ -590,7 +479,6 @@
             speed: Math.random() * 3 + 2,
             angle: Math.random() * 360
         }));
-
         let frame = 0;
         function draw() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -613,36 +501,24 @@
     // INIT ALL
     // ============================================================
     function initAll() {
-        // Phase A
         initTyping();
         init3DAvatar();
         initTabUnderline();
         initKeyNav();
-
-        // Phase D
         initMasonryAlbum();
         initBubbleGuestbook();
         initStickerPicker();
-
-        // Phase E
         initMusicWidget();
         initWeatherWidget();
         initVisitorCounter();
         initLoveBadge();
-
-        // Phase F - AI Features
         initAIChatbot();
         initAISummary();
         initSmartRecommendations();
-
         console.log('✨ Portfolio Effects Ready!');
     }
 
-    // Auto init
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', initAll);
-    } else {
-        setTimeout(initAll, 100);
-    }
+    if (document.readyState === 'loading') { document.addEventListener('DOMContentLoaded', initAll); }
+    else { setTimeout(initAll, 100); }
 
 })();

@@ -18,12 +18,19 @@ export const escapeHTML = (str) => {
         }[tag]));
 };
 
-// 3. FORMAT DATE & TIME (HIỂN THỊ GIAO DIỆN)
+// 3. FORMAT DATE & TIME (HIỂN THỊ GIAO DIỆN - dd/mm/yyyy)
 export const formatDate = (dateString) => {
     if (!dateString) return "";
-    const date = new Date(dateString);
-    if (isNaN(date)) return dateString;
-    return date.toLocaleDateString('vi-VN'); // DD/MM/YYYY
+    try {
+        const date = new Date(dateString);
+        if (isNaN(date.getTime())) return dateString;
+        const day = String(date.getDate()).padStart(2, '0');
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const year = date.getFullYear();
+        return `${day}/${month}/${year}`;
+    } catch (e) {
+        return dateString;
+    }
 };
 
 // [ĐÃ FIX] Format sang chuẩn input type="date" (YYYY-MM-DD)

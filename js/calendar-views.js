@@ -12,6 +12,9 @@ let currentDate = new Date();
 /**
  * Khởi tạo Calendar Views
  */
+/**
+ * Khởi tạo Calendar Views
+ */
 export const initCalendarViews = (data, user) => {
     globalData = data;
     currentUser = user;
@@ -24,6 +27,24 @@ export const initCalendarViews = (data, user) => {
             handleViewChange(view);
         }
     });
+
+    // [MỚI] Load saved view state
+    const savedView = localStorage.getItem('calendar-view') || 'week';
+    if (savedView && savedView !== 'week') {
+        // Delay slightly to ensure DOM is ready if needed, or just call directly
+        setTimeout(() => handleViewChange(savedView), 100);
+        // Update active button UI
+        document.querySelectorAll('[data-calendar-view]').forEach(btn => {
+            btn.classList.toggle('active', btn.dataset.calendarView === savedView);
+            // Updating styles for the ui-enhancement buttons (if different)
+            if (btn.classList.contains('view-btn')) {
+                btn.style.background = btn.dataset.view === savedView ? '#667eea' : 'transparent';
+                btn.style.color = btn.dataset.view === savedView ? 'white' : '#4b5563';
+            }
+        });
+        // Update View Selector in ui-enhancements as well (dispatched event listener might not be ready yet for the initial load if order varies, so safe to manual update or relying on click)
+        // Better: trigger the switch logic which updates UI.
+    }
 };
 
 /**
@@ -31,7 +52,10 @@ export const initCalendarViews = (data, user) => {
  */
 const handleViewChange = (view) => {
     currentView = view;
-    const container = document.getElementById('week-view-container') ||
+    localStorage.setItem('calendar-view', view); // [MỚI] Save state
+
+    const container = document.getElementById('calendar-view') ||
+        document.getElementById('week-view-container') ||
         document.getElementById('calendar-body') ||
         document.querySelector('.calendar-grid-container');
 
@@ -66,6 +90,19 @@ const handleViewChange = (view) => {
             break;
         case 'week':
         default:
+            // Check if Week View structure exists (it might have been overwritten by other views)
+            if (!container.querySelector('#calendar-body')) {
+                container.innerHTML = `
+                    <table class="calendar-table">
+                        <thead>
+                            <tr>
+                                <th class="time-col">Giờ</th>
+                            </tr>
+                        </thead>
+                        <tbody id="calendar-body"></tbody>
+                    </table>
+                `;
+            }
             if (window.renderCalendar) window.renderCalendar();
             break;
     }
@@ -88,6 +125,7 @@ const setupViewToggleButtons = () => {
  */
 const switchView = (view) => {
     currentView = view;
+    localStorage.setItem('calendar-view', view); // Save state
 
     // Update active button
     document.querySelectorAll('[data-calendar-view]').forEach(btn => {
@@ -95,7 +133,7 @@ const switchView = (view) => {
     });
 
     // Render appropriate view
-    const container = document.getElementById('calendar-container') || document.getElementById('calendar-body');
+    const container = document.getElementById('calendar-view') || document.getElementById('calendar-container') || document.getElementById('calendar-body');
     if (!container) return;
 
     switch (view) {
@@ -108,8 +146,40 @@ const switchView = (view) => {
         case 'list':
             renderListView(container);
             break;
+        case 'kanban':
+            // Import từ ui-enhancements
+            const tasks = globalData?.tasks || [];
+            import('./ui-enhancements.js').then(m => {
+                m.renderKanbanBoard(tasks, container.id || 'calendar-view');
+            }).catch(err => {
+                container.innerHTML = `<div style="padding:50px;text-align:center;color:#6b7280;">📊 Kanban View - Đang phát triển</div>`;
+            });
+            break;
+        case 'timeline':
+            const events = globalData?.calendarEvents || [];
+            const allTasks = globalData?.tasks || [];
+            import('./ui-enhancements.js').then(m => {
+                m.renderTimelineView([...events, ...allTasks], container.id || 'calendar-view');
+            }).catch(err => {
+                container.innerHTML = `<div style="padding:50px;text-align:center;color:#6b7280;">⏳ Timeline View - Đang phát triển</div>`;
+            });
+            break;
+        case 'week':
         default:
             // Week view is default, handled by work.js
+            // Check if Week View structure exists
+            if (!container.querySelector('#calendar-body')) {
+                container.innerHTML = `
+                    <table class="calendar-table">
+                        <thead>
+                            <tr>
+                                <th class="time-col">Giờ</th>
+                            </tr>
+                        </thead>
+                        <tbody id="calendar-body"></tbody>
+                    </table>
+                `;
+            }
             if (window.renderCalendar) window.renderCalendar();
     }
 };
@@ -265,52 +335,105 @@ const renderListView = (container) => {
     const events = globalData?.calendarEvents || [];
     const tasks = globalData?.tasks || [];
 
-    // Combine and sort by date
-    const items = [
+    // 1. Combine data
+    let items = [
         ...events.map(e => ({ ...e, type: 'event', date: e.date })),
         ...tasks.map(t => ({ ...t, type: 'task', date: t.dueDate, title: t.name }))
-    ].filter(i => i.date).sort((a, b) => new Date(a.date) - new Date(b.date));
+    ].filter(i => i.date);
+
+    // 2. Split into Upcoming and Past
+    const todayDate = new Date();
+    todayDate.setHours(0, 0, 0, 0); // Start of today
+
+    const upcoming = items.filter(i => new Date(i.date) >= todayDate);
+    const past = items.filter(i => new Date(i.date) < todayDate);
+
+    // 3. Sort: Upcoming ASC (Nearest Future), Past DESC (Nearest Past)
+    upcoming.sort((a, b) => new Date(a.date) - new Date(b.date));
+    past.sort((a, b) => new Date(b.date) - new Date(a.date));
+
+    // Combine: Upcoming First
+    // User requested "Nearest first", so Today/Tomorrow should be at the top.
+    const sortedItems = [...upcoming, ...past];
 
     // Group by date
     const grouped = {};
-    items.forEach(item => {
+    sortedItems.forEach(item => {
         if (!grouped[item.date]) grouped[item.date] = [];
         grouped[item.date].push(item);
     });
 
-    const today = new Date().toISOString().split('T')[0];
+    const todayStr = new Date().toISOString().split('T')[0];
 
     let html = `
         <div class="list-view">
-            <div style="padding:15px;background:linear-gradient(135deg,#f59e0b,#d97706);color:white;border-radius:12px;margin-bottom:15px;">
-                <h3 style="margin:0;">📋 Danh sách sự kiện & công việc</h3>
-                <p style="margin:5px 0 0;opacity:0.9;font-size:0.9rem;">${items.length} items</p>
+            <div style="padding:15px;background:linear-gradient(135deg,#f59e0b,#d97706);color:white;border-radius:12px;margin-bottom:15px;display:flex;justify-content:space-between;align-items:center;">
+                <div>
+                    <h3 style="margin:0;">📋 Danh sách sự kiện & công việc</h3>
+                    <p style="margin:5px 0 0;opacity:0.9;font-size:0.9rem;">${upcoming.length} sắp tới · ${past.length} đã qua</p>
+                </div>
+                <!-- Checklist toggle could go here -->
             </div>
-            <div class="list-items" style="display:flex;flex-direction:column;gap:10px;">
+            
+            <div class="list-items" style="display:flex;flex-direction:column;gap:15px;">
     `;
 
-    Object.entries(grouped).forEach(([date, dayItems]) => {
-        const isPast = date < today;
-        const isToday = date === today;
+    // Render Groups
+    const dates = Object.keys(grouped);
+    // Note: The keys in 'grouped' object might be unordered. We need to iterate based on our sortedItems order.
+    // Create a Set of unique dates from sortedItems to maintain order
+    const sortedDates = [...new Set(sortedItems.map(i => i.date))];
+
+    sortedDates.forEach(date => {
+        const dayItems = grouped[date];
+        const isPast = date < todayStr;
+        const isToday = date === todayStr;
         const dateObj = new Date(date);
         const dateStr = dateObj.toLocaleDateString('vi-VN', { weekday: 'long', day: 'numeric', month: 'long' });
 
         html += `
-            <div class="list-date-group" style="background:white;border-radius:12px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,0.05);${isPast ? 'opacity:0.6;' : ''}">
-                <div style="padding:12px 15px;background:${isToday ? '#3b82f6' : '#f3f4f6'};color:${isToday ? 'white' : '#374151'};font-weight:600;">
-                    ${isToday ? '📌 Hôm nay - ' : ''}${dateStr}
+            <div class="list-date-group" style="position:relative; padding-left:20px;">
+                <!-- Timeline Line -->
+                <div style="position:absolute;left:9px;top:0;bottom:0;width:2px;background:#e5e7eb;"></div>
+                
+                <!-- Header Ngày -->
+                <div style="display:flex;align-items:center;margin-bottom:10px;">
+                    <div style="width:20px;height:20px;background:${isToday ? '#3b82f6' : isPast ? '#9ca3af' : '#f59e0b'};border-radius:50%;border:3px solid white;box-shadow:0 2px 4px rgba(0,0,0,0.1);z-index:2;margin-left:-9px;"></div>
+                    <div style="margin-left:15px;font-weight:700;color:${isToday ? '#3b82f6' : '#374151'};font-size:1rem;background:white;padding:2px 10px;border-radius:20px;box-shadow:0 1px 3px rgba(0,0,0,0.05);">
+                        ${isToday ? 'Hôm nay, ' : ''}${dateStr}
+                    </div>
                 </div>
-                <div style="padding:10px 15px;">
+
+                <!-- List Items -->
+                <div style="background:white;border-radius:12px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,0.05);border-left:4px solid ${isToday ? '#3b82f6' : isPast ? '#d1d5db' : '#f59e0b'};">
                     ${dayItems.map(item => `
-                        <div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid #f3f4f6;">
-                            <span style="font-size:1.2rem;">${item.type === 'event' ? '📅' : '✅'}</span>
-                            <div style="flex:1;">
-                                <div style="font-weight:500;color:#1f2937;">${escapeHTML(item.title)}</div>
-                                ${item.startTime ? `<div style="font-size:0.8rem;color:#6b7280;">⏰ ${item.startTime}</div>` : ''}
+                        <div class="list-item-row" style="display:flex;align-items:center;gap:15px;padding:12px 15px;border-bottom:1px solid #f3f4f6;transition:background 0.2s;" onmouseover="this.style.background='#f9fafb'" onmouseout="this.style.background='transparent'">
+                            
+                            <!-- Checkbox/Status Center Aligned -->
+                            <div style="display:flex;align-items:center;justify-content:center;height:100%;">
+                                ${item.type === 'task' ? `
+                                    <div class="custom-checkbox ${item.status === 'completed' ? 'checked' : ''}" 
+                                         style="width:22px;height:22px;border:2px solid ${item.status === 'completed' ? '#10b981' : '#d1d5db'};border-radius:6px;cursor:pointer;display:flex;align-items:center;justify-content:center;background:${item.status === 'completed' ? '#10b981' : 'white'};transition:all 0.2s;"
+                                         onclick="this.classList.toggle('checked'); this.style.backgroundColor = this.classList.contains('checked') ? '#10b981' : 'white'; this.style.borderColor = this.classList.contains('checked') ? '#10b981' : '#d1d5db'; event.stopPropagation();">
+                                        <span style="color:white;font-size:14px;display:${item.status === 'completed' ? 'block' : 'none'};" class="check-icon">✓</span>
+                                    </div>
+                                ` : `
+                                    <div style="width:22px;height:22px;display:flex;align-items:center;justify-content:center;background:#e0f2fe;color:#0369a1;border-radius:50%;font-size:0.8rem;">📅</div>
+                                `}
                             </div>
+
+                            <!-- Content -->
+                            <div style="flex:1;">
+                                <div style="font-weight:600;color:#1f2937;font-size:0.95rem;margin-bottom:2px;${item.type === 'task' && item.status === 'completed' ? 'text-decoration:line-through;color:#9ca3af;' : ''}">
+                                    ${escapeHTML(item.title)}
+                                </div>
+                                ${item.startTime ? `<div style="font-size:0.8rem;color:#6b7280;display:flex;align-items:center;gap:4px;"><span>⏰</span> ${item.startTime}</div>` : ''}
+                            </div>
+
+                            <!-- Priority/Tag -->
                             ${item.priority ? `
-                                <span style="padding:2px 8px;border-radius:10px;font-size:0.7rem;background:${item.priority === 'high' ? '#fee2e2' : item.priority === 'low' ? '#dcfce7' : '#fef9c3'};color:${item.priority === 'high' ? '#dc2626' : item.priority === 'low' ? '#16a34a' : '#ca8a04'};">
-                                    ${item.priority}
+                                <span style="padding:4px 10px;border-radius:20px;font-size:0.7rem;font-weight:600;background:${item.priority === 'high' ? '#fee2e2' : item.priority === 'low' ? '#dcfce7' : '#fef9c3'};color:${item.priority === 'high' ? '#dc2626' : item.priority === 'low' ? '#16a34a' : '#ca8a04'};">
+                                    ${item.priority.toUpperCase()}
                                 </span>
                             ` : ''}
                         </div>
@@ -320,16 +443,27 @@ const renderListView = (container) => {
         `;
     });
 
-    if (items.length === 0) {
+    if (sortedItems.length === 0) {
         html += `
-            <div style="text-align:center;padding:40px;color:#9ca3af;">
-                <div style="font-size:3rem;margin-bottom:10px;">📭</div>
-                <p>Chưa có sự kiện hoặc công việc nào</p>
+            <div style="text-align:center;padding:50px;color:#9ca3af;">
+                <div style="font-size:4rem;margin-bottom:10px;opacity:0.5;">📭</div>
+                <p>Không có sự kiện nào sắp tới</p>
             </div>
         `;
     }
 
     html += `</div></div>`;
+
+    // Inject Script for Checkbox Click UI logic (Simple toggle visual)
+    if (!document.getElementById('list-view-style')) {
+        const style = document.createElement('style');
+        style.id = 'list-view-style';
+        style.textContent = `
+            .custom-checkbox.checked .check-icon { display: block !important; }
+         `;
+        document.head.appendChild(style);
+    }
+
     container.innerHTML = html;
 };
 

@@ -535,7 +535,7 @@ const renderTasks = (filter = 'all') => {
                         ${escapeHTML(task.name)} ${statusClass === 'overdue' && !isCompleted ? '<span style="color:red; font-size:0.8rem">(Quá hạn)</span>' : ''}
                     </h3>
                     <div class="task-meta">
-                        <span class="priority-badge ${task.priority}">${task.priority === 'high' ? 'Cao' : (task.priority === 'medium' ? 'TB' : 'Thấp')}</span>
+                        <span class="priority-badge ${task.priority === 'high' || task.priority === 'Cao' ? 'high' : (task.priority === 'medium' || task.priority === 'Trung bình' ? 'medium' : 'low')}">${task.priority === 'high' || task.priority === 'Cao' ? 'CAO' : (task.priority === 'medium' || task.priority === 'Trung bình' ? 'TB' : (task.priority === 'Thấp' || task.priority === 'low' ? 'THẤP' : task.priority || 'TB'))}</span>
                         <span>📅 ${formatDate(task.dueDate)}</span>
                         <span class="tag-badge">${escapeHTML(task.category)}</span>
                     </div>
@@ -691,6 +691,7 @@ const formatDateVN = (dateStr) => {
 
 // Hàm render danh sách nhóm To-do
 const renderTodoGroups = () => {
+    // Tìm container (đã thống nhất dùng todo-groups-container)
     const container = document.getElementById('todo-groups-container');
     const emptyState = document.getElementById('todo-groups-empty');
     if (!container) return;
@@ -804,22 +805,25 @@ const renderTodoGroups = () => {
     });
 };
 
-// Hàm tạo nhóm mới
+// Hàm tạo nhóm mới (hỗ trợ cả UI cũ và mới)
 const handleAddTodoGroup = async () => {
-    const nameInput = document.getElementById('new-todo-group-name');
-    const dateInput = document.getElementById('new-todo-group-date');
+    // Fallback: tìm cả ID cũ và ID mới
+    const nameInput = document.getElementById('new-group-name') || document.getElementById('new-todo-group-name');
+    const dateInput = document.getElementById('new-group-deadline') || document.getElementById('new-todo-group-date');
+    const colorInput = document.getElementById('new-group-color');
 
-    const name = nameInput.value.trim();
+    const name = nameInput?.value.trim();
     if (!name) {
         showNotification('Vui lòng nhập tên nhóm!', 'error');
-        nameInput.focus();
+        nameInput?.focus();
         return;
     }
 
     const newGroup = {
         id: generateID('tg'),
         name: name,
-        createdDate: dateInput.value || toLocalISOString(new Date()),
+        createdDate: dateInput?.value || toLocalISOString(new Date()),
+        color: colorInput?.value || '#667eea',
         items: []
     };
 
@@ -829,8 +833,8 @@ const handleAddTodoGroup = async () => {
     await saveUserData(currentUser.uid, { todoGroups: globalData.todoGroups });
 
     // Reset form
-    nameInput.value = '';
-    dateInput.value = toLocalISOString(new Date());
+    if (nameInput) nameInput.value = '';
+    if (dateInput) dateInput.value = toLocalISOString(new Date());
 
     renderTodoGroups();
     renderDashboard();
@@ -842,12 +846,12 @@ const handleDeleteTodoGroup = async (groupId) => {
     const group = globalData.todoGroups.find(g => g.id === groupId);
     if (!group) return;
 
-    if (confirm(`Xóa nhóm "${group.name}" và tất cả việc cần làm trong đó?`)) {
+    if (confirm(`Xóa nhóm "${group.name}" và tất cả công việc trong đó?`)) {
         globalData.todoGroups = globalData.todoGroups.filter(g => g.id !== groupId);
         await saveUserData(currentUser.uid, { todoGroups: globalData.todoGroups });
         renderTodoGroups();
         renderDashboard();
-        showNotification('Đã xóa nhóm!');
+        showNotification(`Đã xóa nhóm "${group.name}"`);
     }
 };
 
@@ -899,27 +903,27 @@ const handleDeleteTodoItem = async (groupId, itemId) => {
     renderDashboard();
 };
 
-// Setup sự kiện cho To-do Groups
+// Setup sự kiện cho To-do Groups (hỗ trợ cả UI cũ và mới)
 const setupTodoGroupsEvents = () => {
-    // Set ngày mặc định là hôm nay
-    const dateInput = document.getElementById('new-todo-group-date');
-    if (dateInput) {
-        dateInput.value = toLocalISOString(new Date());
-    }
+    // Set ngày mặc định
+    const dateInputOld = document.getElementById('new-todo-group-date');
+    const dateInputNew = document.getElementById('new-group-deadline');
+    if (dateInputOld) dateInputOld.value = toLocalISOString(new Date());
+    if (dateInputNew) dateInputNew.value = toLocalISOString(new Date());
 
-    // Sự kiện nút tạo nhóm
-    const addGroupBtn = document.getElementById('btn-add-todo-group');
-    if (addGroupBtn) {
-        addGroupBtn.addEventListener('click', handleAddTodoGroup);
-    }
+    // Sự kiện nút tạo nhóm (cả 2 nút)
+    const addGroupBtnOld = document.getElementById('btn-add-todo-group');
+    const addGroupBtnNew = document.getElementById('btn-create-todo-group');
+    if (addGroupBtnOld) addGroupBtnOld.addEventListener('click', handleAddTodoGroup);
+    if (addGroupBtnNew) addGroupBtnNew.addEventListener('click', handleAddTodoGroup);
 
-    // Sự kiện nhấn Enter trong ô tên nhóm
-    const nameInput = document.getElementById('new-todo-group-name');
-    if (nameInput) {
-        nameInput.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter') handleAddTodoGroup();
-        });
-    }
+    // Sự kiện nhấn Enter (cả 2 input)
+    const nameInputOld = document.getElementById('new-todo-group-name');
+    const nameInputNew = document.getElementById('new-group-name');
+    if (nameInputOld) nameInputOld.addEventListener('keydown', (e) => { if (e.key === 'Enter') handleAddTodoGroup(); });
+    if (nameInputNew) nameInputNew.addEventListener('keydown', (e) => { if (e.key === 'Enter') handleAddTodoGroup(); });
+
+    renderTodoGroups();
 };
 
 // Giữ lại hàm cũ để tương thích với Dashboard (nếu cần)

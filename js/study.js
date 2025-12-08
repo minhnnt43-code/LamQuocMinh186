@@ -5,9 +5,9 @@ import {
     openModal, closeModal
 } from './common.js';
 
-import { 
+import {
     saveUserData, uploadFileToStorage, deleteFileFromStorage,
-    addSubCollectionDoc, getSubCollectionDocs, updateSubCollectionDoc, deleteSubCollectionDoc 
+    addSubCollectionDoc, getSubCollectionDocs, updateSubCollectionDoc, deleteSubCollectionDoc
 } from './firebase.js';
 
 // ============================================================
@@ -38,12 +38,12 @@ const getGradeDetails = (score10) => {
     if (isNaN(s)) return { char: 'F', scale4: 0.0, rank: 'Kém' };
 
     if (s >= 9.0) return { char: 'A+', scale4: 4.0, rank: 'Xuất sắc' };
-    if (s >= 8.0) return { char: 'A',  scale4: 3.5, rank: 'Giỏi' };
+    if (s >= 8.0) return { char: 'A', scale4: 3.5, rank: 'Giỏi' };
     if (s >= 7.0) return { char: 'B+', scale4: 3.0, rank: 'Khá' };
-    if (s >= 6.0) return { char: 'B',  scale4: 2.5, rank: 'TB Khá' };
-    if (s >= 5.0) return { char: 'C',  scale4: 2.0, rank: 'Trung bình' };
+    if (s >= 6.0) return { char: 'B', scale4: 2.5, rank: 'TB Khá' };
+    if (s >= 5.0) return { char: 'C', scale4: 2.0, rank: 'Trung bình' };
     if (s >= 4.0) return { char: 'D+', scale4: 1.5, rank: 'Yếu' };
-    if (s >= 3.0) return { char: 'D',  scale4: 1.0, rank: 'Kém' };
+    if (s >= 3.0) return { char: 'D', scale4: 1.0, rank: 'Kém' };
     return { char: 'F', scale4: 0.0, rank: 'Kém' };
 };
 
@@ -53,10 +53,10 @@ const getGradeDetails = (score10) => {
 const SV5T_LEVELS = ['khoa', 'truong', 'dhqg', 'thanhpho', 'trunguong'];
 
 const SV5T_NAMES = {
-    khoa: 'Cấp Khoa', 
-    truong: 'Cấp Trường', 
+    khoa: 'Cấp Khoa',
+    truong: 'Cấp Trường',
     dhqg: 'Cấp ĐHQG/Tỉnh',
-    thanhpho: 'Cấp Thành phố', 
+    thanhpho: 'Cấp Thành phố',
     trunguong: 'Cấp Trung ương'
 };
 
@@ -163,11 +163,40 @@ export const initStudyModule = (data, user) => {
             }, 100);
         });
     }
-    
+
+    // [MỚI] Fallback: Nếu section drafts đang active, render ngay
+    const draftsSection = document.getElementById('drafts');
+    if (draftsSection && draftsSection.classList.contains('active')) {
+        setTimeout(() => {
+            if (!quillEditor) initQuillEditor();
+            renderDraftsList();
+        }, 200);
+    }
+
+    // [MỚI] Setup observer để render khi section trở nên visible
+    if (draftsSection) {
+        const observer = new MutationObserver((mutations) => {
+            mutations.forEach((mutation) => {
+                if (mutation.attributeName === 'class' || mutation.attributeName === 'style') {
+                    const isVisible = draftsSection.classList.contains('active') ||
+                        draftsSection.style.display === 'block' ||
+                        getComputedStyle(draftsSection).display !== 'none';
+                    if (isVisible) {
+                        setTimeout(() => {
+                            if (!quillEditor) initQuillEditor();
+                            renderDraftsList();
+                        }, 100);
+                    }
+                }
+            });
+        });
+        observer.observe(draftsSection, { attributes: true });
+    }
+
     // Gán sự kiện cho các nút Draft khác
     const btnCreateDraft = document.getElementById('btn-create-draft');
     if (btnCreateDraft) btnCreateDraft.addEventListener('click', createNewDraft);
-    
+
     const draftTitleInput = document.getElementById('draft-title-input');
     if (draftTitleInput) draftTitleInput.addEventListener('input', autoSaveDraft);
 
@@ -256,12 +285,12 @@ const resetTranscriptForm = () => {
     document.getElementById('subject-name').value = '';
     document.getElementById('subject-credits').value = '3';
     document.getElementById('subject-score').value = '';
-    
+
     const btnSave = document.getElementById('btn-save-transcript');
-    if(btnSave) btnSave.textContent = "Lưu điểm";
-    
+    if (btnSave) btnSave.textContent = "Lưu điểm";
+
     const btnCancel = document.getElementById('btn-cancel-transcript');
-    if(btnCancel) btnCancel.style.display = 'none';
+    if (btnCancel) btnCancel.style.display = 'none';
 };
 
 const renderTranscriptsTable = () => {
@@ -312,7 +341,7 @@ const loadTranscriptToEdit = (t) => {
 
     document.getElementById('btn-save-transcript').textContent = "Cập nhật";
     document.getElementById('btn-cancel-transcript').style.display = 'inline-block';
-    
+
     document.querySelector('#academic-transcripts .form-container').scrollIntoView({ behavior: 'smooth' });
 };
 
@@ -332,7 +361,7 @@ const handleDeleteTranscript = async (id) => {
 const updateGPASummary = () => {
     let totalCredits = 0;
     let totalPoints4 = 0;
-    
+
     globalTranscripts.forEach(t => {
         const cred = parseInt(t.credits);
         totalCredits += cred;
@@ -342,25 +371,25 @@ const updateGPASummary = () => {
     const gpaAccumulated = totalCredits > 0 ? (totalPoints4 / totalCredits).toFixed(2) : "0.00";
 
     const gpaAccEl = document.getElementById('gpa-accumulated');
-    if(gpaAccEl) gpaAccEl.textContent = gpaAccumulated;
-    
+    if (gpaAccEl) gpaAccEl.textContent = gpaAccumulated;
+
     const creditEl = document.getElementById('total-credits');
-    if(creditEl) creditEl.textContent = totalCredits;
-    
+    if (creditEl) creditEl.textContent = totalCredits;
+
     if (globalTranscripts.length > 0) {
         const lastTerm = globalTranscripts[globalTranscripts.length - 1].term;
         let termCredits = 0;
         let termPoints4 = 0;
-        
+
         globalTranscripts.filter(t => t.term === lastTerm).forEach(t => {
             const cred = parseInt(t.credits);
             termCredits += cred;
             termPoints4 += (parseFloat(t.scale4) * cred);
         });
-        
+
         const gpaTerm = termCredits > 0 ? (termPoints4 / termCredits).toFixed(2) : "0.00";
         const gpaTermEl = document.getElementById('gpa-term');
-        if(gpaTermEl) gpaTermEl.textContent = gpaTerm;
+        if (gpaTermEl) gpaTermEl.textContent = gpaTerm;
     }
 };
 
@@ -380,13 +409,13 @@ const startTimer = () => {
     if (isRunning) return;
     const durationInput = document.getElementById('focus-duration');
     const duration = durationInput ? (parseInt(durationInput.value) || 25) : 25;
-    
+
     if (!timeLeft) timeLeft = duration * 60;
-    
+
     isRunning = true;
     document.getElementById('pomodoro-start-btn').style.display = 'none';
     document.getElementById('pomodoro-pause-btn').style.display = 'inline-block';
-    
+
     pomodoroInterval = setInterval(() => {
         timeLeft--;
         updateTimerDisplay();
@@ -412,7 +441,7 @@ const resetTimer = () => {
     timeLeft = null;
     const durationInput = document.getElementById('focus-duration');
     const duration = durationInput ? (parseInt(durationInput.value) || 25) : 25;
-    
+
     updateTimerDisplay(duration * 60);
     document.getElementById('pomodoro-start-btn').style.display = 'inline-block';
     document.getElementById('pomodoro-pause-btn').style.display = 'none';
@@ -421,12 +450,12 @@ const resetTimer = () => {
 const updateTimerDisplay = (seconds = timeLeft) => {
     const timerEl = document.getElementById('pomodoro-timer');
     if (!timerEl) return;
-    
+
     if (seconds === null || seconds === undefined) {
         const duration = parseInt(document.getElementById('focus-duration').value) || 25;
         seconds = duration * 60;
     }
-    
+
     const m = Math.floor(seconds / 60).toString().padStart(2, '0');
     const s = (seconds % 60).toString().padStart(2, '0');
     timerEl.textContent = `${m}:${s}`;
@@ -447,11 +476,11 @@ const renderSV5TBoard = () => {
     SV5T_LEVELS.forEach(levelKey => {
         const levelData = globalData.studentJourney[levelKey] || { status: 'Chưa đạt' };
         const isLocked = !isPreviousLevelUnlocked;
-        
+
         const col = document.createElement('div');
         col.className = `sv5t-column ${isLocked ? 'locked' : ''}`;
         const lockIcon = isLocked ? '🔒 ' : '';
-        
+
         col.innerHTML = `
             <div class="sv5t-column-header">
                 ${lockIcon}${SV5T_NAMES[levelKey]} 
@@ -463,14 +492,14 @@ const renderSV5TBoard = () => {
         `;
 
         const contentDiv = col.querySelector('.sv5t-column-content');
-        
+
         ['ethics', 'study', 'physical', 'volunteer', 'integration'].forEach(type => {
             const criteriaInfo = sv5tCriteriaData[levelKey].criteria[type];
             if (!criteriaInfo) return;
-            
+
             const key = `${levelKey}_${type}`;
             const isDone = globalData.studentJourney[key] === true;
-            
+
             const card = document.createElement('div');
             card.className = `sv5t-card ${isDone ? 'achieved' : ''}`;
             card.innerHTML = `
@@ -482,7 +511,7 @@ const renderSV5TBoard = () => {
                     <span>${isDone ? 'Đã hoàn thành' : 'Chưa hoàn thành'}</span>
                 </div>
             `;
-            
+
             if (isLocked) {
                 card.style.cursor = "not-allowed";
                 card.onclick = () => showNotification("🔒 Hãy hoàn thành cấp độ thấp hơn trước!", "warning");
@@ -499,13 +528,13 @@ const renderSV5TBoard = () => {
             if (globalData.studentJourney[`${levelKey}_${t}`] !== true) isCurrentLevelDone = false;
         });
 
-        if(isCurrentLevelDone) {
+        if (isCurrentLevelDone) {
             if (!globalData.studentJourney[levelKey]) globalData.studentJourney[levelKey] = {};
             globalData.studentJourney[levelKey].status = 'Đủ điều kiện';
         } else {
-             if (globalData.studentJourney[levelKey]) globalData.studentJourney[levelKey].status = 'Chưa đạt';
+            if (globalData.studentJourney[levelKey]) globalData.studentJourney[levelKey].status = 'Chưa đạt';
         }
-        
+
         isPreviousLevelUnlocked = isCurrentLevelDone;
     });
     container.appendChild(board);
@@ -516,13 +545,13 @@ window.openSV5TPanel = (level, type, criteriaInfo) => {
     const overlay = document.getElementById('sv5t-panel-overlay');
     const title = document.getElementById('sv5t-panel-title');
     const body = document.getElementById('condition-list-container');
-    
+
     if (!panel || !overlay) return;
 
     title.textContent = `${criteriaInfo.name} (${SV5T_NAMES[level]})`;
     panel.classList.add('open');
     overlay.classList.add('active');
-    
+
     const key = `${level}_${type}`;
     const isDone = globalData.studentJourney[key] === true;
 
@@ -540,7 +569,7 @@ window.openSV5TPanel = (level, type, criteriaInfo) => {
         });
     }
     descriptionHTML += '</div>';
-    
+
     body.innerHTML = `
         <div style="background:#e3f2fd; padding:15px; border-radius:8px; margin-bottom:20px; border:1px solid #90caf9; color:#333; max-height:300px; overflow-y:auto;">
             ${descriptionHTML}
@@ -563,7 +592,7 @@ window.openSV5TPanel = (level, type, criteriaInfo) => {
         await saveUserData(currentUser.uid, { studentJourney: globalData.studentJourney });
         renderSV5TBoard();
         e.target.closest('.condition-item').classList.toggle('completed', e.target.checked);
-        if(e.target.checked) showNotification("Đã hoàn thành tiêu chí!", "success");
+        if (e.target.checked) showNotification("Đã hoàn thành tiêu chí!", "success");
     });
 
     renderProofs(key);
@@ -579,14 +608,14 @@ const renderProofs = (criteriaKey) => {
     const list = document.getElementById(`proof-list-${criteriaKey}`);
     if (!list) return;
     list.innerHTML = '';
-    
+
     const proofs = (globalData.documents || []).filter(d => d.type === 'proof' && d.criteriaKey === criteriaKey);
-    
-    if (proofs.length === 0) { 
-        list.innerHTML = '<li style="color:#666; font-style:italic;">Chưa có minh chứng.</li>'; 
-        return; 
+
+    if (proofs.length === 0) {
+        list.innerHTML = '<li style="color:#666; font-style:italic;">Chưa có minh chứng.</li>';
+        return;
     }
-    
+
     proofs.forEach(p => {
         const li = document.createElement('li');
         li.className = 'proof-item';
@@ -601,40 +630,40 @@ const renderProofs = (criteriaKey) => {
 const handleProofUpload = async (event, criteriaKey) => {
     const file = event.target.files[0];
     if (!file) return;
-    
+
     showNotification('Đang tải lên...', 'info');
     try {
         const path = `proofs/${currentUser.uid}/${criteriaKey}/${file.name}`;
         const uploadResult = await uploadFileToStorage(file, path);
-        
-        const newProof = { 
-            id: generateID('proof'), 
-            title: file.name, 
-            link: uploadResult.url, 
-            fullPath: uploadResult.fullPath, 
-            type: 'proof', 
-            criteriaKey: criteriaKey, 
-            dateAdded: new Date().toISOString() 
+
+        const newProof = {
+            id: generateID('proof'),
+            title: file.name,
+            link: uploadResult.url,
+            fullPath: uploadResult.fullPath,
+            type: 'proof',
+            criteriaKey: criteriaKey,
+            dateAdded: new Date().toISOString()
         };
-        
+
         globalData.documents.push(newProof);
         await saveUserData(currentUser.uid, { documents: globalData.documents });
         renderProofs(criteriaKey);
         showNotification('Tải minh chứng thành công!', 'success');
-    } catch (error) { 
-        showNotification('Lỗi tải file: ' + error.message, 'error'); 
+    } catch (error) {
+        showNotification('Lỗi tải file: ' + error.message, 'error');
     }
     event.target.value = '';
 };
 
 window.deleteProof = async (id, key) => {
     if (!confirm("Xóa minh chứng này?")) return;
-    
+
     const index = globalData.documents.findIndex(d => d.id === id);
     if (index > -1) {
         const proof = globalData.documents[index];
         if (proof.fullPath) await deleteFileFromStorage(proof.fullPath);
-        
+
         globalData.documents.splice(index, 1);
         await saveUserData(currentUser.uid, { documents: globalData.documents });
         renderProofs(key);
@@ -647,14 +676,14 @@ window.deleteProof = async (id, key) => {
 // ============================================================
 const renderLibrary = () => {
     const grid = document.getElementById('library-grid');
-    if(!grid) return;
+    if (!grid) return;
     grid.innerHTML = '';
 
     const docs = (globalData.documents || []).filter(d => d.type !== 'proof');
 
     if (docs.length === 0) {
         const empty = document.getElementById('library-empty');
-        if(empty) empty.style.display = 'block';
+        if (empty) empty.style.display = 'block';
         return;
     }
     document.getElementById('library-empty').style.display = 'none';
@@ -689,26 +718,26 @@ const renderLibrary = () => {
 
 const setupLibraryEvents = () => {
     const btnAdd = document.getElementById('btn-add-document');
-    if(btnAdd) {
+    if (btnAdd) {
         const newBtn = btnAdd.cloneNode(true);
         btnAdd.parentNode.replaceChild(newBtn, btnAdd);
-        
+
         newBtn.addEventListener('click', () => {
-            document.getElementById('doc-id').value = ''; 
+            document.getElementById('doc-id').value = '';
             document.getElementById('doc-title').value = '';
             document.getElementById('doc-source').value = '';
             document.getElementById('doc-tags').value = '';
             document.getElementById('doc-notes').value = '';
             document.getElementById('document-file-name').textContent = '';
-            
-            const btnDel = document.getElementById('btn-delete-doc'); 
-            if(btnDel) btnDel.style.display = 'none';
+
+            const btnDel = document.getElementById('btn-delete-doc');
+            if (btnDel) btnDel.style.display = 'none';
             openModal('document-modal');
         });
     }
-    
+
     const btnSave = document.getElementById('btn-save-doc');
-    if(btnSave) {
+    if (btnSave) {
         const newBtnSave = btnSave.cloneNode(true);
         btnSave.parentNode.replaceChild(newBtnSave, btnSave);
         newBtnSave.addEventListener('click', handleSaveDocument);
@@ -724,9 +753,9 @@ const openEditDocument = (doc) => {
     document.getElementById('doc-tags').value = doc.tags || '';
     document.getElementById('doc-notes').value = doc.notes || '';
     document.getElementById('document-file-name').textContent = doc.fullPath ? 'Đã có file' : '';
-    
+
     const btnDel = document.getElementById('btn-delete-doc');
-    if(btnDel) btnDel.style.display = 'inline-block';
+    if (btnDel) btnDel.style.display = 'inline-block';
     openModal('document-modal');
 };
 
@@ -806,25 +835,25 @@ window.deleteDoc = async (id) => {
 // ============================================================
 const setupAchievementEvents = () => {
     const btnAdd = document.getElementById('btn-add-achievement');
-    if(btnAdd) {
+    if (btnAdd) {
         const newBtn = btnAdd.cloneNode(true);
         btnAdd.parentNode.replaceChild(newBtn, btnAdd);
         newBtn.addEventListener('click', () => {
-            document.getElementById('achievement-id').value = ''; 
+            document.getElementById('achievement-id').value = '';
             document.getElementById('achievement-title').value = '';
             document.getElementById('achievement-date').value = '';
             document.getElementById('achievement-description').value = '';
             document.getElementById('achievement-category').value = 'other';
             document.getElementById('achievement-drive-link').value = '';
             document.getElementById('achievement-featured').checked = false;
-            const btnDel = document.getElementById('btn-delete-achievement'); 
-            if(btnDel) btnDel.style.display = 'none';
+            const btnDel = document.getElementById('btn-delete-achievement');
+            if (btnDel) btnDel.style.display = 'none';
             openModal('achievement-modal');
         });
     }
-    
+
     const btnSave = document.getElementById('btn-save-achievement');
-    if(btnSave) {
+    if (btnSave) {
         const newBtnSave = btnSave.cloneNode(true);
         btnSave.parentNode.replaceChild(newBtnSave, btnSave);
         newBtnSave.addEventListener('click', handleSaveAchievement);
@@ -861,7 +890,7 @@ const openEditAchievement = (ach) => {
     document.getElementById('achievement-drive-link').value = ach.imageUrl || '';
     document.getElementById('achievement-featured').checked = ach.isFeatured || false;
     const btnDel = document.getElementById('btn-delete-achievement');
-    if(btnDel) btnDel.style.display = 'inline-block';
+    if (btnDel) btnDel.style.display = 'inline-block';
     openModal('achievement-modal');
 };
 
@@ -915,7 +944,7 @@ const handleDeleteAchievementInModal = async () => {
 const initQuillEditor = () => {
     // Kiểm tra nếu đã init rồi thì thôi
     if (quillEditor) return;
-    
+
     const editorContainer = document.getElementById('editor-container');
     // Chỉ init nếu container tồn tại và đang hiển thị
     if (editorContainer && typeof Quill !== 'undefined') {
@@ -926,12 +955,12 @@ const initQuillEditor = () => {
                 toolbar: [
                     [{ 'header': [1, 2, false] }],
                     ['bold', 'italic', 'underline'],
-                    [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+                    [{ 'list': 'ordered' }, { 'list': 'bullet' }],
                     ['clean']
                 ]
             }
         });
-        
+
         quillEditor.on('text-change', () => {
             autoSaveDraft();
         });
@@ -961,15 +990,20 @@ const renderDraftsList = () => {
     });
 };
 
-const createNewDraft = () => {
+const createNewDraft = async () => {
     const newDraft = {
         id: generateID('draft'),
         title: 'Bản nháp mới',
-        content: '', 
+        content: '',
         lastModified: new Date().toISOString()
     };
-    
+
+    if (!globalData.drafts) globalData.drafts = [];
     globalData.drafts.unshift(newDraft);
+
+    // [FIX] Save to Firebase immediately to prevent data loss
+    await saveUserData(currentUser.uid, { drafts: globalData.drafts });
+
     renderDraftsList();
     loadDraft(newDraft);
 };
@@ -977,7 +1011,7 @@ const createNewDraft = () => {
 const loadDraft = (draft) => {
     currentDraftId = draft.id;
     const titleInput = document.getElementById('draft-title-input');
-    if(titleInput) titleInput.value = draft.title;
+    if (titleInput) titleInput.value = draft.title;
 
     if (quillEditor) {
         try {
@@ -1010,8 +1044,8 @@ const deleteDraft = async (id) => {
 const autoSaveDraft = () => {
     if (!currentDraftId || !quillEditor) return;
     const statusEl = document.getElementById('draft-status');
-    if(statusEl) statusEl.textContent = 'Đang lưu...';
-    
+    if (statusEl) statusEl.textContent = 'Đang lưu...';
+
     clearTimeout(saveDraftTimeout);
     saveDraftTimeout = setTimeout(async () => {
         const draft = globalData.drafts.find(d => d.id === currentDraftId);
@@ -1020,9 +1054,9 @@ const autoSaveDraft = () => {
             draft.title = titleInput ? titleInput.value : 'Không tiêu đề';
             draft.content = JSON.stringify(quillEditor.getContents());
             draft.lastModified = new Date().toISOString();
-            
+
             await saveUserData(currentUser.uid, { drafts: globalData.drafts });
-            if(statusEl) statusEl.textContent = 'Đã lưu';
+            if (statusEl) statusEl.textContent = 'Đã lưu';
             renderDraftsList();
         }
     }, 1000);
@@ -1042,21 +1076,21 @@ function setupOutlineEvents() {
     }
     const btnSaveOutline = document.getElementById('btn-save-outline');
     if (btnSaveOutline) btnSaveOutline.addEventListener('click', handleSaveOutline);
-    
+
     const btnAddRootNode = document.getElementById('btn-add-root-node');
     if (btnAddRootNode) btnAddRootNode.addEventListener('click', handleAddRootNode);
 }
 
 const renderOutlineList = () => {
     const container = document.getElementById('outline-list-container');
-    if(!container) return;
+    if (!container) return;
     container.innerHTML = '';
-    
-    if (globalData.outlines.length === 0) { 
-        container.innerHTML = '<p style="text-align:center; color:#999; margin-top:20px;">Chưa có dàn ý.</p>'; 
-        return; 
+
+    if (globalData.outlines.length === 0) {
+        container.innerHTML = '<p style="text-align:center; color:#999; margin-top:20px;">Chưa có dàn ý.</p>';
+        return;
     }
-    
+
     globalData.outlines.forEach(outline => {
         const div = document.createElement('div');
         div.className = `outline-list-item ${outline.id === currentOutlineId ? 'active' : ''}`;
@@ -1065,9 +1099,9 @@ const renderOutlineList = () => {
             <button class="delete-outline-btn" style="float:right; border:none; background:none; color:red;">&times;</button>
         `;
         div.onclick = () => loadOutline(outline);
-        div.querySelector('.delete-outline-btn').onclick = (e) => { 
-            e.stopPropagation(); 
-            deleteOutline(outline.id); 
+        div.querySelector('.delete-outline-btn').onclick = (e) => {
+            e.stopPropagation();
+            deleteOutline(outline.id);
         };
         container.appendChild(div);
     });
@@ -1076,33 +1110,33 @@ const renderOutlineList = () => {
 const handleSaveOutline = async () => {
     const title = document.getElementById('outline-title').value.trim();
     if (!title) return showNotification("Nhập tên dàn ý!", "error");
-    
-    const newOutline = { 
-        id: generateID('outline'), 
-        title: title, 
-        nodes: [], 
-        lastModified: new Date().toISOString() 
+
+    const newOutline = {
+        id: generateID('outline'),
+        title: title,
+        nodes: [],
+        lastModified: new Date().toISOString()
     };
-    
+
     globalData.outlines.push(newOutline);
     await saveUserData(currentUser.uid, { outlines: globalData.outlines });
-    
-    closeModal('outline-modal'); 
-    renderOutlineList(); 
+
+    closeModal('outline-modal');
+    renderOutlineList();
     loadOutline(newOutline);
 };
 
 const deleteOutline = async (id) => {
-    if(!confirm("Xóa dàn ý này?")) return;
-    
+    if (!confirm("Xóa dàn ý này?")) return;
+
     globalData.outlines = globalData.outlines.filter(o => o.id !== id);
-    
-    if (currentOutlineId === id) { 
-        currentOutlineId = null; 
-        document.getElementById('outline-editor-welcome').style.display = 'flex'; 
-        document.getElementById('outline-editor-content').style.display = 'none'; 
+
+    if (currentOutlineId === id) {
+        currentOutlineId = null;
+        document.getElementById('outline-editor-welcome').style.display = 'flex';
+        document.getElementById('outline-editor-content').style.display = 'none';
     }
-    
+
     await saveUserData(currentUser.uid, { outlines: globalData.outlines });
     renderOutlineList();
 };
@@ -1111,22 +1145,22 @@ const loadOutline = (outline) => {
     currentOutlineId = outline.id;
     const welcome = document.getElementById('outline-editor-welcome');
     const content = document.getElementById('outline-editor-content');
-    
-    if(welcome) welcome.style.display = 'none';
-    if(content) content.style.display = 'block';
-    
+
+    if (welcome) welcome.style.display = 'none';
+    if (content) content.style.display = 'block';
+
     document.getElementById('editor-outline-title').textContent = outline.title;
-    renderOutlineTree(); 
-    renderOutlineList(); 
+    renderOutlineTree();
+    renderOutlineList();
 };
 
 const renderOutlineTree = () => {
     const container = document.getElementById('outline-tree-container');
     const outline = globalData.outlines.find(o => o.id === currentOutlineId);
     if (!container || !outline) return;
-    
+
     container.innerHTML = '';
-    
+
     outline.nodes.forEach((node, index) => {
         const li = document.createElement('div');
         li.className = 'outline-node';
@@ -1137,34 +1171,34 @@ const renderOutlineTree = () => {
                 <button class="btn-del-node" style="color:red; border:none; background:none;">🗑️</button>
             </div>
         `;
-        
+
         const input = li.querySelector('.node-input');
-        input.addEventListener('change', async () => { 
-            node.text = input.value; 
-            await saveUserData(currentUser.uid, { outlines: globalData.outlines }); 
+        input.addEventListener('change', async () => {
+            node.text = input.value;
+            await saveUserData(currentUser.uid, { outlines: globalData.outlines });
         });
-        
-        li.querySelector('.btn-del-node').onclick = async () => { 
-            if(confirm("Xóa mục?")) { 
-                outline.nodes.splice(index, 1); 
-                await saveUserData(currentUser.uid, { outlines: globalData.outlines }); 
-                renderOutlineTree(); 
+
+        li.querySelector('.btn-del-node').onclick = async () => {
+            if (confirm("Xóa mục?")) {
+                outline.nodes.splice(index, 1);
+                await saveUserData(currentUser.uid, { outlines: globalData.outlines });
+                renderOutlineTree();
             }
         };
-        
+
         container.appendChild(li);
     });
 };
 
 const handleAddRootNode = async () => {
     if (!currentOutlineId) return;
-    
+
     const outline = globalData.outlines.find(o => o.id === currentOutlineId);
     if (outline) {
-        outline.nodes.push({ 
-            id: generateID('node'), 
-            text: 'Mục mới', 
-            children: [] 
+        outline.nodes.push({
+            id: generateID('node'),
+            text: 'Mục mới',
+            children: []
         });
         await saveUserData(currentUser.uid, { outlines: globalData.outlines });
         renderOutlineTree();
