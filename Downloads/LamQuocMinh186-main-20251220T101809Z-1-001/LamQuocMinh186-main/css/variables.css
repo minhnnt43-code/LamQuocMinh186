@@ -1,0 +1,80 @@
+:root {
+    /* MÀU SẮC THƯƠNG HIỆU */
+    --blue: #005B96;
+    --orange: #FF7A00;
+    --white: #ffffff;
+
+    /* THEME SYSTEM - Các biến được set bởi JS applyTheme() */
+    --primary-color: #667eea;
+    /* Default theme primary */
+    --secondary-color: #764ba2;
+    /* Default theme secondary */
+    --bg-color: #f8fafc;
+    /* Default theme background */
+
+    /* GRADIENTS - Dùng theme colors */
+    --grad-main: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+    --grad-hover: linear-gradient(135deg, #FF7A00 0%, #005B96 100%);
+    --grad-bg: radial-gradient(circle at 0% 0%, rgba(0, 91, 150, 0.08) 0%, transparent 50%),
+        radial-gradient(circle at 100% 100%, rgba(255, 122, 0, 0.08) 0%, transparent 50%);
+
+    /* SHADOWS MÀU - RÕ HƠN */
+    --shadow-blue: 0 10px 30px -5px rgba(0, 91, 150, 0.3);
+    --shadow-orange: 0 10px 30px -5px rgba(255, 122, 0, 0.3);
+    --card-shadow: 0 8px 25px rgba(0, 91, 150, 0.12);
+
+    /* Aura colors - Dùng theme colors */
+    --aura-color-1: var(--primary-color);
+    --aura-color-2: var(--secondary-color);
+    --aura-gradient: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+    --aura-glow: 0 0 20px color-mix(in srgb, var(--primary-color) 50%, transparent);
+
+    /* Glass morphism */
+    --glass-bg: rgba(255, 255, 255, 0.7);
+    --glass-border: 1px solid rgba(0, 91, 150, 0.1);
+    --glass-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+    --glass-backdrop: blur(12px);
+    --glass-radius: 16px;
+
+    /* Core colors */
+    --primary-blue: #005B96;
+    --primary-orange: #FF7A00;
+    --secondary-orange: #FF9944;
+
+    /* Backgrounds - LIGHT MODE với gradient nhẹ */
+    --background-color: #ffffff;
+    --card-background: rgba(255, 255, 255, 0.95);
+    --sidebar-background: linear-gradient(180deg, rgba(0, 91, 150, 0.03) 0%, rgba(255, 122, 0, 0.02) 100%);
+
+    /* Text - XANH ĐẬM GRADIENT (Premium Blue Theme) */
+    --text-color: #004080;
+    --text-color-primary: #003366;
+    --text-color-secondary: #005B96;
+    --text-gradient: linear-gradient(135deg, #003366 0%, #005B96 100%);
+    --border-color: rgba(0, 91, 150, 0.12);
+
+    /* Functional colors */
+    --success-color: #10b981;
+    --warning-color: #f59e0b;
+    --danger-color: #ef4444;
+    --due-soon-color: #f97316;
+
+    /* Fonts */
+    --font-title: 'Montserrat', sans-serif;
+    --font-body: 'UTM Avo', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+
+    /* Calendar */
+    --calendar-event-color: var(--primary-blue);
+    --calendar-task-color: var(--primary-orange);
+
+    /* Priority */
+    --priority-high-color: var(--danger-color);
+    --priority-medium-color: var(--warning-color);
+    --priority-low-color: var(--success-color);
+
+    /* Focus mode */
+    --focus-mode-bg: var(--aura-gradient);
+    --focus-mode-fg: #ffffff;
+    --focus-mode-timer-bg: rgba(255, 255, 255, 0.2);
+    --focus-mode-timer-color: #ffffff;
+}
