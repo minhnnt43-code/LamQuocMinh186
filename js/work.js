@@ -364,6 +364,9 @@ const renderCalendar = () => {
 
             // --- LOGIC TÌM SỰ KIỆN HIỂN THỊ TẠI Ô NÀY ---
             const cellEvents = (globalData.calendarEvents || []).filter(e => {
+                // [FIX] Check e.startTime và e.endTime có tồn tại không
+                if (!e.startTime || !e.endTime) return false;
+
                 const startMin = timeToMinutes(e.startTime);
                 const endMin = timeToMinutes(e.endTime);
 
