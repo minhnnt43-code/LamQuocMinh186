@@ -2,13 +2,13 @@
 const CACHE_NAME = 'lifeos-v1';
 const OFFLINE_URL = '/index.html';
 
-// Files cần cache
+// Files cần cache - dùng relative paths
 const PRECACHE_ASSETS = [
-    '/',
-    '/index.html',
-    '/style.css',
-    '/favicon.svg',
-    '/manifest.json'
+    './',
+    './index.html',
+    './style.css',
+    './favicon.svg',
+    './manifest.json'
 ];
 
 // Install - Cache các file cơ bản
