@@ -20,11 +20,11 @@ function analyzeTimeDecay(tasks) {
     const now = new Date();
 
     return tasks.map(task => {
-        if (!task.deadline) {
+        if (!task.dueDate) {
             return { ...task, urgencyScore: 50, decayStatus: 'stable' };
         }
 
-        const deadline = new Date(task.deadline);
+        const deadline = new Date(task.dueDate);
         const created = new Date(task.createdAt);
         const totalTime = deadline - created;
         const remainingTime = deadline - now;
@@ -72,7 +72,7 @@ function generateProductivityHeatmap() {
 
     // Count completed tasks by day and hour
     for (const task of tasks) {
-        if (task.completed && task.completedAt) {
+        if (task.status === 'Hoàn thành' && task.completedAt) {
             const date = new Date(task.completedAt);
             const day = date.getDay();
             const hour = date.getHours();
@@ -144,9 +144,9 @@ function predictLateDeadlines() {
     const atRiskTasks = [];
 
     for (const task of tasks) {
-        if (task.completed || !task.deadline) continue;
+        if (task.status === 'Hoàn thành' || !task.dueDate) continue;
 
-        const deadline = new Date(task.deadline);
+        const deadline = new Date(task.dueDate);
         const daysUntil = Math.ceil((deadline - now) / (1000 * 60 * 60 * 24));
 
         // Estimate completion likelihood based on patterns
@@ -195,7 +195,7 @@ function getSuggestion(riskLevel, daysUntil) {
 // ============================================================
 function calculateTimeROI() {
     const tasks = globalData?.tasks || [];
-    const completed = tasks.filter(t => t.completed);
+    const completed = tasks.filter(t => t.status === 'Hoàn thành');
 
     // Group by category
     const byCategory = {};
@@ -304,16 +304,16 @@ function calculateTimeDebt() {
     const debtItems = [];
 
     for (const task of tasks) {
-        if (task.completed || !task.deadline) continue;
+        if (task.status === 'Hoàn thành' || !task.dueDate) continue;
 
-        const deadline = new Date(task.deadline);
+        const deadline = new Date(task.dueDate);
         if (deadline < now) {
             const daysOverdue = Math.ceil((now - deadline) / (1000 * 60 * 60 * 24));
             const debtHours = daysOverdue * 2; // Estimate 2 hours debt per day overdue
 
             totalDebt += debtHours;
             debtItems.push({
-                task: task.title,
+                task: task.name,
                 daysOverdue,
                 debtHours,
                 priority: task.priority
@@ -423,13 +423,13 @@ function generateDeadlineProbabilityMatrix() {
     const matrix = [];
 
     for (const task of tasks) {
-        if (task.completed) continue;
+        if (task.status === 'Hoàn thành') continue;
 
         let probability = 80; // Base probability
 
         // Adjust by deadline proximity
-        if (task.deadline) {
-            const deadline = new Date(task.deadline);
+        if (task.dueDate) {
+            const deadline = new Date(task.dueDate);
             const daysUntil = Math.ceil((deadline - now) / (1000 * 60 * 60 * 24));
 
             if (daysUntil <= 0) probability -= 50;
@@ -447,8 +447,8 @@ function generateDeadlineProbabilityMatrix() {
 
         matrix.push({
             id: task.id,
-            title: task.title,
-            deadline: task.deadline,
+            name: task.name,
+            dueDate: task.dueDate,
             priority: task.priority,
             probability,
             status: probability >= 70 ? 'likely' : probability >= 40 ? 'uncertain' : 'at_risk'
@@ -501,7 +501,7 @@ function detectTemporalAnomalies() {
     }
 
     // Anomaly 3: Overdue tasks piling up
-    const overdue = tasks.filter(t => !t.completed && t.deadline && new Date(t.deadline) < today);
+    const overdue = tasks.filter(t => t.status !== 'Hoàn thành' && t.dueDate && new Date(t.dueDate) < today);
     if (overdue.length >= 5) {
         anomalies.push({
             type: 'overdue_pile',

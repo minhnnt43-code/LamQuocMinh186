@@ -74,7 +74,7 @@ export class WorkloadManager {
         for (const task of tasks) {
             const complexity = this._getComplexityWeight(task);
             const priority = this._getPriorityWeight(task);
-            const hasDeadline = task.deadline ? 0.1 : 0;
+            const hasDeadline = task.dueDate ? 0.1 : 0;
 
             load += complexity + priority + hasDeadline;
         }
@@ -88,7 +88,7 @@ export class WorkloadManager {
     }
 
     _getComplexityWeight(task) {
-        const text = `${task.title || ''} ${task.description || ''}`.toLowerCase();
+        const text = `${task.name || ''} ${task.notes || ''}`.toLowerCase();
 
         if (['complex', 'difficult', 'research', 'design', 'architecture'].some(w => text.includes(w))) {
             return 0.3;
@@ -158,7 +158,7 @@ export class WorkloadManager {
 
         return sortedByDeferability.slice(0, 3).map(t => ({
             taskId: t.id,
-            title: t.title,
+            name: t.name,
             reason: this._getDeferReason(t)
         }));
     }
@@ -171,10 +171,10 @@ export class WorkloadManager {
         score += priorityScores[task.priority] || 2;
 
         // Deadline
-        if (!task.deadline) {
+        if (!task.dueDate) {
             score += 3;
         } else {
-            const daysUntil = (new Date(task.deadline) - new Date()) / (1000 * 60 * 60 * 24);
+            const daysUntil = (new Date(task.dueDate) - new Date()) / (1000 * 60 * 60 * 24);
             if (daysUntil > 7) score += 2;
             else if (daysUntil > 3) score += 1;
         }
@@ -188,7 +188,7 @@ export class WorkloadManager {
     _getDeferReason(task) {
         if (task.priority === 'low') return 'Low priority';
         if (!task.deadline) return 'No deadline';
-        const daysUntil = (new Date(task.deadline) - new Date()) / (1000 * 60 * 60 * 24);
+        const daysUntil = (new Date(task.dueDate) - new Date()) / (1000 * 60 * 60 * 24);
         if (daysUntil > 7) return 'Deadline is more than a week away';
         return 'Can be rescheduled';
     }
@@ -318,8 +318,8 @@ export class WorkloadManager {
 
     _canDeprioritize(task) {
         if (task.priority === 'critical') return false;
-        if (task.deadline) {
-            const daysUntil = (new Date(task.deadline) - new Date()) / (1000 * 60 * 60 * 24);
+        if (task.dueDate) {
+            const daysUntil = (new Date(task.dueDate) - new Date()) / (1000 * 60 * 60 * 24);
             if (daysUntil < 2) return false;
         }
         return true;
@@ -327,7 +327,7 @@ export class WorkloadManager {
 
     _getDeprioritizeReason(task) {
         if (task.priority === 'low') return 'Already low priority';
-        if (!task.deadline) return 'No fixed deadline';
+        if (!task.dueDate) return 'No fixed deadline';
         if (task.dependencies?.length === 0) return 'No one is waiting on this';
         return 'Can be rescheduled';
     }
@@ -337,7 +337,7 @@ export class WorkloadManager {
         let guilt = 0.5;
 
         if (task.priority === 'high') guilt += 0.2;
-        if (task.deadline) guilt += 0.1;
+        if (task.dueDate) guilt += 0.1;
         if (task.dependencies?.length > 0) guilt += 0.15;
         if (task.progress > 50) guilt += 0.1; // Sunk cost
 

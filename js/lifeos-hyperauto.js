@@ -64,9 +64,9 @@ export function getContextAwareActions() {
     const isWeekend = day === 0 || day === 6;
 
     const tasks = globalData?.tasks || [];
-    const pendingTasks = tasks.filter(t => !t.completed);
+    const pendingTasks = tasks.filter(t => t.status !== 'Hoàn thành');
     const overdueTasks = tasks.filter(t =>
-        !t.completed && t.deadline && new Date(t.deadline) < now
+        t.status !== 'Hoàn thành' && t.dueDate && new Date(t.dueDate) < now
     );
 
     const actions = [];
@@ -140,7 +140,7 @@ export async function generatePredictedTasks() {
     const recentTasks = tasks.slice(-20);
 
     const patterns = recentTasks.map(t => ({
-        title: t.title,
+        name: t.name,
         category: t.category,
         dayOfWeek: new Date(t.createdAt).getDay()
     }));
@@ -152,7 +152,7 @@ export async function generatePredictedTasks() {
             
             Dự đoán 3 task người dùng có thể sẽ cần tạo.
             Trả về JSON array:
-            [{"title": "tên task", "category": "category", "reason": "lý do gợi ý"}]
+            [{"name": "tên task", "category": "category", "reason": "lý do gợi ý"}]
         `, { maxTokens: 300 });
 
         let predicted = [];
@@ -177,20 +177,20 @@ export function suggestDelegation(taskId) {
     const tasks = globalData?.tasks || [];
     const task = tasks.find(t => t.id === taskId);
 
-    if (!task || !task.title) return null;
+    if (!task || !task.name) return null;
 
     const suggestions = [];
-    const titleLower = task.title.toLowerCase();
+    const nameLower = task.name.toLowerCase();
 
-    if (titleLower.includes('design') || titleLower.includes('thiết kế')) {
+    if (nameLower.includes('design') || nameLower.includes('thiết kế')) {
         suggestions.push({ role: 'Designer', reason: 'Task liên quan đến thiết kế' });
     }
 
-    if (titleLower.includes('code') || titleLower.includes('dev')) {
+    if (nameLower.includes('code') || nameLower.includes('dev')) {
         suggestions.push({ role: 'Developer', reason: 'Task liên quan đến code' });
     }
 
-    if (titleLower.includes('viết') || titleLower.includes('content')) {
+    if (nameLower.includes('viết') || nameLower.includes('content')) {
         suggestions.push({ role: 'Content Writer', reason: 'Task liên quan đến nội dung' });
     }
 
@@ -199,7 +199,7 @@ export function suggestDelegation(taskId) {
     }
 
     return {
-        task: task.title,
+        task: task.name,
         suggestions,
         selfDoReason: suggestions.length === 0 ? 'Task này nên tự làm' : null
     };
@@ -213,12 +213,12 @@ export function autoPrioritizeTasks() {
     const tasks = globalData?.tasks || [];
     const now = new Date();
 
-    const prioritized = tasks.filter(t => !t.completed).map(task => {
+    const prioritized = tasks.filter(t => t.status !== 'Hoàn thành').map(task => {
         let score = 50;
 
         // Deadline urgency
-        if (task.deadline) {
-            const deadline = new Date(task.deadline);
+        if (task.dueDate) {
+            const deadline = new Date(task.dueDate);
             const daysUntil = Math.ceil((deadline - now) / (1000 * 60 * 60 * 24));
 
             if (daysUntil <= 0) score += 50;
@@ -364,16 +364,16 @@ export function getSmartReminders() {
     const reminders = [];
 
     for (const task of tasks) {
-        if (task.completed) continue;
+        if (task.status === 'Hoàn thành') continue;
 
-        if (task.deadline) {
-            const deadline = new Date(task.deadline);
+        if (task.dueDate) {
+            const deadline = new Date(task.dueDate);
             const hoursUntil = (deadline - now) / (1000 * 60 * 60);
 
             if (hoursUntil <= 24 && hoursUntil > 0) {
                 reminders.push({
                     taskId: task.id,
-                    title: task.title,
+                    name: task.name,
                     type: 'deadline_soon',
                     message: `⏰ Deadline trong ${Math.round(hoursUntil)} giờ!`,
                     urgency: 'high'
@@ -381,7 +381,7 @@ export function getSmartReminders() {
             } else if (hoursUntil <= 0) {
                 reminders.push({
                     taskId: task.id,
-                    title: task.title,
+                    name: task.name,
                     type: 'overdue',
                     message: `🔴 Đã quá hạn ${Math.abs(Math.round(hoursUntil))} giờ!`,
                     urgency: 'critical'
@@ -396,7 +396,7 @@ export function getSmartReminders() {
         if (daysSinceCreated > 7 && !task.updatedAt) {
             reminders.push({
                 taskId: task.id,
-                title: task.title,
+                name: task.name,
                 type: 'forgotten',
                 message: `💤 Tạo từ ${Math.round(daysSinceCreated)} ngày trước, chưa có tiến triển`,
                 urgency: 'low'
@@ -416,7 +416,7 @@ export function getSmartReminders() {
 // ============================================================
 export function analyzeWorkflowEfficiency() {
     const tasks = globalData?.tasks || [];
-    const completed = tasks.filter(t => t.completed);
+    const completed = tasks.filter(t => t.status === 'Hoàn thành');
 
     if (completed.length < 10) {
         return {

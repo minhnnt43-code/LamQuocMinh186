@@ -101,7 +101,7 @@ export class KanbanBoard {
         const priorityLabel = priorityLabels[task.priority] || '⚪ --';
 
         // [MỚI] Calculate time left
-        const timeLeftBadge = this.getTimeLeftBadge(task.deadline);
+        const timeLeftBadge = this.getTimeLeftBadge(task.dueDate);
 
         // [MỚI] Subtask progress
         const subtasks = task.subtasks || [];
@@ -134,13 +134,13 @@ export class KanbanBoard {
                 </div>
                 
                 <!-- Title -->
-                <div class="card-title-v2">${task.title || 'Untitled'}</div>
+                <div class="card-title-v2">${task.name || 'Untitled'}</div>
                 
                 <!-- Time display -->
                 ${timeDisplay ? `<div class="card-time-display">⏰ ${timeDisplay}</div>` : ''}
                 
                 <!-- Description -->
-                ${task.description ? `<div class="card-desc-v2">${this.truncate(task.description, 50)}</div>` : ''}
+                ${task.notes ? `<div class="card-desc-v2">${this.truncate(task.notes, 50)}</div>` : ''}
                 
                 <!-- Subtask Progress -->
                 ${subtasks.length > 0 ? `
@@ -269,7 +269,7 @@ export class KanbanBoard {
                 'review': 'Review',
                 'done': 'Done'
             };
-            showNotification(`✅ Đã chuyển "${task.title}" sang ${statusNames[newStatus]}`);
+            showNotification(`✅ Đã chuyển "${task.name}" sang ${statusNames[newStatus]}`);
 
         } catch (error) {
             console.error('Error moving task:', error);
@@ -336,7 +336,7 @@ export class KanbanBoard {
         const popup = document.createElement('div');
         popup.className = 'quick-menu-popup';
         popup.innerHTML = `
-            <div class="quick-menu-header">${this.truncate(task.title, 25)}</div>
+            <div class="quick-menu-header">${this.truncate(task.name, 25)}</div>
             <div class="quick-menu-items">
                 <button class="quick-menu-item" data-action="edit" data-task-id="${taskId}">
                     ✏️ Chỉnh sửa
@@ -406,7 +406,7 @@ export class KanbanBoard {
                 const newTask = {
                     ...task,
                     id: 'task-' + Date.now(),
-                    title: task.title + ' (Copy)',
+                    name: task.name + ' (Copy)',
                     status: 'todo',
                     createdAt: new Date().toISOString(),
                     lastUpdated: new Date().toISOString()
@@ -425,7 +425,7 @@ export class KanbanBoard {
                 break;
 
             case 'delete':
-                if (confirm(`Xóa task "${task.title}"?`)) {
+                if (confirm(`Xóa task "${task.name}"?`)) {
                     const index = this.tasks.findIndex(t => t.id === taskId);
                     if (index > -1) {
                         this.tasks.splice(index, 1);

@@ -380,7 +380,7 @@ export class TimeAnalytics {
     static exportToCSV(tasks) {
         const headers = ['Task', 'Project', 'Time Spent (hours)', 'Last Tracked'];
         const rows = tasks.map(task => [
-            task.title,
+            task.name || task.title || '',  // [FIX] Support cả 2 field names
             task.project || '-',
             (task.timeSpent / 3600).toFixed(2),
             task.lastTracked ? new Date(task.lastTracked).toLocaleString('vi-VN') : '-'

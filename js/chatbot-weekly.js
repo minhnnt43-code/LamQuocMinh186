@@ -616,10 +616,11 @@ async function handleAddSelected() {
  * [MỚI] Tạo calendar event từ task có thời gian
  */
 function createCalendarEvent(task) {
-    if (!task.deadline || !task.startTime) return null;
+    // [FIX] task.dueDate đã được transform từ deadline trong handleAddSelected
+    if (!task.dueDate || !task.startTime) return null;
 
     try {
-        const [year, month, day] = task.deadline.split('-').map(Number);
+        const [year, month, day] = task.dueDate.split('-').map(Number);
         const [startHour, startMin] = task.startTime.split(':').map(Number);
 
         // Tính end time (mặc định 1 giờ nếu không có)
@@ -635,8 +636,8 @@ function createCalendarEvent(task) {
 
         return {
             id: generateID('event'),
-            title: task.title,
-            description: task.description || `Công việc từ Chatbot Lập kế hoạch Tuần`,
+            title: task.name,  // [FIX] dùng task.name thay vì task.title
+            description: task.notes || `Công việc từ Chatbot Lập kế hoạch Tuần`,
             start: toLocalISOString(start),
             end: toLocalISOString(end),
             color: getCategoryColor(task.category),
