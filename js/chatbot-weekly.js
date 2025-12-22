@@ -161,6 +161,9 @@ function setupEventListeners() {
     if (btnClear) {
         btnClear.addEventListener('click', handleClear);
     }
+
+    // ========== FILE UPLOAD HANDLERS ==========
+    setupFileUploadHandlers();
 }
 
 /**
@@ -729,6 +732,164 @@ function escapeHTML(str) {
         '"': '&quot;',
         "'": '&#039;'
     }[char]));
+}
+
+/**
+ * [MỚI] Setup File Upload Handlers
+ * Hỗ trợ: .txt, .pdf, .docx
+ */
+function setupFileUploadHandlers() {
+    const dropzone = document.getElementById('file-upload-zone');
+    const fileInput = document.getElementById('file-upload-input');
+    const preview = document.getElementById('file-upload-preview');
+    const fileName = document.getElementById('file-upload-name');
+    const removeBtn = document.getElementById('file-upload-remove');
+    const textarea = document.getElementById('chatbot-weekly-input');
+
+    if (!dropzone || !fileInput) return;
+
+    // Click để chọn file
+    dropzone.addEventListener('click', (e) => {
+        if (e.target.id !== 'file-upload-remove') {
+            fileInput.click();
+        }
+    });
+
+    // Drag & Drop
+    dropzone.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        dropzone.classList.add('dragover');
+    });
+
+    dropzone.addEventListener('dragleave', () => {
+        dropzone.classList.remove('dragover');
+    });
+
+    dropzone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        dropzone.classList.remove('dragover');
+        const files = e.dataTransfer.files;
+        if (files.length > 0) {
+            handleFileUpload(files[0]);
+        }
+    });
+
+    // Input change
+    fileInput.addEventListener('change', (e) => {
+        if (e.target.files.length > 0) {
+            handleFileUpload(e.target.files[0]);
+        }
+    });
+
+    // Remove button
+    if (removeBtn) {
+        removeBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            fileInput.value = '';
+            if (preview) preview.style.display = 'none';
+            dropzone.querySelector('.dropzone-content').style.display = 'block';
+        });
+    }
+
+    // Handle file upload
+    async function handleFileUpload(file) {
+        const allowedTypes = ['.txt', '.pdf', '.docx'];
+        const ext = '.' + file.name.split('.').pop().toLowerCase();
+
+        if (!allowedTypes.includes(ext)) {
+            showNotification(`Chỉ hỗ trợ: ${allowedTypes.join(', ')}`, 'error');
+            return;
+        }
+
+        if (file.size > 10 * 1024 * 1024) {
+            showNotification('File quá lớn (tối đa 10MB)', 'error');
+            return;
+        }
+
+        // Show loading
+        dropzone.classList.add('loading');
+        dropzone.querySelector('.dropzone-content').innerHTML = '<span style="font-size: 2rem;">⏳</span><p>Đang xử lý file...</p>';
+
+        try {
+            let text = '';
+
+            if (ext === '.txt') {
+                text = await readTxtFile(file);
+            } else if (ext === '.pdf') {
+                text = await readPdfFile(file);
+            } else if (ext === '.docx') {
+                text = await readDocxFile(file);
+            }
+
+            // Đưa text vào textarea
+            if (textarea) {
+                textarea.value = text;
+                textarea.focus();
+            }
+
+            // Hiện preview
+            if (preview && fileName) {
+                const icons = { txt: '📄', pdf: '📕', docx: '📘' };
+                fileName.innerHTML = `${icons[ext.slice(1)] || '📎'} ${file.name}`;
+                preview.style.display = 'block';
+                dropzone.querySelector('.dropzone-content').style.display = 'none';
+            }
+
+            showNotification(`✅ Đã tải file: ${file.name}`, 'success');
+
+        } catch (error) {
+            console.error('File parse error:', error);
+            showNotification(`Lỗi đọc file: ${error.message}`, 'error');
+            // Reset dropzone
+            dropzone.querySelector('.dropzone-content').innerHTML = `
+                <span style="font-size: 2rem;">📄</span>
+                <p style="margin: 10px 0 5px 0; font-weight: 600; color: #334155;">Hoặc tải file lên</p>
+                <p style="margin: 0; font-size: 0.85rem; color: #64748b;">Kéo thả hoặc click - Hỗ trợ: .txt, .pdf, .docx</p>
+            `;
+        } finally {
+            dropzone.classList.remove('loading');
+        }
+    }
+}
+
+// ========== FILE READERS ==========
+
+async function readTxtFile(file) {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = (e) => resolve(e.target.result);
+        reader.onerror = () => reject(new Error('Lỗi đọc file TXT'));
+        reader.readAsText(file, 'UTF-8');
+    });
+}
+
+async function readPdfFile(file) {
+    if (typeof pdfjsLib === 'undefined') {
+        throw new Error('Thư viện PDF.js chưa được tải. Vui lòng refresh trang.');
+    }
+
+    const arrayBuffer = await file.arrayBuffer();
+    const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+
+    let fullText = '';
+    for (let i = 1; i <= pdf.numPages; i++) {
+        const page = await pdf.getPage(i);
+        const textContent = await page.getTextContent();
+        const pageText = textContent.items.map(item => item.str).join(' ');
+        fullText += pageText + '\n';
+    }
+
+    return fullText.trim();
+}
+
+async function readDocxFile(file) {
+    if (typeof mammoth === 'undefined') {
+        throw new Error('Thư viện Mammoth.js chưa được tải. Vui lòng refresh trang.');
+    }
+
+    const arrayBuffer = await file.arrayBuffer();
+    const result = await mammoth.extractRawText({ arrayBuffer });
+    return result.value.trim();
 }
 
 // Export

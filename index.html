@@ -1875,6 +1875,45 @@ Ví dụ:
 
 Bạn có thể paste từ email, notes, hoặc viết tự do..."></textarea>
 
+                    <!-- File Upload Dropzone -->
+                    <div id="file-upload-zone" class="file-upload-zone" style="
+                        margin: 15px 0;
+                        padding: 20px;
+                        border: 2px dashed #cbd5e1;
+                        border-radius: 12px;
+                        text-align: center;
+                        background: #f8fafc;
+                        cursor: pointer;
+                        transition: all 0.3s ease;
+                    ">
+                        <input type="file" id="file-upload-input" accept=".txt,.pdf,.docx" style="display:none;">
+                        <div class="dropzone-content">
+                            <span style="font-size: 2rem;">📄</span>
+                            <p style="margin: 10px 0 5px 0; font-weight: 600; color: #334155;">Hoặc tải file lên</p>
+                            <p style="margin: 0; font-size: 0.85rem; color: #64748b;">Kéo thả hoặc click - Hỗ trợ: .txt,
+                                .pdf, .docx</p>
+                        </div>
+                        <div id="file-upload-preview" style="display:none; margin-top: 10px;">
+                            <span id="file-upload-name" style="color: #059669; font-weight: 500;"></span>
+                            <button id="file-upload-remove"
+                                style="margin-left: 10px; background: #ef4444; color: white; border: none; padding: 4px 10px; border-radius: 6px; cursor: pointer;">✕
+                                Xóa</button>
+                        </div>
+                    </div>
+
+                    <style>
+                        .file-upload-zone:hover,
+                        .file-upload-zone.dragover {
+                            border-color: #3b82f6;
+                            background: #eff6ff;
+                        }
+
+                        .file-upload-zone.loading {
+                            opacity: 0.6;
+                            pointer-events: none;
+                        }
+                    </style>
+
                     <div class="chatbot-actions">
                         <button id="btn-chatbot-analyze" class="chatbot-btn chatbot-btn-primary">
                             🔍 Phân tích
@@ -3700,6 +3739,15 @@ Bạn có thể paste từ email, notes, hoặc viết tự do..."></textarea>
         <script src="https://cdn.jsdelivr.net/npm/quill@2.0.0/dist/quill.min.js"></script>
         <!-- SortableJS (Quan trọng cho Timeline) -->
         <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
+        <!-- PDF.js và Mammoth.js cho File Upload -->
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
+        <script>
+            // Cấu hình PDF.js worker
+            if (typeof pdfjsLib !== 'undefined') {
+                pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+            }
+        </script>
         <script type="module" src="js/main.js"></script>
 
         <!-- PWA Service Worker Registration -->
