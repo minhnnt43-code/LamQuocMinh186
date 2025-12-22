@@ -134,6 +134,60 @@ const loadAndSyncUserData = async (user) => {
     const data = await getUserData(user.uid);
     const userData = data ? data : JSON.parse(JSON.stringify(DEFAULT_DATA));
 
+    // [AUTO-MIGRATION] Chuyển đổi legacy field names: title→name, deadline→dueDate, etc.
+    if (userData.tasks && Array.isArray(userData.tasks)) {
+        const needsMigration = userData.tasks.some(t =>
+            t.title !== undefined ||
+            t.deadline !== undefined ||
+            t.description !== undefined ||
+            t.status === 'pending' ||
+            t.completed !== undefined
+        );
+
+        if (needsMigration) {
+            console.log('🔄 Auto-migrating legacy task data...');
+            userData.tasks = userData.tasks.map(task => {
+                const migrated = { ...task };
+
+                // title → name
+                if (task.title && !task.name) {
+                    migrated.name = task.title;
+                    delete migrated.title;
+                }
+
+                // deadline → dueDate
+                if (task.deadline && !task.dueDate) {
+                    migrated.dueDate = task.deadline;
+                    delete migrated.deadline;
+                }
+
+                // description → notes
+                if (task.description !== undefined && task.notes === undefined) {
+                    migrated.notes = task.description || '';
+                    delete migrated.description;
+                }
+
+                // completed: true → status: 'Hoàn thành'
+                if (task.completed === true && !task.status) {
+                    migrated.status = 'Hoàn thành';
+                    delete migrated.completed;
+                }
+
+                // status: 'pending' → 'Chưa thực hiện'
+                if (task.status === 'pending') {
+                    migrated.status = 'Chưa thực hiện';
+                }
+
+                return migrated;
+            });
+
+            // Lưu data đã migrate vào Firebase
+            console.log('💾 Saving migrated tasks to Firebase...');
+            saveUserData(user.uid, { tasks: userData.tasks });
+            console.log('✅ Migration completed!');
+        }
+    }
+
     // Load shared API keys
     await fetchGlobalKeys();
     console.log('✅ Đã load shared API keys từ Firebase');
