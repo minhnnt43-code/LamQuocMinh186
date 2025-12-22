@@ -394,11 +394,14 @@ const handleTimeSpent = async () => {
         // Tính tổng giờ
         let totalHours = 0;
         events.forEach(e => {
-            if (e.startTime && e.endTime) {
+            // [FIX] Check startTime và endTime trước khi split
+            if (e.startTime && e.endTime && typeof e.startTime === 'string' && typeof e.endTime === 'string') {
                 const start = e.startTime.split(':').map(Number);
                 const end = e.endTime.split(':').map(Number);
-                const hours = (end[0] * 60 + end[1] - start[0] * 60 - start[1]) / 60;
-                totalHours += hours;
+                if (!isNaN(start[0]) && !isNaN(end[0])) {
+                    const hours = (end[0] * 60 + (end[1] || 0) - start[0] * 60 - (start[1] || 0)) / 60;
+                    totalHours += hours;
+                }
             }
         });
 
@@ -571,8 +574,13 @@ Lưu ý quan trọng:
  * Tính endTime từ startTime (+1 giờ)
  */
 const calculateEndTime = (startTime) => {
+    // [FIX] Check startTime trước khi split
+    if (!startTime || typeof startTime !== 'string') {
+        return '10:00'; // Default endTime
+    }
     const [h, m] = startTime.split(':').map(Number);
-    return `${String(Math.min(h + 1, 23)).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
+    if (isNaN(h)) return '10:00';
+    return `${String(Math.min(h + 1, 23)).padStart(2, '0')}:${String(m || 0).padStart(2, '0')}`;
 };
 
 /**

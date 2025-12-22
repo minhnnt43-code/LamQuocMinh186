@@ -355,9 +355,15 @@ window.handleAppt = async (id, newStatus, title, date, time, email, guestName) =
         if (newStatus === 'approved') {
             const userData = await getUserData(currentAdminUID);
             let events = userData.calendarEvents || [];
-            let [hour, minute] = time.split(':').map(Number);
-            let endHour = (hour + 1) % 24;
-            let endTime = `${endHour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
+            // [FIX] Check time trước khi split
+            let endHour = 10;
+            let endMinute = 0;
+            if (time && typeof time === 'string' && time.includes(':')) {
+                let [hour, minute] = time.split(':').map(Number);
+                endHour = (hour + 1) % 24;
+                endMinute = minute || 0;
+            }
+            let endTime = `${endHour.toString().padStart(2, '0')}:${endMinute.toString().padStart(2, '0')}`;
 
             const newEvent = {
                 id: generateID('appt_ev'),
