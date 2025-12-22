@@ -542,16 +542,15 @@ async function handleAddSelected() {
     btnAdd.innerHTML = '⏳ Đang thêm...';
 
     try {
-        // Tạo tasks mới
+        // Tạo tasks mới - [FIX] Đồng nhất field names với work.js
         const newTasks = selectedTasks.map(task => ({
             id: generateID('task'),
-            title: task.title,
-            description: task.description || '',
-            deadline: task.deadline || null,
+            name: task.title,  // [FIX] work.js dùng 'name' không phải 'title'
+            notes: task.description || '',
+            dueDate: task.deadline || null,  // [FIX] work.js dùng 'dueDate' không phải 'deadline'
             priority: task.priority || 'medium',
-            status: 'pending',
+            status: 'Chưa thực hiện',  // [FIX] work.js dùng 'Chưa thực hiện' không phải 'pending'
             category: task.category || 'Khác',
-            completed: false,
             createdAt: toLocalISOString(new Date()),
             subtasks: [],
             // [MỚI] Lưu thông tin thời gian nếu có
