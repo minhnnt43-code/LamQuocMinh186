@@ -238,6 +238,10 @@ function formatDate(date) {
  * Helper: Parse Vietnamese date DD/MM/YYYY
  */
 function parseVietnameseDate(dateStr) {
+    // [FIX] Add null/undefined check to prevent "Cannot read properties of undefined (reading 'split')"
+    if (!dateStr || typeof dateStr !== 'string') {
+        return new Date(); // Return current date as fallback
+    }
     const parts = dateStr.split('/');
     if (parts.length === 3) {
         return new Date(parts[2], parts[1] - 1, parts[0]);
