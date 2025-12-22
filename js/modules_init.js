@@ -86,7 +86,7 @@ function initKanbanBoard(userData) {
 
     const tasks = userData?.tasks || [];
     kanbanBoard = new KanbanBoard(tasks, (updatedTask) => {
-        console.log('Task updated:', updatedTask.title);
+        console.log('Task updated:', updatedTask.name || updatedTask.title);
     });
 
     // [FIX] Render the board immediately

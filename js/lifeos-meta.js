@@ -65,16 +65,16 @@ function calculateDimensionScore(dimensionId) {
                 new Date(t.createdAt) > weekAgo
             );
             if (workTasks.length === 0) return 50;
-            const completed = workTasks.filter(t => t.completed).length;
+            const completed = workTasks.filter(t => t.status === 'Hoàn thành').length;
             return Math.round((completed / workTasks.length) * 100);
         }
         case 'productivity': {
             // Based on all task completion
             const recentTasks = tasks.filter(t => new Date(t.createdAt) > weekAgo);
             if (recentTasks.length === 0) return 50;
-            const completed = recentTasks.filter(t => t.completed).length;
+            const completed = recentTasks.filter(t => t.status === 'Hoàn thành').length;
             const onTime = recentTasks.filter(t =>
-                t.completed && t.deadline && new Date(t.completedAt) <= new Date(t.deadline)
+                t.status === 'Hoàn thành' && t.dueDate && new Date(t.completedAt) <= new Date(t.dueDate)
             ).length;
             return Math.round(((completed / recentTasks.length) * 70 + (onTime / Math.max(completed, 1)) * 30));
         }
@@ -82,7 +82,7 @@ function calculateDimensionScore(dimensionId) {
             // Based on tasks with "học", "phát triển", etc
             const growthKeywords = ['học', 'đọc', 'nghiên cứu', 'phát triển', 'cải thiện', 'training'];
             const growthTasks = tasks.filter(t =>
-                t.title && growthKeywords.some(k => t.title.toLowerCase().includes(k))
+                (t.name || t.title) && growthKeywords.some(k => (t.name || t.title).toLowerCase().includes(k))
             );
             const recentGrowth = growthTasks.filter(t => new Date(t.createdAt) > weekAgo);
             return Math.min(100, 50 + recentGrowth.length * 10);
@@ -91,7 +91,7 @@ function calculateDimensionScore(dimensionId) {
             // Based on tasks with social keywords
             const socialKeywords = ['gặp', 'họp', 'gọi', 'cafe', 'ăn', 'chơi', 'bạn', 'gia đình'];
             const socialTasks = tasks.filter(t =>
-                t.title && socialKeywords.some(k => t.title.toLowerCase().includes(k))
+                (t.name || t.title) && socialKeywords.some(k => (t.name || t.title).toLowerCase().includes(k))
             );
             const recentSocial = socialTasks.filter(t => new Date(t.createdAt) > weekAgo);
             return Math.min(100, 40 + recentSocial.length * 15);
@@ -100,7 +100,7 @@ function calculateDimensionScore(dimensionId) {
             // Based on health-related activities
             const healthKeywords = ['tập', 'gym', 'chạy', 'yoga', 'thiền', 'ngủ', 'ăn'];
             const healthTasks = tasks.filter(t =>
-                t.title && healthKeywords.some(k => t.title.toLowerCase().includes(k))
+                (t.name || t.title) && healthKeywords.some(k => (t.name || t.title).toLowerCase().includes(k))
             );
             const recentHealth = healthTasks.filter(t => new Date(t.createdAt) > weekAgo);
             return Math.min(100, 30 + recentHealth.length * 20);
@@ -109,7 +109,7 @@ function calculateDimensionScore(dimensionId) {
             // Based on creative activities
             const creativeKeywords = ['viết', 'thiết kế', 'vẽ', 'sáng tạo', 'ý tưởng', 'brainstorm'];
             const creativeTasks = tasks.filter(t =>
-                t.title && creativeKeywords.some(k => t.title.toLowerCase().includes(k))
+                (t.name || t.title) && creativeKeywords.some(k => (t.name || t.title).toLowerCase().includes(k))
             );
             const recentCreative = creativeTasks.filter(t => new Date(t.createdAt) > weekAgo);
             return Math.min(100, 40 + recentCreative.length * 15);
@@ -139,11 +139,11 @@ function calculateTrend() {
     const twoWeeksAgo = new Date(today.getTime() - 14 * 24 * 60 * 60 * 1000);
 
     const thisWeek = globalData.tasks.filter(t =>
-        t.completed && new Date(t.completedAt || t.createdAt) > weekAgo
+        t.status === 'Hoàn thành' && new Date(t.completedAt || t.createdAt) > weekAgo
     ).length;
 
     const lastWeek = globalData.tasks.filter(t =>
-        t.completed &&
+        t.status === 'Hoàn thành' &&
         new Date(t.completedAt || t.createdAt) > twoWeeksAgo &&
         new Date(t.completedAt || t.createdAt) <= weekAgo
     ).length;
@@ -179,7 +179,7 @@ async function generateYearInReview() {
 
     const stats = {
         totalTasks: yearTasks.length,
-        completed: yearTasks.filter(t => t.completed).length,
+        completed: yearTasks.filter(t => t.status === 'Hoàn thành').length,
         byCategory: {},
         byMonth: {},
         topKeywords: []
@@ -273,10 +273,10 @@ function calculateLegacyScore() {
     let score = 0;
 
     // Tasks completed
-    score += tasks.filter(t => t.completed).length * 1;
+    score += tasks.filter(t => t.status === 'Hoàn thành').length * 1;
 
     // High priority completed
-    score += tasks.filter(t => t.completed && t.priority === 'high').length * 3;
+    score += tasks.filter(t => t.status === 'Hoàn thành' && t.priority === 'high').length * 3;
 
     // Milestones achieved
     score += milestones.length * 10;
@@ -324,10 +324,10 @@ function calculateLifeEfficiency() {
     const monthTasks = tasks.filter(t => new Date(t.createdAt) > monthAgo);
     if (monthTasks.length === 0) return 50;
 
-    const completed = monthTasks.filter(t => t.completed).length;
+    const completed = monthTasks.filter(t => t.status === 'Hoàn thành').length;
     const onTime = monthTasks.filter(t =>
-        t.completed && t.deadline &&
-        new Date(t.completedAt || t.createdAt) <= new Date(t.deadline)
+        t.status === 'Hoàn thành' && t.dueDate &&
+        new Date(t.completedAt || t.createdAt) <= new Date(t.dueDate)
     ).length;
 
     const completionRate = completed / monthTasks.length;
@@ -355,7 +355,7 @@ function calculateGrowthVelocity() {
             return created >= weekStart && created < weekEnd;
         });
 
-        weeks.push(weekTasks.filter(t => t.completed).length);
+        weeks.push(weekTasks.filter(t => t.status === 'Hoàn thành').length);
     }
 
     // Calculate velocity (average change)

@@ -525,7 +525,7 @@ export function renderHyperAutoDashboard() {
                     ${prioritized.map((t, i) => `
                         <div class="priority-item">
                             <span class="priority-rank">#${i + 1}</span>
-                            <span class="priority-title">${(t.title || t.name || 'Untitled').substring(0, 30)}...</span>
+                            <span class="priority-title">${(t.name || t.title || 'Untitled').substring(0, 30)}...</span>
                             <span class="priority-score">${t.autoScore}</span>
                         </div>
                     `).join('') || '<p class="no-data">Không có task</p>'}

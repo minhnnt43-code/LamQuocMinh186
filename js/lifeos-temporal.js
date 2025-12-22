@@ -552,7 +552,7 @@ function renderTemporalDashboard() {
                 <div class="urgency-list">
                     ${decay.slice(0, 5).map(t => `
                         <div class="urgency-item ${t.decayStatus}">
-                            <span class="urgency-title">${(t.title || t.name || 'Untitled').substring(0, 30)}${(t.title || t.name || '').length > 30 ? '...' : ''}</span>
+                            <span class="urgency-title">${(t.name || t.title || 'Untitled').substring(0, 30)}${(t.name || t.title || '').length > 30 ? '...' : ''}</span>
                             <div class="urgency-bar">
                                 <div class="urgency-fill" style="width: ${t.urgencyScore}%"></div>
                             </div>
@@ -585,7 +585,7 @@ function renderTemporalDashboard() {
                 <div class="risk-list">
                     ${atRisk.slice(0, 4).map(t => `
                         <div class="risk-item ${t.riskLevel}">
-                            <span class="risk-title">${(t.title || t.name || 'Untitled').substring(0, 25)}...</span>
+                            <span class="risk-title">${(t.name || t.title || 'Untitled').substring(0, 25)}...</span>
                             <span class="risk-prob">${t.completionProbability}% hoàn thành</span>
                         </div>
                     `).join('') || '<p style="color: #10b981; font-weight: 500; text-align: center; padding: 15px;">✅ Không có task nào có nguy cơ trễ!</p>'}

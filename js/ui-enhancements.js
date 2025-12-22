@@ -219,7 +219,7 @@ const renderKanbanBoard = (tasks, containerId, filterDate = null) => {
                                         box-shadow:0 2px 8px rgba(0,0,0,0.1);cursor:grab;
                                         border-left:4px solid ${task.priority === 'high' || task.priority === 'Cao' ? '#ef4444' : task.priority === 'low' || task.priority === 'Thấp' ? '#10b981' : '#f59e0b'};
                                         transition:all 0.2s ease;">
-                                <div style="font-weight:600;margin-bottom:6px;color:#1f2937;">${task.title || task.name || 'Untitled'}</div>
+                                <div style="font-weight:600;margin-bottom:6px;color:#1f2937;">${task.name || task.title || 'Untitled'}</div>
                                 ${task.dueDate ? `<div style="font-size:0.75rem;color:#6b7280;margin-bottom:4px;">📅 ${task.dueDate}</div>` : ''}
                                 <div style="display:flex;gap:6px;flex-wrap:wrap;">
                                     ${task.category ? `<span style="background:${col.color}20;color:${col.color};padding:2px 8px;border-radius:4px;font-size:0.7rem;font-weight:500;">${task.category}</span>` : ''}
@@ -542,7 +542,7 @@ const renderWeeklyKanban = (tasks, containerId, weekOffset = null) => {
                                                  style="background:white;padding:8px;border-radius:6px;font-size:0.8rem;
                                                         box-shadow:0 1px 3px rgba(0,0,0,0.1);cursor:grab;
                                                         border-left:3px solid ${task.priority === 'high' || task.priority === 'Cao' ? '#ef4444' : '#f59e0b'};">
-                                                <div style="font-weight:500;color:#1f2937;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${task.title || task.name || 'Untitled'}</div>
+                                                <div style="font-weight:500;color:#1f2937;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${task.name || task.title || 'Untitled'}</div>
                                                 ${task.estimatedMinutes ? `<span style="font-size:0.65rem;color:#6b7280;">⏱️ ${task.estimatedMinutes}p</span>` : ''}
                                             </div>
                                         `).join('') || ''}
@@ -571,7 +571,7 @@ const renderWeeklyKanban = (tasks, containerId, weekOffset = null) => {
                                     ${colTasks.map(task => `
                                         <div class="kanban-card" draggable="true" data-id="${task.id}"
                                              style="background:white;padding:8px;border-radius:6px;font-size:0.8rem;box-shadow:0 1px 3px rgba(0,0,0,0.1);cursor:grab;border-left:3px solid #f59e0b;">
-                                            <div style="font-weight:500;color:#1f2937;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${task.title || task.name || 'Untitled'}</div>
+                                            <div style="font-weight:500;color:#1f2937;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${task.name || task.title || 'Untitled'}</div>
                                             <span style="font-size:0.6rem;color:#92400e;">${task.dueDate || 'Không có ngày'}</span>
                                         </div>
                                     `).join('') || ''}
