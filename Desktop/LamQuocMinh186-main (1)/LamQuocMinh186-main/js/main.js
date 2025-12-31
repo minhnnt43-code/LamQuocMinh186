@@ -1,9 +1,10 @@
 // --- FILE: js/main.js ---
+// [ĐÃ CHUYỂN ĐỔI] Từ Firebase sang PHP + MySQL Backend
 
 import {
     loginWithGoogle, logoutUser, subscribeToAuthChanges,
-    getUserData, saveUserData, auth
-} from './firebase.js';
+    getUserData, saveUserData, auth, loginWithEmail, registerWithEmail, checkAuthStatus
+} from './api.js'; // [ĐÃ ĐỔI] Dùng PHP API thay vì Firebase
 
 import {
     toggleLoading, showNotification
@@ -11,7 +12,9 @@ import {
 
 import { initWorkModule } from './work.js';
 import { initStudyModule } from './study.js';
-import { initAdminModule } from './admin.js';
+// [DISABLED - PHP MODE] Admin module cần Firebase Firestore trực tiếp
+// import { initAdminModule } from './admin.js';
+const initAdminModule = async () => console.log('⚠️ Admin module disabled (PHP mode)');
 
 // [MỚI] Import các module đã tách
 import { setupNavigation } from './navigation.js';
@@ -29,8 +32,8 @@ import { initAIAnalytics } from './ai-analytics.js';
 import { initAIChatbot } from './ai-chatbot.js';
 
 import { initEmailAuth } from './auth-email.js';
-import { fetchGlobalKeys } from './ai-config.js'; // [MỚI] Auto-load shared API keys từ Firebase
-import './firebase-sync.js'; // [MỚI] Auto-sync localStorage với Firebase
+// [DISABLED - PHP MODE] import { fetchGlobalKeys } from './ai-config.js';
+// [DISABLED - PHP MODE] import './firebase-sync.js';
 // [DISABLED] import './laso.js'; // Lá Số - Tử Vi / Bát Tự / Thần Số Học
 
 // [MỚI] Phase D, H, J modules
@@ -134,9 +137,63 @@ const loadAndSyncUserData = async (user) => {
     const data = await getUserData(user.uid);
     const userData = data ? data : JSON.parse(JSON.stringify(DEFAULT_DATA));
 
-    // Load shared API keys
-    await fetchGlobalKeys();
-    console.log('✅ Đã load shared API keys từ Firebase');
+    // [AUTO-MIGRATION] Chuyển đổi legacy field names: title→name, deadline→dueDate, etc.
+    if (userData.tasks && Array.isArray(userData.tasks)) {
+        const needsMigration = userData.tasks.some(t =>
+            t.title !== undefined ||
+            t.deadline !== undefined ||
+            t.description !== undefined ||
+            t.status === 'pending' ||
+            t.completed !== undefined
+        );
+
+        if (needsMigration) {
+            console.log('🔄 Auto-migrating legacy task data...');
+            userData.tasks = userData.tasks.map(task => {
+                const migrated = { ...task };
+
+                // title → name
+                if (task.title && !task.name) {
+                    migrated.name = task.title;
+                    delete migrated.title;
+                }
+
+                // deadline → dueDate
+                if (task.deadline && !task.dueDate) {
+                    migrated.dueDate = task.deadline;
+                    delete migrated.deadline;
+                }
+
+                // description → notes
+                if (task.description !== undefined && task.notes === undefined) {
+                    migrated.notes = task.description || '';
+                    delete migrated.description;
+                }
+
+                // completed: true → status: 'Hoàn thành'
+                if (task.completed === true && !task.status) {
+                    migrated.status = 'Hoàn thành';
+                    delete migrated.completed;
+                }
+
+                // status: 'pending' → 'Chưa thực hiện'
+                if (task.status === 'pending') {
+                    migrated.status = 'Chưa thực hiện';
+                }
+
+                return migrated;
+            });
+
+            // Lưu data đã migrate vào Firebase
+            console.log('💾 Saving migrated tasks to Firebase...');
+            saveUserData(user.uid, { tasks: userData.tasks });
+            console.log('✅ Migration completed!');
+        }
+    }
+
+    // [DISABLED - PHP MODE] Load shared API keys đã tắt vì không dùng Firebase
+    // await fetchGlobalKeys();
+    console.log('✅ PHP Mode - Không cần load Firebase global keys');
 
     // Đồng bộ thông tin cơ bản
     if (!userData.personalInfo) userData.personalInfo = {};
