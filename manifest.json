@@ -1,0 +1,24 @@
+{
+    "name": "LifeOS - Lâm Quốc Minh",
+    "short_name": "LifeOS",
+    "description": "Hệ thống quản lý cá nhân thông minh",
+    "start_url": ".",
+    "scope": ".",
+    "display": "standalone",
+    "background_color": "#1a1a2e",
+    "theme_color": "#667eea",
+    "orientation": "any",
+    "icons": [
+        {
+            "src": "./favicon.svg",
+            "sizes": "any",
+            "type": "image/svg+xml",
+            "purpose": "any"
+        }
+    ],
+    "categories": [
+        "productivity",
+        "lifestyle"
+    ],
+    "lang": "vi"
+}
