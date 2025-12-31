@@ -1,11 +1,21 @@
 // --- FILE: js/portfolio.js ---
+// [PHP MODE] Portfolio vẫn dùng Firebase vì cần realtime sync
+// Trang portfolio public có thể giữ Firebase hoặc disable tạm
 
-// 1. IMPORT TỪ MODULE CHÍNH
-import { db } from './firebase.js';
-import {
-    doc, getDoc, collection, addDoc, getDocs,
-    query, orderBy, limit, onSnapshot
-} from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+// 1. IMPORT - DISABLED FOR PHP MODE
+// Portfolio cần Firebase Firestore - đánh dấu để xử lý sau
+console.warn('⚠️ Portfolio: Firebase disabled. Cần config riêng để hiển thị portfolio công khai.');
+
+const db = null;
+const doc = () => null;
+const getDoc = async () => ({ exists: () => false });
+const collection = () => null;
+const addDoc = async () => null;
+const getDocs = async () => ({ docs: [] });
+const query = () => null;
+const orderBy = () => null;
+const limit = () => null;
+const onSnapshot = () => { };
 
 // 2. BIẾN TOÀN CỤC
 const urlParams = new URLSearchParams(window.location.search);

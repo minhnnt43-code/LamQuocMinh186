@@ -94,19 +94,11 @@ export const getApiKey = (provider = AI_CONFIG.provider) => {
     return '';
 };
 
-// [MỚI] Fetch global keys từ Firebase
+// [MỚI] Fetch global keys - DISABLED FOR PHP MODE
 export const fetchGlobalKeys = async () => {
-    try {
-        // Dynamic import để tránh cycle dependency nếu không cẩn thận
-        const { getSystemConfig } = await import('./firebase.js');
-        const config = await getSystemConfig('ai_keys');
-        if (config) {
-            AI_CONFIG.globalKeys = config;
-            console.log('Processed Global AI Keys:', Object.keys(config));
-        }
-    } catch (e) {
-        console.warn('Cannot fetch global AI keys:', e);
-    }
+    // Firebase đã bị disable - không fetch global keys
+    console.log('[PHP MODE] Global AI keys disabled - dùng localStorage');
+    return;
 };
 
 // Hàm lưu API key vào localStorage (tự động làm sạch ký tự không hợp lệ)
