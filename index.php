@@ -60,6 +60,8 @@
     <link rel="stylesheet" href="css/ui-polish.css">
     <!-- [MỚI] 44 Smart Features Styles -->
     <link rel="stylesheet" href="css/smart-features.css">
+    <!-- [MỚI] SIMPLIFIED CSS - Override để tinh gọn giao diện -->
+    <link rel="stylesheet" href="css/simplified.css">
 
     <!-- Chart.js for Task Analytics -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
