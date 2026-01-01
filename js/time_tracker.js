@@ -3,7 +3,7 @@
 // Mục đích: Time tracking cho tasks với stopwatch và analytics
 // ============================================================
 
-import { saveUserData, auth } from './firebase.js';
+import { saveUserData, auth } from './api.js';
 import { showNotification } from './common.js';
 
 export class TimeTracker {

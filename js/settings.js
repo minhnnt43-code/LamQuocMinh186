@@ -1,5 +1,5 @@
 // --- FILE: js/settings.js ---
-import { saveUserData } from './firebase.js';
+import { saveUserData } from './api.js';
 import { showNotification, toggleLoading } from './common.js';
 
 // Dữ liệu mặc định (để dùng khi reset hoặc clear data)

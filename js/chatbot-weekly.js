@@ -4,7 +4,7 @@
 // Tích hợp: ai-core-engine.js (Phase 1 - 10 tính năng lõi)
 // ============================================================
 
-import { saveUserData } from './firebase.js';
+import { saveUserData } from './api.js';
 import { showNotification, generateID, toLocalISOString } from './common.js';
 
 // [MỚI] Import từ AI Core Engine (Phase 1)

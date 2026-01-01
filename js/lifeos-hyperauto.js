@@ -6,7 +6,7 @@
 
 import { showNotification, generateID, toLocalISOString } from './common.js';
 import { aiPowerHub } from './ai-power-hub.js';
-import { saveUserData } from './firebase.js';
+import { saveUserData } from './api.js';
 
 // ============================================================
 // GLOBAL DATA

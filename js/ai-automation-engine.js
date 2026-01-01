@@ -4,7 +4,7 @@
 // ============================================================
 
 import { showNotification, generateID, toLocalISOString } from './common.js';
-import { saveUserData } from './firebase.js';
+import { saveUserData } from './api.js';
 import { classifyIntent, extractEntities } from './ai-core-engine.js';
 
 let globalData = null;

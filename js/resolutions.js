@@ -5,7 +5,7 @@
 
 import { generateContent, QuotaExceededError } from './ai/gemini.js';
 import { showNotification, toggleLoading } from './common.js';
-import { saveUserData, auth } from './firebase.js';
+import { saveUserData, auth } from './api.js';
 
 /**
  * Danh sách Nghị quyết mẫu (có thể mở rộng)

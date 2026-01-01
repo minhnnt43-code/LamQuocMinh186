@@ -2,7 +2,7 @@
 // AI Task buttons - ULTRA LITE VERSION
 // Sử dụng AI Power Hub để gọi API
 
-import { saveUserData } from './firebase.js';
+import { saveUserData } from './api.js';
 import { aiPowerHub } from './ai-power-hub.js';
 
 let globalData = null;

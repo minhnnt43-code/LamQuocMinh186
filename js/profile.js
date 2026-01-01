@@ -1,5 +1,5 @@
 // --- FILE: js/profile.js ---
-import { saveUserData, auth } from './firebase.js';
+import { saveUserData, auth } from './api.js';
 import { showNotification } from './common.js';
 
 export function loadProfileDataToForm(currentUserData) {

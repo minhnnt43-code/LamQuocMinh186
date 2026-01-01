@@ -3,7 +3,7 @@ import {
 } from './common.js';
 import {
     saveUserData, uploadFileToStorage, deleteFileFromStorage
-} from './firebase.js';
+} from './api.js'; // [ĐÃ ĐỔI] Dùng PHP API
 
 let globalData = null;
 let currentUser = null;

@@ -15,7 +15,7 @@ import {
 } from './ai-config.js';
 import { aiService } from './ai-service.js';
 import { showNotification } from './common.js';
-import { auth, saveSystemConfig } from './firebase.js';
+import { auth, saveSystemConfig } from './api.js'; // [ĐÃ ĐỔI]
 
 /**
  * Khởi tạo UI Settings cho AI

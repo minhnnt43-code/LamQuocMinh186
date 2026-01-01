@@ -6,7 +6,7 @@ import {
     toggleLoading
 } from './common.js';
 
-import { saveUserData } from './firebase.js';
+import { saveUserData } from './api.js'; // [ĐÃ ĐỔI] Dùng PHP API
 import { initTaskCharts } from './task-charts.js';
 
 let globalData = null;

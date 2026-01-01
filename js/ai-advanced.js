@@ -4,7 +4,7 @@
 // ============================================================
 
 import { showNotification, generateID } from './common.js';
-import { saveUserData } from './firebase.js';
+import { saveUserData } from './api.js';
 import { contextMemory, analyzeWithAI } from './ai-core-engine.js';
 import { calculateProductivityScore } from './ai-productivity.js';
 import { getDashboardStats } from './ai-data-analytics.js';

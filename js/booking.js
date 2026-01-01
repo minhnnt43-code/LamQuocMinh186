@@ -3,7 +3,7 @@
 // Mục đích: Tạo và quản lý Booking Links cá nhân
 // ============================================================
 
-import { saveUserData, auth, getAppointmentRequests, updateSubCollectionDoc } from './firebase.js';
+import { saveUserData, auth, getAppointmentRequests, updateSubCollectionDoc } from './api.js'; // [ĐÃ ĐỔI]
 import { showNotification } from './common.js';
 
 /**

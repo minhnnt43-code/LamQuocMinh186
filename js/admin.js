@@ -1,13 +1,15 @@
 // --- FILE: js/admin.js ---
+// [DISABLED - PHP MODE] Admin module hiện không hoạt động với PHP backend
+// Cần rewrite để gọi API PHP thay vì Firebase Firestore trực tiếp
 
-// 1. IMPORT
-import { db } from './firebase.js';
-import {
-    collection, getDocs, deleteDoc, doc, addDoc, query, orderBy, setDoc, writeBatch, updateDoc, where
-} from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+// 1. IMPORT - DISABLED
+// import { db } from './firebase.js';
+// import {
+//     collection, getDocs, deleteDoc, doc, addDoc, query, orderBy, setDoc, writeBatch, updateDoc, where
+// } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-// Import các hàm từ module chính
-import { getAllUsers, createGlobalTemplate, getGlobalTemplates, getAppointmentRequests, getUserData, saveUserData } from './firebase.js';
+// Import các hàm từ API (placeholder - chưa implement đầy đủ)
+import { getAllUsers, createGlobalTemplate, getGlobalTemplates, getAppointmentRequests, getUserData, saveUserData } from './api.js';
 import { showNotification, openModal, convertDriveLink, formatDate, generateID } from './common.js';
 
 // 2. CẤU HÌNH

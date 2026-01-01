@@ -3,7 +3,7 @@
 // Mục đích: Kanban Board với drag & drop cho task management
 // ============================================================
 
-import { saveUserData, auth } from './firebase.js';
+import { saveUserData, auth } from './api.js';
 import { showNotification } from './common.js';
 
 export class KanbanBoard {

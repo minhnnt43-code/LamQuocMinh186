@@ -1,7 +1,7 @@
 // --- FILE: js/lifestyle.js ---
 // Module xử lý các tính năng Lifestyle: Journal, Habits, Goals, Finance, Productivity
 
-import { saveUserData, getUserData } from './firebase.js';
+import { saveUserData, getUserData } from './api.js';
 import { showNotification, generateID, toLocalISOString } from './common.js';
 import { aiService } from './ai-service.js';
 

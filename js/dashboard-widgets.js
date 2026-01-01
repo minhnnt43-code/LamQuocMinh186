@@ -4,7 +4,7 @@
 import { getLunarCalendarInfo } from './lunar-calendar.js';
 import { aiService } from './ai-service.js';
 import { showNotification, toLocalISOString } from './common.js';
-import { saveUserData, getUserData } from './firebase.js';
+import { saveUserData, getUserData } from './api.js';
 
 let globalData = {};
 let currentUser = null;
