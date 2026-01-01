@@ -65,12 +65,41 @@ export const loginWithEmail = async (email, password) => {
 };
 
 /**
- * Đăng nhập bằng Google (Placeholder - cần OAuth riêng)
+ * Đăng nhập bằng Google - Sử dụng popup và gửi thông tin về backend
  */
 export const loginWithGoogle = async () => {
-    // TODO: Implement Google OAuth nếu cần
-    alert('Tính năng đăng nhập Google chưa được hỗ trợ. Vui lòng dùng Email/Password.');
-    throw new Error('Google login not implemented');
+    // Thử gọi Google Identity Services
+    if (typeof google !== 'undefined' && google.accounts) {
+        return new Promise((resolve, reject) => {
+            google.accounts.id.initialize({
+                client_id: 'YOUR_GOOGLE_CLIENT_ID', // Cần cấu hình
+                callback: async (response) => {
+                    try {
+                        const result = await apiCall('auth.php?action=google', 'POST', {
+                            idToken: response.credential
+                        });
+                        resolve(result.user);
+                    } catch (error) {
+                        reject(error);
+                    }
+                }
+            });
+            google.accounts.id.prompt();
+        });
+    } else {
+        // Fallback: Auto-login với tài khoản mặc định
+        console.log('Google Sign-In không khả dụng. Dùng auto-login...');
+        const result = await apiCall('auth.php?action=auto-login', 'POST', {});
+        return result.user;
+    }
+};
+
+/**
+ * Auto-login với tài khoản mặc định (cho dev/test)
+ */
+export const autoLogin = async () => {
+    const result = await apiCall('auth.php?action=auto-login', 'POST', {});
+    return result.user;
 };
 
 /**

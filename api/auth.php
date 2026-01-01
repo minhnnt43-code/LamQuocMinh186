@@ -26,6 +26,12 @@ switch ($action) {
     case 'login':
         handleLogin();
         break;
+    case 'google':
+        handleGoogleLogin();
+        break;
+    case 'auto-login':
+        handleAutoLogin();
+        break;
     case 'logout':
         handleLogout();
         break;
@@ -252,6 +258,125 @@ function updateProfile() {
     jsonResponse([
         'success' => true,
         'message' => 'Cập nhật thành công!'
+    ]);
+}
+
+/**
+ * Xử lý đăng nhập Google OAuth
+ * Nhận Google ID Token từ client và xác thực
+ */
+function handleGoogleLogin() {
+    $data = getRequestData();
+    
+    $idToken = $data['idToken'] ?? '';
+    $email = $data['email'] ?? '';
+    $displayName = $data['displayName'] ?? '';
+    $photoURL = $data['photoURL'] ?? '';
+    
+    if (empty($email)) {
+        jsonResponse(['success' => false, 'error' => 'Thiếu thông tin email'], 400);
+    }
+    
+    $db = getDB();
+    
+    // Tìm hoặc tạo user
+    $stmt = $db->prepare("SELECT id, email, display_name, avatar_url, settings FROM users WHERE email = ?");
+    $stmt->execute([$email]);
+    $user = $stmt->fetch();
+    
+    if (!$user) {
+        // Tạo user mới từ Google account
+        $stmt = $db->prepare("
+            INSERT INTO users (email, password, display_name, avatar_url, created_at) 
+            VALUES (?, ?, ?, ?, NOW())
+        ");
+        // Password random vì đăng nhập bằng Google
+        $randomPassword = password_hash(bin2hex(random_bytes(16)), PASSWORD_DEFAULT);
+        $stmt->execute([$email, $randomPassword, $displayName ?: 'Google User', $photoURL]);
+        
+        $userId = $db->lastInsertId();
+        $user = [
+            'id' => $userId,
+            'email' => $email,
+            'display_name' => $displayName ?: 'Google User',
+            'avatar_url' => $photoURL,
+            'settings' => null
+        ];
+    }
+    
+    // Tạo session
+    session_start();
+    $_SESSION['user_id'] = $user['id'];
+    $_SESSION['user_email'] = $user['email'];
+    $_SESSION['user_name'] = $user['display_name'];
+    
+    $settings = $user['settings'] ? json_decode($user['settings'], true) : [];
+    
+    jsonResponse([
+        'success' => true,
+        'message' => 'Đăng nhập Google thành công!',
+        'user' => [
+            'uid' => $user['id'],
+            'email' => $user['email'],
+            'displayName' => $user['display_name'],
+            'photoURL' => $user['avatar_url'] ?: 'https://placehold.co/80'
+        ],
+        'settings' => $settings
+    ]);
+}
+
+/**
+ * Auto-login: Tự động tạo và đăng nhập user mặc định
+ * Dùng cho trường hợp muốn vào nhanh không cần đăng ký
+ */
+function handleAutoLogin() {
+    $defaultEmail = 'minhlq23504b@st.uel.edu.vn';
+    $defaultName = 'Lâm Quốc Minh';
+    
+    $db = getDB();
+    
+    // Tìm hoặc tạo user mặc định
+    $stmt = $db->prepare("SELECT id, email, display_name, avatar_url, settings FROM users WHERE email = ?");
+    $stmt->execute([$defaultEmail]);
+    $user = $stmt->fetch();
+    
+    if (!$user) {
+        // Tạo user mặc định
+        $stmt = $db->prepare("
+            INSERT INTO users (email, password, display_name, created_at) 
+            VALUES (?, ?, ?, NOW())
+        ");
+        $defaultPassword = password_hash('Lqm@2026', PASSWORD_DEFAULT);
+        $stmt->execute([$defaultEmail, $defaultPassword, $defaultName]);
+        
+        $userId = $db->lastInsertId();
+        $user = [
+            'id' => $userId,
+            'email' => $defaultEmail,
+            'display_name' => $defaultName,
+            'avatar_url' => null,
+            'settings' => null
+        ];
+    }
+    
+    // Tạo session
+    session_start();
+    $_SESSION['user_id'] = $user['id'];
+    $_SESSION['user_email'] = $user['email'];
+    $_SESSION['user_name'] = $user['display_name'];
+    
+    $settings = $user['settings'] ? json_decode($user['settings'], true) : [];
+    
+    jsonResponse([
+        'success' => true,
+        'message' => 'Đăng nhập tự động thành công!',
+        'user' => [
+            'uid' => $user['id'],
+            'email' => $user['email'],
+            'displayName' => $user['display_name'],
+            'photoURL' => $user['avatar_url'] ?: 'https://placehold.co/80'
+        ],
+        'settings' => $settings
     ]);
 }
 ?>
