@@ -1,0 +1,229 @@
+.composer-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+    align-items: center;
+    flex-shrink: 0;
+}
+
+.composer-toolbar input {
+    flex-grow: 1;
+    padding: .8rem;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    font-size: 1rem;
+    background-color: var(--card-background);
+    color: var(--text-color-primary);
+}
+
+.composer-toolbar .btn-submit {
+    margin-left: auto;
+}
+
+.composer-main-container {
+    display: flex;
+    gap: 1.5rem;
+    flex-grow: 1;
+    overflow: hidden;
+}
+
+.outline-list-column {
+    flex: 0 0 300px;
+    background-color: var(--card-background);
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, .08);
+    overflow-y: auto;
+    padding: 1rem;
+    border: 1px solid var(--border-color);
+}
+
+.outline-list-item {
+    padding: 12px 15px;
+    border-radius: 8px;
+    cursor: pointer;
+    border: 1px solid #e5e7eb;
+    margin-bottom: 8px;
+    transition: all 0.2s ease;
+    position: relative;
+    word-break: break-word;
+    background: white;
+    color: #374151;
+    font-size: 0.9rem;
+}
+
+.outline-list-item:hover {
+    background: #f3f4f6;
+    border-color: #d1d5db;
+}
+
+.outline-list-item.active {
+    background: #eef2ff;
+    color: #3730a3;
+    font-weight: 600;
+    border-color: #a5b4fc;
+}
+
+.outline-list-item .delete-outline-btn,
+.outline-list-item .btn-delete-draft {
+    position: absolute;
+    top: 50%;
+    right: 8px;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    color: #9ca3af;
+    font-size: 1.1rem;
+    cursor: pointer;
+    opacity: 0;
+    transition: opacity 0.2s;
+    padding: 5px;
+}
+
+.outline-list-item:hover .delete-outline-btn,
+.outline-list-item:hover .btn-delete-draft {
+    opacity: 1;
+}
+
+.outline-list-item:hover .delete-outline-btn:hover,
+.outline-list-item:hover .btn-delete-draft:hover {
+    color: #ef4444;
+}
+
+.outline-list-item.active .delete-outline-btn,
+.outline-list-item.active .btn-delete-draft {
+    color: #6366f1;
+}
+
+.outline-editor-column {
+    flex-grow: 1;
+    background-color: var(--card-background);
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, .08);
+    overflow-y: auto;
+    padding: 2rem;
+    border: 1px solid var(--border-color);
+}
+
+#outline-editor-welcome {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100%;
+    color: var(--text-color-secondary);
+    font-size: 1.2rem;
+    text-align: center;
+}
+
+.outline-editor-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+    border-bottom: 2px solid var(--primary-orange);
+    padding-bottom: 1rem;
+}
+
+.outline-editor-header h2 {
+    color: var(--primary-blue);
+    margin: 0;
+}
+
+#outline-tree-container {
+    list-style: none;
+    padding-left: 0;
+}
+
+.outline-node {
+    margin-bottom: 0.5rem;
+}
+
+.outline-node-content {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem;
+    border-radius: 8px;
+    background-color: var(--light-gray);
+    transition: background-color 0.2s;
+}
+
+.outline-node-content:hover {
+    background-color: var(--medium-gray);
+}
+
+.node-title {
+    flex-grow: 1;
+    font-weight: 500;
+}
+
+.node-title .node-prefix {
+    font-weight: bold;
+    margin-right: 0.5rem;
+    color: var(--primary-blue);
+}
+
+.node-status-badge {
+    font-size: 0.75rem;
+    font-weight: 700;
+    padding: .2rem .5rem;
+    border-radius: 10px;
+    white-space: nowrap;
+    color: var(--white);
+}
+
+.node-actions button {
+    background: none;
+    border: 1px solid var(--border-color);
+    border-radius: 50%;
+    width: 30px;
+    height: 30px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: all 0.2s;
+    font-size: 1rem;
+}
+
+.node-actions button:hover {
+    background-color: var(--dark-gray);
+    color: var(--white);
+}
+
+.outline-node-children {
+    list-style: none;
+    padding-left: 2.5rem;
+    margin-top: 0.5rem;
+    border-left: 2px solid var(--border-color);
+}
+
+#outline-node-panel-body .form-group select {
+    width: 100%;
+}
+
+.attached-docs-list {
+    list-style: none;
+    padding: 0;
+    margin-top: 0.5rem;
+}
+
+.attached-doc-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: var(--light-gray);
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    margin-bottom: 0.5rem;
+}
+
+.attached-doc-item .doc-info {
+    font-size: 0.9rem;
+}
+
+.attached-doc-item button {
+    background: none;
+    border: none;
+    color: var(--danger-color);
+    cursor: pointer;
+    font-size: 1.2rem;
+}

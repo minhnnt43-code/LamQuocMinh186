@@ -1,0 +1,367 @@
+/* ============================================================
+   FILE: css/pages/lifeos-temporal.css
+   Mục đích: Styling cho LifeOS Phase 9 - Trí tuệ Thời gian
+   ============================================================ */
+
+/* ===== GRID LAYOUT ===== */
+.temporal-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 20px;
+    padding: 20px;
+    max-width: 1600px;
+    margin: 0 auto;
+}
+
+/* ===== CARDS BASE ===== */
+.temporal-card {
+    background: white;
+    border-radius: 16px;
+    padding: 20px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    transition: transform 0.3s, box-shadow 0.3s;
+}
+
+.temporal-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+}
+
+.temporal-card h3 {
+    margin: 0 0 15px;
+    font-size: 1.1rem;
+    color: #1a1a2e;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+/* ===== URGENCY CARD ===== */
+.urgency-card {
+    border-left: 4px solid #ef4444;
+}
+
+.urgency-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.urgency-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px;
+    background: #f8f9fa;
+    border-radius: 8px;
+}
+
+.urgency-item.critical {
+    background: #fef2f2;
+    border-left: 3px solid #ef4444;
+}
+
+.urgency-item.urgent {
+    background: #fffbeb;
+    border-left: 3px solid #f59e0b;
+}
+
+.urgency-item.moderate {
+    background: #eff6ff;
+    border-left: 3px solid #3b82f6;
+}
+
+.urgency-title {
+    flex: 1;
+    font-size: 0.9rem;
+    color: #333;
+}
+
+.urgency-bar {
+    width: 80px;
+    height: 8px;
+    background: #e5e7eb;
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.urgency-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #f59e0b, #ef4444);
+    border-radius: 10px;
+    transition: width 0.5s;
+}
+
+.urgency-score {
+    font-weight: 700;
+    font-size: 0.85rem;
+    color: #ef4444;
+    min-width: 35px;
+    text-align: right;
+}
+
+/* ===== PEAK HOURS CARD ===== */
+.peak-card {
+    border-left: 4px solid #10b981;
+    background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);
+}
+
+.peak-info {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.peak-day,
+.peak-hours {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.peak-label {
+    font-size: 0.9rem;
+    color: #555;
+}
+
+.peak-value {
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: #10b981;
+}
+
+.peak-times {
+    display: flex;
+    gap: 8px;
+}
+
+.time-badge {
+    background: #10b981;
+    color: white;
+    padding: 5px 12px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+
+/* ===== RISK CARD ===== */
+.risk-card {
+    border-left: 4px solid #f59e0b;
+}
+
+.risk-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.risk-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 10px;
+    border-radius: 8px;
+    background: #f8f9fa;
+}
+
+.risk-item.critical {
+    background: #fef2f2;
+}
+
+.risk-item.high {
+    background: #fffbeb;
+}
+
+.risk-item.medium {
+    background: #eff6ff;
+}
+
+.risk-title {
+    font-size: 0.9rem;
+    color: #333;
+}
+
+.risk-prob {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #f59e0b;
+}
+
+/* ===== DEBT CARD ===== */
+.debt-card {
+    border-left: 4px solid #8b5cf6;
+    text-align: center;
+}
+
+.debt-summary {
+    padding: 20px;
+}
+
+.debt-amount {
+    display: flex;
+    align-items: baseline;
+    justify-content: center;
+    gap: 5px;
+}
+
+.debt-value {
+    font-size: 3rem;
+    font-weight: 800;
+    color: #8b5cf6;
+}
+
+.debt-unit {
+    font-size: 1.2rem;
+    color: #666;
+}
+
+.debt-plan {
+    margin-top: 15px;
+    font-size: 0.9rem;
+    color: #555;
+}
+
+/* ===== ANOMALY CARD ===== */
+.anomaly-card {
+    border-left: 4px solid #06b6d4;
+}
+
+.anomaly-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.anomaly-item {
+    padding: 12px;
+    border-radius: 8px;
+    background: #f8f9fa;
+}
+
+.anomaly-item.critical {
+    background: #fef2f2;
+    border-left: 3px solid #ef4444;
+}
+
+.anomaly-item.warning {
+    background: #fffbeb;
+    border-left: 3px solid #f59e0b;
+}
+
+.anomaly-item.info {
+    background: #eff6ff;
+    border-left: 3px solid #3b82f6;
+}
+
+.anomaly-msg {
+    display: block;
+    font-size: 0.9rem;
+    color: #333;
+    margin-bottom: 5px;
+}
+
+.anomaly-tip {
+    display: block;
+    font-size: 0.8rem;
+    color: #666;
+    font-style: italic;
+}
+
+/* ===== CAPSULE CARD ===== */
+.capsule-card {
+    border-left: 4px solid #ec4899;
+    background: linear-gradient(135deg, #fdf2f8 0%, #fce7f3 100%);
+}
+
+.btn-capsule {
+    width: 100%;
+    padding: 12px;
+    background: linear-gradient(135deg, #ec4899 0%, #be185d 100%);
+    color: white;
+    border: none;
+    border-radius: 10px;
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+    margin-bottom: 15px;
+    transition: transform 0.3s;
+}
+
+.btn-capsule:hover {
+    transform: scale(1.02);
+}
+
+.capsule-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.capsule-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px;
+    background: white;
+    border-radius: 8px;
+}
+
+.btn-open-capsule {
+    padding: 6px 15px;
+    background: #ec4899;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.85rem;
+}
+
+.no-capsules,
+.no-data {
+    color: #888;
+    font-size: 0.9rem;
+    font-style: italic;
+    text-align: center;
+    padding: 15px;
+}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 768px) {
+    .temporal-grid {
+        grid-template-columns: 1fr;
+        padding: 10px;
+    }
+}
+
+/* ===== DARK MODE ===== */
+body.dark-mode .temporal-card {
+    background: #1e1e2e;
+}
+
+body.dark-mode .temporal-card h3 {
+    color: #e2e8f0;
+}
+
+body.dark-mode .urgency-item,
+body.dark-mode .risk-item,
+body.dark-mode .anomaly-item {
+    background: #2d3748;
+}
+
+body.dark-mode .urgency-title,
+body.dark-mode .risk-title,
+body.dark-mode .anomaly-msg {
+    color: #e2e8f0;
+}
+
+body.dark-mode .peak-card {
+    background: linear-gradient(135deg, #1e1e2e 0%, #064e3b 100%);
+}
+
+body.dark-mode .capsule-card {
+    background: linear-gradient(135deg, #1e1e2e 0%, #831843 100%);
+}
+
+body.dark-mode .capsule-item {
+    background: #2d3748;
+    color: #e2e8f0;
+}

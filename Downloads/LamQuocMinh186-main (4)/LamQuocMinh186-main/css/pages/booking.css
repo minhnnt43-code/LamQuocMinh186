@@ -1,0 +1,353 @@
+/* ============================================================
+   FILE: css/pages/booking.css
+   Booking & Notifications Styling
+   ============================================================ */
+
+/* ==================== BOOKING FORM ==================== */
+.booking-form {
+    background: var(--bg-card);
+    border-radius: 16px;
+    padding: 30px;
+    max-width: 500px;
+    margin: 0 auto;
+}
+
+.booking-form h2 {
+    text-align: center;
+    margin-bottom: 25px;
+    color: var(--primary-color);
+}
+
+.slot-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+    gap: 10px;
+    max-height: 200px;
+    overflow-y: auto;
+    padding: 10px 0;
+}
+
+.slot-btn {
+    background: var(--bg-secondary);
+    border: 2px solid var(--border-color);
+    padding: 10px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: all 0.2s;
+}
+
+.slot-btn:hover {
+    border-color: var(--primary-color);
+}
+
+.slot-btn.selected {
+    background: var(--primary-color);
+    border-color: var(--primary-color);
+    color: white;
+}
+
+.btn-book {
+    width: 100%;
+    background: linear-gradient(135deg, #27ae60, #2ecc71);
+    color: white;
+    border: none;
+    padding: 15px;
+    border-radius: 10px;
+    font-weight: 700;
+    font-size: 1.1rem;
+    cursor: pointer;
+    transition: all 0.3s;
+    margin-top: 20px;
+}
+
+.btn-book:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(39, 174, 96, 0.3);
+}
+
+/* ==================== BOOKING SETTINGS ==================== */
+.booking-settings {
+    background: var(--bg-card);
+    border-radius: 12px;
+    padding: 25px;
+}
+
+.booking-settings h3 {
+    margin-bottom: 20px;
+    color: var(--primary-color);
+}
+
+.setting-row {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 15px;
+    flex-wrap: wrap;
+}
+
+.setting-row label {
+    min-width: 120px;
+    font-weight: 600;
+}
+
+.setting-row input[type="number"] {
+    width: 60px;
+    padding: 8px;
+    border: 2px solid var(--border-color);
+    border-radius: 6px;
+}
+
+.day-checkboxes {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.day-checkbox {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    padding: 8px 12px;
+    background: var(--bg-secondary);
+    border-radius: 8px;
+    cursor: pointer;
+}
+
+.day-checkbox input:checked+span {
+    color: var(--primary-color);
+    font-weight: 600;
+}
+
+.btn-save-settings {
+    background: var(--primary-color);
+    color: white;
+    border: none;
+    padding: 12px 25px;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    margin-top: 20px;
+}
+
+/* ==================== NOTIFICATION CENTER ==================== */
+.notification-center {
+    background: var(--bg-card);
+    border-radius: 12px;
+    overflow: hidden;
+    max-height: 500px;
+    display: flex;
+    flex-direction: column;
+}
+
+.noti-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 20px;
+    border-bottom: 2px solid var(--border-color);
+}
+
+.noti-header h3 {
+    margin: 0;
+}
+
+.noti-actions {
+    display: flex;
+    gap: 10px;
+}
+
+.noti-actions button {
+    background: none;
+    border: none;
+    color: var(--text-secondary);
+    cursor: pointer;
+    font-size: 0.85rem;
+}
+
+.noti-actions button:hover {
+    color: var(--primary-color);
+}
+
+.noti-filters {
+    display: flex;
+    gap: 8px;
+    padding: 10px 15px;
+    overflow-x: auto;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.filter-btn {
+    background: var(--bg-secondary);
+    border: none;
+    padding: 6px 12px;
+    border-radius: 15px;
+    font-size: 0.8rem;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all 0.2s;
+}
+
+.filter-btn.active {
+    background: var(--primary-color);
+    color: white;
+}
+
+.noti-list {
+    flex: 1;
+    overflow-y: auto;
+    padding: 10px;
+}
+
+.noti-group {
+    margin-bottom: 15px;
+}
+
+.noti-date {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+    padding: 5px 10px;
+    margin-bottom: 8px;
+}
+
+.noti-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 12px;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.2s;
+    margin-bottom: 8px;
+    position: relative;
+}
+
+.noti-item:hover {
+    background: var(--bg-secondary);
+}
+
+.noti-item.unread {
+    background: var(--primary-color)08;
+    border-left: 3px solid var(--primary-color);
+}
+
+.noti-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1rem;
+    flex-shrink: 0;
+}
+
+.noti-content {
+    flex: 1;
+    overflow: hidden;
+}
+
+.noti-title {
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 3px;
+}
+
+.noti-message {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.noti-time {
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    margin-top: 5px;
+}
+
+.btn-delete-noti {
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    font-size: 1.2rem;
+    color: var(--text-secondary);
+    cursor: pointer;
+    opacity: 0;
+    transition: opacity 0.2s;
+}
+
+.noti-item:hover .btn-delete-noti {
+    opacity: 1;
+}
+
+.no-noti {
+    text-align: center;
+    color: var(--text-secondary);
+    padding: 30px;
+}
+
+/* ==================== BADGE ==================== */
+.noti-badge {
+    background: #e74c3c;
+    color: white;
+    font-size: 0.7rem;
+    font-weight: 700;
+    padding: 2px 6px;
+    border-radius: 10px;
+    min-width: 18px;
+    text-align: center;
+}
+
+/* ==================== RESPONSIVE ==================== */
+@media (max-width: 768px) {
+    .booking-form {
+        padding: 20px;
+    }
+
+    .slot-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+
+    .setting-row {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .noti-filters {
+        justify-content: flex-start;
+    }
+}
+
+/* ==================== DARK MODE ==================== */
+[data-theme="dark"] .booking-form,
+[data-theme="dark"] .booking-settings,
+[data-theme="dark"] .notification-center {
+    background: #2a2a2a;
+}
+
+[data-theme="dark"] .slot-btn {
+    background: #1a1a1a;
+    border-color: #444;
+}
+
+[data-theme="dark"] .slot-btn.selected {
+    background: var(--primary-color);
+}
+
+[data-theme="dark"] .day-checkbox {
+    background: #1a1a1a;
+}
+
+[data-theme="dark"] .filter-btn {
+    background: #1a1a1a;
+}
+
+[data-theme="dark"] .noti-item:hover {
+    background: #333;
+}

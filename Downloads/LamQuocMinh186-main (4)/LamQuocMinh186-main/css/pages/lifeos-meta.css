@@ -1,0 +1,353 @@
+/* ============================================================
+   FILE: css/pages/lifeos-meta.css
+   Mục đích: Styling cho LifeOS Phase 12 - Dashboard Điểm Cuộc sống
+   ============================================================ */
+
+/* ===== GRID LAYOUT ===== */
+.lifeos-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+    gap: 20px;
+    padding: 20px;
+    max-width: 1600px;
+    margin: 0 auto;
+}
+
+/* ===== CARDS ===== */
+.lifeos-card {
+    background: white;
+    border-radius: 20px;
+    padding: 25px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08);
+    transition: transform 0.3s, box-shadow 0.3s;
+}
+
+.lifeos-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.12);
+}
+
+.lifeos-card h3 {
+    margin: 0 0 20px;
+    font-size: 1.2rem;
+    color: #1a1a2e;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+/* ===== MAIN SCORE CARD ===== */
+.lifeos-main-score {
+    text-align: center;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    grid-column: span 1;
+}
+
+.score-circle {
+    width: 180px;
+    height: 180px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.15);
+    backdrop-filter: blur(10px);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 20px;
+    border: 4px solid rgba(255, 255, 255, 0.3);
+    box-shadow: 0 0 40px rgba(255, 255, 255, 0.2);
+}
+
+.score-value {
+    font-size: 4rem;
+    font-weight: 800;
+    line-height: 1;
+}
+
+.score-label {
+    font-size: 1rem;
+    opacity: 0.9;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+}
+
+.score-trend {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    font-size: 1.1rem;
+}
+
+.trend-icon {
+    font-size: 1.5rem;
+}
+
+.lifeos-main-score h3 {
+    color: white;
+}
+
+/* ===== QUICK STATS ===== */
+.lifeos-quick-stats {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.quick-stat-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.quick-stat-item .stat-label {
+    width: 120px;
+    font-size: 0.9rem;
+    color: #555;
+}
+
+.quick-stat-item .stat-bar {
+    flex: 1;
+    height: 12px;
+    background: #f0f0f0;
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.quick-stat-item .stat-fill {
+    height: 100%;
+    border-radius: 10px;
+    transition: width 0.5s ease;
+}
+
+.quick-stat-item .stat-value {
+    width: 50px;
+    text-align: right;
+    font-weight: 600;
+    color: #333;
+}
+
+/* ===== DIMENSIONS ===== */
+.dimension-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 15px;
+}
+
+.dimension-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px;
+    background: #f8f9fa;
+    border-radius: 12px;
+    border-left: 4px solid var(--dim-color, #667eea);
+}
+
+.dimension-item .dim-icon {
+    font-size: 1.5rem;
+}
+
+.dimension-item .dim-name {
+    font-size: 0.85rem;
+    color: #555;
+    min-width: 60px;
+}
+
+.dimension-item .dim-bar {
+    flex: 1;
+    height: 8px;
+    background: #e9ecef;
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.dimension-item .dim-fill {
+    height: 100%;
+    background: var(--dim-color, #667eea);
+    border-radius: 10px;
+    transition: width 0.5s ease;
+}
+
+.dimension-item .dim-score {
+    font-weight: 700;
+    color: var(--dim-color, #667eea);
+    min-width: 30px;
+    text-align: right;
+}
+
+/* ===== AI COACH ===== */
+.lifeos-ai-coach {
+    background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+    color: white;
+}
+
+.lifeos-ai-coach h3 {
+    color: white;
+}
+
+.ai-coach-response {
+    background: rgba(255, 255, 255, 0.15);
+    padding: 20px;
+    border-radius: 12px;
+    margin-bottom: 15px;
+    min-height: 100px;
+    backdrop-filter: blur(10px);
+    line-height: 1.6;
+}
+
+.ai-coach-input {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 15px;
+}
+
+.ai-coach-input input {
+    flex: 1;
+    padding: 12px 15px;
+    border: none;
+    border-radius: 10px;
+    font-size: 0.95rem;
+}
+
+.ai-coach-input button {
+    padding: 12px 20px;
+    background: rgba(255, 255, 255, 0.2);
+    border: none;
+    border-radius: 10px;
+    color: white;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.3s;
+}
+
+.ai-coach-input button:hover {
+    background: rgba(255, 255, 255, 0.3);
+}
+
+.btn-ai-advice {
+    width: 100%;
+    padding: 15px;
+    background: white;
+    color: #11998e;
+    border: none;
+    border-radius: 12px;
+    font-size: 1rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: transform 0.3s, box-shadow 0.3s;
+}
+
+.btn-ai-advice:hover {
+    transform: scale(1.02);
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.2);
+}
+
+/* ===== MILESTONES ===== */
+.milestones-list {
+    max-height: 200px;
+    overflow-y: auto;
+    margin-bottom: 15px;
+}
+
+.milestone-item {
+    display: flex;
+    gap: 15px;
+    padding: 12px;
+    border-bottom: 1px solid #eee;
+}
+
+.milestone-item:last-child {
+    border-bottom: none;
+}
+
+.milestone-date {
+    font-size: 0.8rem;
+    color: #888;
+    min-width: 80px;
+}
+
+.milestone-title {
+    font-weight: 500;
+    color: #333;
+}
+
+.no-milestones {
+    color: #888;
+    font-style: italic;
+    text-align: center;
+    padding: 20px;
+}
+
+.btn-add-milestone {
+    width: 100%;
+    padding: 12px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    border-radius: 10px;
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: transform 0.3s;
+}
+
+.btn-add-milestone:hover {
+    transform: scale(1.02);
+}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 768px) {
+    .lifeos-grid {
+        grid-template-columns: 1fr;
+        padding: 10px;
+    }
+
+    .dimension-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .score-circle {
+        width: 150px;
+        height: 150px;
+    }
+
+    .score-value {
+        font-size: 3rem;
+    }
+}
+
+/* ===== DARK MODE ===== */
+body.dark-mode .lifeos-card {
+    background: #1e1e2e;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+}
+
+body.dark-mode .lifeos-card h3 {
+    color: #e2e8f0;
+}
+
+body.dark-mode .quick-stat-item .stat-label {
+    color: #a0aec0;
+}
+
+body.dark-mode .quick-stat-item .stat-bar {
+    background: #2d3748;
+}
+
+body.dark-mode .dimension-item {
+    background: #2d3748;
+}
+
+body.dark-mode .dimension-item .dim-name {
+    color: #a0aec0;
+}
+
+body.dark-mode .milestone-item {
+    border-color: #333;
+}
+
+body.dark-mode .milestone-title {
+    color: #e2e8f0;
+}

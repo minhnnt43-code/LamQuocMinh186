@@ -1,0 +1,346 @@
+/* === CALENDAR STYLES === */
+#calendar-section-container {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    background: var(--glass-bg);
+    border-radius: 16px;
+    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    overflow: hidden;
+}
+
+/* --- Header --- */
+.calendar-header {
+    padding: 1.5rem;
+    background: rgba(255, 255, 255, 0.1);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.calendar-actions,
+.calendar-navigation {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.calendar-header h2 {
+    font-size: 0.95rem;
+    margin: 0;
+    background: var(--aura-gradient);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    padding: 0.6rem 1.2rem;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    color: white !important;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    font-weight: 600;
+    white-space: nowrap;
+    backdrop-filter: blur(5px);
+}
+
+.calendar-header button {
+    background: rgba(255, 255, 255, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    padding: 0.6rem 1.2rem;
+    font-size: 0.95rem;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    color: var(--text-color-primary);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    font-weight: 600;
+    white-space: nowrap;
+    backdrop-filter: blur(5px);
+}
+
+.calendar-header button:hover {
+    background: rgba(255, 255, 255, 0.4);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+#cal-prev-btn,
+#cal-next-btn {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    padding: 0;
+    font-size: 1.2rem;
+}
+
+/* Premium 'Dự án' Style for specific buttons */
+.btn-google-sync {
+    background: linear-gradient(135deg, #00C6FF 0%, #0072FF 100%) !important;
+    border: none !important;
+    color: white !important;
+    border-radius: 50px !important;
+    box-shadow: 0 4px 15px rgba(0, 114, 255, 0.3);
+    padding: 0.6rem 1.5rem !important;
+    font-weight: 700 !important;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    font-size: 0.85rem !important;
+}
+
+.btn-google-sync:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0, 114, 255, 0.4);
+    filter: brightness(1.1);
+}
+
+#cal-today-btn {
+    background: rgba(255, 255, 255, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+/* --- Grid Container --- */
+.calendar-grid-container {
+    flex-grow: 1;
+    overflow: auto;
+    position: relative;
+    background: rgba(255, 255, 255, 0.02);
+}
+
+.calendar-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    table-layout: fixed;
+}
+
+.calendar-table th,
+.calendar-table td {
+    border-right: 1px solid rgba(0, 0, 0, 0.05);
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+/* --- Table Header (Days) --- */
+.calendar-table thead th {
+    padding: 1rem;
+    text-align: center;
+    background: rgba(255, 255, 255, 0.8);
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    backdrop-filter: blur(10px);
+    border-bottom: 2px solid rgba(0, 0, 0, 0.05);
+}
+
+.day-header-date {
+    font-size: 1.8rem;
+    font-weight: 800;
+    color: var(--text-color-primary);
+    display: block;
+    margin-bottom: 4px;
+    line-height: 1;
+}
+
+.day-header-name {
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: var(--aura-color-2);
+    font-weight: 700;
+}
+
+/* --- Time Column --- */
+.calendar-table .time-col {
+    width: 80px;
+    text-align: center;
+    font-size: 0.85rem;
+    color: var(--text-color-secondary);
+    background: rgba(255, 255, 255, 0.6);
+    position: sticky;
+    left: 0;
+    z-index: 5;
+    vertical-align: middle;
+    border-right: 1px solid rgba(0, 0, 0, 0.05);
+    backdrop-filter: blur(5px);
+    font-weight: 500;
+}
+
+/* --- Cells --- */
+.calendar-table tbody td {
+    height: 70px;
+    /* Taller cells */
+    position: relative;
+    transition: background-color 0.2s;
+}
+
+.calendar-table tbody td:not(.time-col):hover {
+    background-color: rgba(0, 91, 150, 0.03);
+}
+
+/* --- Events --- */
+.calendar-event,
+.task-event {
+    position: absolute;
+    left: 4px;
+    right: 4px;
+    padding: 6px 10px;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    cursor: pointer;
+    z-index: 2;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur(4px);
+    font-weight: 500;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.calendar-event:hover,
+.task-event:hover {
+    transform: translateY(-2px) scale(1.02);
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.15);
+    z-index: 10;
+}
+
+.calendar-event {
+    background: linear-gradient(135deg, rgba(59, 130, 246, 0.9), rgba(37, 99, 235, 0.9));
+    color: white;
+}
+
+.task-event {
+    background: linear-gradient(135deg, rgba(245, 158, 11, 0.9), rgba(217, 119, 6, 0.9));
+    color: white;
+}
+
+/* --- Current Time Indicator --- */
+.current-time-indicator {
+    position: absolute;
+    width: calc(100% - 80px);
+    left: 80px;
+    height: 2px;
+    background: var(--aura-gradient);
+    z-index: 3;
+    box-shadow: 0 0 10px rgba(0, 91, 150, 0.5);
+    pointer-events: none;
+}
+
+.current-time-indicator::before {
+    content: '';
+    position: absolute;
+    left: -6px;
+    top: -5px;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: var(--aura-color-2);
+    box-shadow: 0 0 10px rgba(225, 0, 255, 0.8);
+}
+
+/* --- Month View --- */
+#month-calendar-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 1px;
+    background-color: rgba(0, 0, 0, 0.05);
+    /* Gap color */
+    border: none;
+    height: 100%;
+    overflow: auto;
+}
+
+.month-day-cell {
+    background-color: rgba(255, 255, 255, 0.8);
+    min-height: 120px;
+    padding: 10px;
+    font-size: 0.9rem;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    transition: background-color 0.2s;
+}
+
+.month-day-cell:hover {
+    background-color: white;
+}
+
+.month-day-cell.inactive-month {
+    background-color: rgba(240, 240, 240, 0.6);
+    color: var(--text-color-secondary);
+}
+
+.month-day-cell .date-number {
+    font-weight: 700;
+    margin-bottom: 8px;
+    color: var(--text-color-primary);
+}
+
+.month-day-cell.today .date-number {
+    background: var(--aura-gradient);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    font-weight: 800;
+}
+
+.month-day-cell .month-event,
+.month-day-cell .month-task {
+    font-size: 0.75rem;
+    padding: 2px 6px;
+    border-radius: 4px;
+    margin-bottom: 2px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    color: white;
+    cursor: pointer;
+}
+
+.month-day-cell .month-event {
+    background: linear-gradient(135deg, rgba(59, 130, 246, 0.8), rgba(37, 99, 235, 0.8));
+}
+
+.month-day-cell .month-task {
+    background: linear-gradient(135deg, rgba(245, 158, 11, 0.8), rgba(217, 119, 6, 0.8));
+}
+
+/* Dark Mode Overrides */
+body.dark-mode #calendar-section-container {
+    background: rgba(20, 20, 30, 0.6);
+    border-color: rgba(255, 255, 255, 0.1);
+}
+
+body.dark-mode .calendar-header {
+    background: rgba(255, 255, 255, 0.05);
+    border-bottom-color: rgba(255, 255, 255, 0.05);
+}
+
+body.dark-mode .calendar-table thead th,
+body.dark-mode .calendar-table .time-col {
+    background: rgba(30, 30, 40, 0.8);
+    color: var(--text-color-primary);
+}
+
+body.dark-mode .calendar-table tbody td:not(.time-col):hover {
+    background-color: rgba(255, 255, 255, 0.05);
+}
+
+body.dark-mode .month-day-cell {
+    background-color: rgba(30, 30, 40, 0.8);
+}
+
+body.dark-mode .month-day-cell:hover {
+    background-color: rgba(40, 40, 50, 0.9);
+}
+
+body.dark-mode .month-day-cell.inactive-month {
+    background-color: rgba(20, 20, 20, 0.6);
+}
