@@ -1,10 +1,9 @@
 // --- FILE: js/main.js ---
-// [ĐÃ CHUYỂN ĐỔI] Từ Firebase sang PHP + MySQL Backend
 
 import {
     loginWithGoogle, logoutUser, subscribeToAuthChanges,
-    getUserData, saveUserData, auth, loginWithEmail, registerWithEmail, checkAuthStatus
-} from './api.js'; // [ĐÃ ĐỔI] Dùng PHP API thay vì Firebase
+    getUserData, saveUserData, auth
+} from './firebase.js';
 
 import {
     toggleLoading, showNotification
@@ -12,9 +11,7 @@ import {
 
 import { initWorkModule } from './work.js';
 import { initStudyModule } from './study.js';
-// [DISABLED - PHP MODE] Admin module cần Firebase Firestore trực tiếp
-// import { initAdminModule } from './admin.js';
-const initAdminModule = async () => console.log('⚠️ Admin module disabled (PHP mode)');
+import { initAdminModule } from './admin.js';
 
 // [MỚI] Import các module đã tách
 import { setupNavigation } from './navigation.js';
@@ -32,8 +29,8 @@ import { initAIAnalytics } from './ai-analytics.js';
 import { initAIChatbot } from './ai-chatbot.js';
 
 import { initEmailAuth } from './auth-email.js';
-// [DISABLED - PHP MODE] import { fetchGlobalKeys } from './ai-config.js';
-// [DISABLED - PHP MODE] import './firebase-sync.js';
+import { fetchGlobalKeys } from './ai-config.js'; // [MỚI] Auto-load shared API keys từ Firebase
+import './firebase-sync.js'; // [MỚI] Auto-sync localStorage với Firebase
 // [DISABLED] import './laso.js'; // Lá Số - Tử Vi / Bát Tự / Thần Số Học
 
 // [MỚI] Phase D, H, J modules
@@ -191,9 +188,9 @@ const loadAndSyncUserData = async (user) => {
         }
     }
 
-    // [DISABLED - PHP MODE] Load shared API keys đã tắt vì không dùng Firebase
-    // await fetchGlobalKeys();
-    console.log('✅ PHP Mode - Không cần load Firebase global keys');
+    // Load shared API keys
+    await fetchGlobalKeys();
+    console.log('✅ Đã load shared API keys từ Firebase');
 
     // Đồng bộ thông tin cơ bản
     if (!userData.personalInfo) userData.personalInfo = {};

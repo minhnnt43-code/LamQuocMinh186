@@ -1,16 +1,11 @@
 // ============================================================
 // FILE: js/file_upload.js
-// Mục đích: Drag & Drop file upload - [PHP MODE: DISABLED]
+// Mục đích: Drag & Drop file upload với Firebase Storage
 // ============================================================
 
-// [DISABLED - PHP MODE] Firebase Storage không dùng được
-// import { ref, uploadBytesResumable, getDownloadURL, deleteObject } from 'https://www.gstatic.com/firebasejs/10.7.0/firebase-storage.js';
-// import { storage, auth } from './firebase.js';
-
-import { auth } from './api.js';
+import { ref, uploadBytesResumable, getDownloadURL, deleteObject } from 'https://www.gstatic.com/firebasejs/10.7.0/firebase-storage.js';
+import { storage, auth } from './firebase.js';
 import { showNotification } from './common.js';
-
-console.warn('⚠️ File Upload: Firebase Storage disabled. Cần API PHP riêng để upload file.');
 
 /**
  * Setup Drop Zone cho upload files
@@ -103,23 +98,77 @@ export function setupDropZone(elementId, options = {}) {
 }
 
 /**
- * Upload một file - [PHP MODE: PLACEHOLDER]
+ * Upload một file lên Firebase Storage
  */
 async function uploadFile(file, callbacks) {
     const { onStart, onProgress, onComplete, onError } = callbacks;
 
-    // PHP MODE: File upload disabled - show error
-    showNotification('⚠️ Tính năng upload file chưa được hỗ trợ với PHP backend', 'error');
-    onError?.(new Error('File upload chưa được implement cho PHP backend'));
-    return null;
+    const user = auth.currentUser;
+    if (!user) {
+        onError?.(new Error('Chưa đăng nhập'));
+        return null;
+    }
+
+    onStart?.();
+
+    try {
+        // Tạo unique filename
+        const timestamp = Date.now();
+        const safeName = file.name.replace(/[^a-zA-Z0-9.-]/g, '_');
+        const filePath = `users/${user.uid}/uploads/${timestamp}_${safeName}`;
+
+        const storageRef = ref(storage, filePath);
+        const uploadTask = uploadBytesResumable(storageRef, file);
+
+        return new Promise((resolve, reject) => {
+            uploadTask.on('state_changed',
+                (snapshot) => {
+                    const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+                    onProgress?.(progress);
+                },
+                (error) => {
+                    console.error('Upload error:', error);
+                    onError?.(error);
+                    reject(error);
+                },
+                async () => {
+                    const url = await getDownloadURL(uploadTask.snapshot.ref);
+                    const result = {
+                        name: file.name,
+                        url: url,
+                        path: filePath,
+                        size: file.size,
+                        type: file.type,
+                        uploadedAt: new Date().toISOString()
+                    };
+
+                    onComplete?.(result);
+                    showNotification(`✅ Đã upload "${file.name}"`);
+                    resolve(result);
+                }
+            );
+        });
+    } catch (error) {
+        console.error('Upload error:', error);
+        onError?.(error);
+        return null;
+    }
 }
 
 /**
- * Xóa file - [PHP MODE: PLACEHOLDER]
+ * Xóa file từ Storage
  */
 export async function deleteFile(filePath) {
-    showNotification('⚠️ Xóa file chưa được hỗ trợ với PHP backend', 'error');
-    return false;
+    try {
+        const fileRef = ref(storage, filePath);
+        await deleteObject(fileRef);
+        showNotification('🗑️ Đã xóa file');
+        return true;
+    } catch (error) {
+        console.error('Delete error:', error);
+        showNotification('Lỗi khi xóa file', 'error');
+        return false;
+    }
 }
 
 /**

@@ -3,7 +3,7 @@ import {
     loginWithEmail,
     saveUserData,
     getUserData
-} from './api.js'; // [ĐÃ ĐỔI] Dùng PHP API
+} from './firebase.js';
 
 import { showNotification } from './common.js';
 

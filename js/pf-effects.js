@@ -508,13 +508,10 @@
         initMasonryAlbum();
         initBubbleGuestbook();
         initStickerPicker();
-        initMusicWidget();
-        initWeatherWidget();
+        // Removed: MusicWidget, WeatherWidget, AIChatbot, SmartRecommendations as requested
         initVisitorCounter();
         initLoveBadge();
-        initAIChatbot();
         initAISummary();
-        initSmartRecommendations();
         console.log('✨ Portfolio Effects Ready!');
     }
 

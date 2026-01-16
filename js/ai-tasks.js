@@ -3,7 +3,7 @@
 
 import { aiService } from './ai-service.js';
 import { showNotification, generateID, toLocalISOString } from './common.js';
-import { saveUserData } from './api.js';
+import { saveUserData } from './firebase.js';
 
 let globalData = null;
 let currentUser = null;

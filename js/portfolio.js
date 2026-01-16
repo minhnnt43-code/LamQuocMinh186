@@ -1,21 +1,11 @@
 // --- FILE: js/portfolio.js ---
-// [PHP MODE] Portfolio vẫn dùng Firebase vì cần realtime sync
-// Trang portfolio public có thể giữ Firebase hoặc disable tạm
 
-// 1. IMPORT - DISABLED FOR PHP MODE
-// Portfolio cần Firebase Firestore - đánh dấu để xử lý sau
-console.warn('⚠️ Portfolio: Firebase disabled. Cần config riêng để hiển thị portfolio công khai.');
-
-const db = null;
-const doc = () => null;
-const getDoc = async () => ({ exists: () => false });
-const collection = () => null;
-const addDoc = async () => null;
-const getDocs = async () => ({ docs: [] });
-const query = () => null;
-const orderBy = () => null;
-const limit = () => null;
-const onSnapshot = () => { };
+// 1. IMPORT TỪ MODULE CHÍNH
+import { db } from './firebase.js';
+import {
+    doc, getDoc, collection, addDoc, getDocs,
+    query, orderBy, limit, onSnapshot
+} from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
 // 2. BIẾN TOÀN CỤC
 const urlParams = new URLSearchParams(window.location.search);
@@ -107,7 +97,9 @@ async function loadSubCollections() {
         const timelineSnap = await getDocs(timelineQ);
         publicData.timeline = timelineSnap.docs.map(doc => doc.data());
         renderTimeline(publicData.timeline);
-    } catch (e) { console.error(e); }
+    } catch (e) {
+        console.error('Firebase error:', e);
+    }
 }
 
 function renderHeader(data) {
@@ -120,15 +112,26 @@ function renderHeader(data) {
     const emailEl = document.getElementById('pf-email');
     if (emailEl) emailEl.textContent = info.email || "";
 
-    if (info.occupation) {
-        const sub = document.querySelector('.hero-subtitle');
-        if (sub) sub.textContent = `Xin chào, tôi là ${info.fullName}. Hiện đang là ${info.occupation}.`;
-    }
+    // Update avatar
     if (settings.customAvatarUrl) {
         const ava = document.getElementById('pf-avatar');
         if (ava) ava.src = settings.customAvatarUrl;
     }
 
+    // Update hero badges for new hero section v2
+    const badgesContainer = document.querySelector('.hero-badges');
+    if (badgesContainer) {
+        let badgesHTML = '';
+        if (info.school) {
+            badgesHTML += `<span class="hero-badge badge-school"><span class="badge-icon">🎓</span>${info.school}</span>`;
+        }
+        if (info.occupation) {
+            badgesHTML += `<span class="hero-badge badge-position"><span class="badge-icon">💼</span>${info.occupation}</span>`;
+        }
+        if (badgesHTML) badgesContainer.innerHTML = badgesHTML;
+    }
+
+    // Fallback for old hero section
     const chipsContainer = document.querySelector('.info-chips');
     if (chipsContainer) {
         let chipsHTML = '';
@@ -311,7 +314,7 @@ window.filterAchievements = (type) => {
     let filtered = (type === 'all') ? window.allAchievementsData : window.allAchievementsData.filter(a => a.category === type);
 
     if (filtered.length === 0) {
-        container.innerHTML = '<p style="text-align:center; padding:20px; color:#999">Chưa có dữ liệu.</p>';
+        container.innerHTML = '<div class="ach-empty"><div class="ach-empty-icon">🏆</div><p>Chưa có thành tích nào.</p></div>';
         return;
     }
 
@@ -323,49 +326,58 @@ window.filterAchievements = (type) => {
         return 'bronze';
     };
 
-    const tierColors = {
-        bronze: 'linear-gradient(135deg, #cd7f32, #8b4513)',
-        silver: 'linear-gradient(135deg, #c0c0c0, #808080)',
-        gold: 'linear-gradient(135deg, #ffd700, #ff8c00)'
-    };
     const tierIcons = { bronze: '🥉', silver: '🥈', gold: '🥇' };
+    const categoryLabels = {
+        academic: { label: 'Học tập', color: '#2196F3' },
+        social: { label: 'Hoạt động', color: '#4CAF50' },
+        award: { label: 'Khen thưởng', color: '#FF9800' }
+    };
 
-    // Stats counter
+    // Stats header
+    const goldCount = filtered.filter(a => getTier(a) === 'gold').length;
+    const silverCount = filtered.filter(a => getTier(a) === 'silver').length;
+    const bronzeCount = filtered.filter(a => getTier(a) === 'bronze').length;
+
     container.innerHTML = `
-        <div style="display:flex;justify-content:center;gap:30px;margin-bottom:25px;flex-wrap:wrap;">
-            <div style="text-align:center;"><div style="font-size:2rem;font-weight:900;color:var(--blue);">${filtered.length}</div><div style="font-size:0.8rem;color:#666;">Thành tích</div></div>
-            <div style="text-align:center;"><div style="font-size:2rem;font-weight:900;color:#ffd700;">${filtered.filter(a => getTier(a) === 'gold').length}</div><div style="font-size:0.8rem;color:#666;">🥇 Vàng</div></div>
+        <div class="ach-stats">
+            <div class="ach-stat-item">
+                <span class="ach-stat-number">${filtered.length}</span>
+                <span class="ach-stat-label">Thành tích</span>
+            </div>
+            <div class="ach-stat-item gold">
+                <span class="ach-stat-number">${goldCount}</span>
+                <span class="ach-stat-label">🥇 Vàng</span>
+            </div>
+            <div class="ach-stat-item silver">
+                <span class="ach-stat-number">${silverCount}</span>
+                <span class="ach-stat-label">🥈 Bạc</span>
+            </div>
+            <div class="ach-stat-item bronze">
+                <span class="ach-stat-number">${bronzeCount}</span>
+                <span class="ach-stat-label">🥉 Đồng</span>
+            </div>
         </div>
     `;
 
     const grid = document.createElement('div');
-    grid.style.cssText = 'display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:20px;';
+    grid.className = 'ach-grid';
 
     filtered.forEach(ach => {
         const tier = getTier(ach);
-        const tierColor = tierColors[tier];
         const tierIcon = tierIcons[tier];
-
-        const imgHtml = ach.imageUrl
-            ? `<div style="height:150px;overflow:hidden;position:relative;">
-                <img src="${ach.imageUrl}" style="width:100%;height:100%;object-fit:cover;" loading="lazy">
-                <div style="position:absolute;top:10px;right:10px;background:${tierColor};width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1.1rem;box-shadow:0 4px 12px rgba(0,0,0,.3);">${tierIcon}</div>
-               </div>`
-            : `<div style="height:70px;background:${tierColor};display:flex;align-items:center;justify-content:center;font-size:2rem;">${tierIcon}</div>`;
+        const cat = categoryLabels[ach.category] || { label: 'Khác', color: '#9E9E9E' };
 
         grid.innerHTML += `
-            <div class="pf-card" style="padding:0;overflow:hidden;cursor:pointer;transition:all .3s;" 
-                 onmouseenter="this.style.transform='translateY(-6px)';this.style.boxShadow='0 12px 30px rgba(0,0,0,.12)'" 
-                 onmouseleave="this.style.transform='';this.style.boxShadow=''"
-                 onclick="window.openLightbox([{url:'${ach.imageUrl}', caption:'${ach.name}'}], 0)">
-                ${imgHtml}
-                <div style="padding:18px;">
-                    <div style="display:flex;align-items:center;gap:6px;margin-bottom:6px;">
-                        <span style="background:${tierColor};color:#fff;padding:2px 8px;border-radius:10px;font-size:0.65rem;font-weight:700;text-transform:uppercase;">${tier}</span>
+            <div class="ach-card ach-card-${tier}" onclick="${ach.imageUrl ? `window.openLightbox([{url:'${ach.imageUrl}', caption:'${ach.name}'}], 0)` : ''}">
+                <div class="ach-card-medal">${tierIcon}</div>
+                <div class="ach-card-content">
+                    <h3 class="ach-card-title">${ach.name}</h3>
+                    <div class="ach-card-meta">
+                        <span class="ach-card-category" style="background:${cat.color}">${cat.label}</span>
+                        <span class="ach-card-date">${formatDateVN(ach.date)}</span>
                     </div>
-                    <h3 style="font-size:1.05rem;margin:0 0 4px;color:#005B96;">${ach.name}</h3>
-                    <p style="font-size:0.8rem;color:#666;margin:0;">${formatDateVN(ach.date)}</p>
                 </div>
+                ${ach.imageUrl ? '<div class="ach-card-has-image">📷</div>' : ''}
             </div>`;
     });
     container.appendChild(grid);
@@ -377,109 +389,111 @@ function renderTimeline(timeline) {
     container.innerHTML = '';
 
     if (!timeline || timeline.length === 0) {
-        container.innerHTML = '<p style="text-align:center; color:#999;">Chưa cập nhật lộ trình.</p>';
+        container.innerHTML = '<div class="tl-empty"><div class="tl-empty-icon">🚩</div><p>Chưa cập nhật quá trình.</p></div>';
         return;
     }
 
+    const typeConfig = {
+        academic: { icon: '📚', label: 'Học tập', color: '#2196F3' },
+        work: { icon: '💼', label: 'Công việc', color: '#9C27B0' },
+        activity: { icon: '🤝', label: 'Hoạt động', color: '#4CAF50' }
+    };
+
+    // Create vertical timeline with center line
+    container.innerHTML = '<div class="tl-vertical"></div>';
+    const tlContainer = container.querySelector('.tl-vertical');
+
     timeline.forEach((item, index) => {
-        const pos = index % 2 === 0 ? 'left' : 'right';
+        const config = typeConfig[item.type] || typeConfig.academic;
+        const side = index % 2 === 0 ? 'left' : 'right';
+        const logoHtml = item.logo
+            ? `<img src="${item.logo}" class="tl-v-logo" alt="Logo" onerror="this.style.display='none'">`
+            : `<div class="tl-v-icon">${config.icon}</div>`;
 
-        const logoHtml = item.logo ? `<img src="${item.logo}" class="tl-logo" alt="Logo" onerror="this.style.display='none'">` : '';
-
-        let tagClass = 'academic';
-        let tagLabel = 'Học tập';
-        if (item.type === 'work') { tagClass = 'work'; tagLabel = 'Công việc'; }
-        if (item.type === 'activity') { tagClass = 'activity'; tagLabel = 'Hoạt động'; }
-
-        container.innerHTML += `
-            <div class="timeline-node ${pos}">
-                <div class="timeline-content">
-                    <div style="display:flex; justify-content:space-between; align-items:start;">
+        tlContainer.innerHTML += `
+            <div class="tl-v-item ${side}" style="--accent-color: ${config.color}">
+                <div class="tl-v-content">
+                    <div class="tl-v-year">${item.time}</div>
+                    <div class="tl-v-header">
                         ${logoHtml}
-                        <span class="tl-tag ${tagClass}">${tagLabel}</span>
+                        <span class="tl-v-badge" style="background: ${config.color}">${config.label}</span>
                     </div>
-                    
-                    <span style="font-size:0.85rem; font-weight:bold; color:#999; display:block; margin-bottom:5px;">${item.time}</span>
-                    
-                    <h3 style="margin:5px 0; color:#005B96;">${item.title}</h3>
-                    <h4 style="margin:0 0 10px; color:#333; font-size:1rem;">${item.role}</h4>
-                    <p style="font-size:0.9rem; color:#555; line-height:1.5;">${item.description || ''}</p>
+                    <h3 class="tl-v-role">${item.role || ''}</h3>
+                    <h4 class="tl-v-title">${item.title}</h4>
+                    ${item.description ? `<p class="tl-v-desc">${item.description}</p>` : ''}
                 </div>
+                <div class="tl-v-dot"></div>
             </div>
         `;
     });
 }
 
-// --- [REPLACE] HÀM RENDER ALBUM THEO NĂM (TIMELINE) ---
+// --- RENDER ALBUM - INSTAGRAM STORIES STYLE ---
 function renderAlbums(albums) {
-    // Lưu ý: ID trong HTML mới là 'pf-album-container'
     const container = document.getElementById('pf-album-container');
     if (!container) return;
     container.innerHTML = '';
 
     if (!albums || albums.length === 0) {
-        container.innerHTML = '<p style="text-align:center; color:#999; padding:20px;">Chưa có album nào.</p>';
+        container.innerHTML = '<div class="album-empty"><div class="album-empty-icon">📸</div><p>Chưa có khoảnh khắc nào.</p></div>';
         return;
     }
 
-    // 1. Sắp xếp: Mới nhất lên đầu
+    // Sort newest first
     albums.sort((a, b) => {
         const d1 = new Date(a.eventDate || a.createdAt);
         const d2 = new Date(b.eventDate || b.createdAt);
         return d2 - d1;
     });
 
-    // 2. Gom nhóm theo Năm
-    const groups = {};
-    albums.forEach(album => {
-        // Nếu không có ngày diễn ra thì lấy ngày tạo
-        const dateObj = new Date(album.eventDate || album.createdAt);
-        const year = dateObj.getFullYear();
-        if (!groups[year]) groups[year] = [];
-        groups[year].push(album);
+    // Create stories container
+    container.innerHTML = `
+        <div class="album-stories-wrapper">
+            <div class="album-stories" id="albumStoriesScroll"></div>
+        </div>
+    `;
+
+    const storiesContainer = document.getElementById('albumStoriesScroll');
+
+    albums.forEach((album, index) => {
+        const photoCount = album.photos ? album.photos.length : 0;
+
+        storiesContainer.innerHTML += `
+            <div class="album-story-item" data-index="${index}" onclick="openStoryModal(${JSON.stringify(album).replace(/"/g, '&quot;')})">
+                <div class="album-story-ring">
+                    <div class="album-story-image">
+                        <img src="${album.cover || 'https://placehold.co/200x200'}" alt="${album.title}" onerror="this.src='https://placehold.co/200x200'">
+                        <div class="album-story-count">📷 ${photoCount}</div>
+                    </div>
+                </div>
+                <div class="album-story-title">${album.title}</div>
+                <div class="album-story-date">${album.location || ''}</div>
+            </div>
+        `;
     });
 
-    // 3. Vẽ HTML ra màn hình
-    Object.keys(groups).sort((a, b) => b - a).forEach(year => {
-        // A. Vẽ số Năm to đùng
-        const yearHeader = document.createElement('div');
-        yearHeader.className = 'album-timeline-year';
-        yearHeader.setAttribute('data-year', year);
-        yearHeader.innerText = year; // Fallback text
-        container.appendChild(yearHeader);
+    // Add scroll behavior to highlight center item
+    const scrollContainer = storiesContainer;
+    const updateActiveStory = () => {
+        const items = scrollContainer.querySelectorAll('.album-story-item');
+        const containerRect = scrollContainer.getBoundingClientRect();
+        const containerCenter = containerRect.left + containerRect.width / 2;
 
-        // B. Vẽ cái lưới chứa ảnh
-        const grid = document.createElement('div');
-        grid.className = 'album-shelf';
+        items.forEach(item => {
+            const itemRect = item.getBoundingClientRect();
+            const itemCenter = itemRect.left + itemRect.width / 2;
+            const distance = Math.abs(containerCenter - itemCenter);
 
-        groups[year].forEach(album => {
-            const div = document.createElement('div');
-            div.className = 'album-card';
-
-            // Format ngày và địa điểm
-            const displayDate = album.eventDate ? formatDateVN(album.eventDate) : '...';
-            const locationHtml = album.location
-                ? `<div class="album-location-tag">📍 ${album.location}</div>`
-                : '';
-
-            div.innerHTML = `
-                <div class="album-cover-wrapper">
-                    <img src="${album.cover}" class="album-cover" onerror="this.src='https://placehold.co/600x400'">
-                    ${locationHtml}
-                </div>
-                <div class="album-info">
-                    <div class="album-title">${album.title}</div>
-                    <div class="album-desc-short">${album.description || 'Chưa có mô tả.'}</div>
-                    <div class="album-meta-date">📅 ${displayDate} • 📸 ${album.photos ? album.photos.length : 0} ảnh</div>
-                </div>
-            `;
-
-            // KHI CLICK -> GỌI HÀM MỞ STORY (Bước 3 sẽ thêm hàm này)
-            div.onclick = () => openStoryModal(album);
-            grid.appendChild(div);
+            if (distance < 80) {
+                item.classList.add('active');
+            } else {
+                item.classList.remove('active');
+            }
         });
-        container.appendChild(grid);
-    });
+    };
+
+    scrollContainer.addEventListener('scroll', updateActiveStory);
+    setTimeout(updateActiveStory, 100);
 }
 
 // ==================================================================

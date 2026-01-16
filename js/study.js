@@ -8,7 +8,7 @@ import {
 import {
     saveUserData, uploadFileToStorage, deleteFileFromStorage,
     addSubCollectionDoc, getSubCollectionDocs, updateSubCollectionDoc, deleteSubCollectionDoc
-} from './api.js'; // [ĐÃ ĐỔI] Dùng PHP API
+} from './firebase.js';
 
 // ============================================================
 // KHAI BÁO BIẾN TOÀN CỤC
