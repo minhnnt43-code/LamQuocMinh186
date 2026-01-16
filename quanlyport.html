@@ -1,0 +1,988 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quản lý Portfolio - Admin</title>
+    <link rel="stylesheet" href="portfolio.css">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;900&display=swap" rel="stylesheet">
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #f5f7fa;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .admin-container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .admin-header {
+            background: linear-gradient(135deg, #005B96 0%, #FF7A00 100%);
+            padding: 25px 30px;
+            border-radius: 16px;
+            margin-bottom: 25px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            color: #fff;
+        }
+
+        .admin-header h1 {
+            margin: 0;
+            font-size: 1.5rem;
+        }
+
+        .admin-header a {
+            color: #fff;
+            text-decoration: none;
+            background: rgba(255, 255, 255, 0.2);
+            padding: 8px 16px;
+            border-radius: 8px;
+        }
+
+        .admin-tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .admin-tab {
+            padding: 12px 24px;
+            background: #fff;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: 600;
+            color: #666;
+            transition: 0.3s;
+        }
+
+        .admin-tab.active {
+            background: #005B96;
+            color: #fff;
+        }
+
+        .admin-panel {
+            background: #fff;
+            border-radius: 16px;
+            padding: 25px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.05);
+            display: none;
+        }
+
+        .admin-panel.active {
+            display: block;
+        }
+
+        .panel-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+
+        .panel-header h2 {
+            margin: 0;
+            color: #005B96;
+        }
+
+        .btn-add {
+            background: linear-gradient(135deg, #005B96 0%, #FF7A00 100%);
+            color: #fff;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        .item-list {
+            display: grid;
+            gap: 15px;
+        }
+
+        .item-card {
+            background: #f9f9f9;
+            border-radius: 12px;
+            padding: 15px;
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+
+        .item-card img {
+            width: 80px;
+            height: 80px;
+            object-fit: cover;
+            border-radius: 10px;
+        }
+
+        .item-info {
+            flex: 1;
+        }
+
+        .item-title {
+            font-weight: 700;
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .item-meta {
+            font-size: 0.85rem;
+            color: #888;
+        }
+
+        .item-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .item-actions button {
+            padding: 6px 12px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.85rem;
+        }
+
+        .btn-edit {
+            background: #e3f2fd;
+            color: #1565c0;
+        }
+
+        .btn-delete {
+            background: #ffebee;
+            color: #c62828;
+        }
+
+        /* Modal */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.6);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: #fff;
+            width: 90%;
+            max-width: 500px;
+            max-height: 80vh;
+            overflow-y: auto;
+            border-radius: 16px;
+            padding: 25px;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .modal-header h3 {
+            margin: 0;
+            color: #005B96;
+        }
+
+        .btn-close {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 5px;
+            color: #333;
+        }
+
+        .form-group input,
+        .form-group textarea,
+        .form-group select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 1rem;
+        }
+
+        .form-group textarea {
+            min-height: 80px;
+            resize: vertical;
+        }
+
+        .tier-selector {
+            display: flex;
+            gap: 10px;
+        }
+
+        .tier-option {
+            flex: 1;
+            padding: 12px;
+            text-align: center;
+            border: 2px solid #eee;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .tier-option.active {
+            border-color: #005B96;
+            background: #e3f2fd;
+        }
+
+        .tier-option .emoji {
+            font-size: 1.5rem;
+        }
+
+        .btn-submit {
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(135deg, #005B96 0%, #FF7A00 100%);
+            color: #fff;
+            border: none;
+            border-radius: 10px;
+            font-weight: 700;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px;
+            color: #999;
+        }
+
+        .empty-state .emoji {
+            font-size: 3rem;
+            margin-bottom: 15px;
+        }
+
+        /* Profile Form */
+        .profile-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        @media (max-width: 600px) {
+            .profile-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .avatar-preview {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 4px solid #005B96;
+            margin-bottom: 15px;
+        }
+
+        /* Login Screen */
+        .login-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, #005B96 0%, #FF7A00 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+        }
+
+        .login-screen.hidden {
+            display: none;
+        }
+
+        .login-box {
+            background: #fff;
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
+            text-align: center;
+            width: 90%;
+            max-width: 400px;
+        }
+
+        .login-box h2 {
+            color: #005B96;
+            margin-bottom: 10px;
+        }
+
+        .login-box p {
+            color: #666;
+            margin-bottom: 25px;
+        }
+
+        .login-box input {
+            width: 100%;
+            padding: 14px;
+            border: 2px solid #eee;
+            border-radius: 10px;
+            font-size: 1rem;
+            margin-bottom: 15px;
+        }
+
+        .login-box input:focus {
+            outline: none;
+            border-color: #005B96;
+        }
+
+        .login-box button {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #005B96 0%, #FF7A00 100%);
+            color: #fff;
+            border: none;
+            border-radius: 10px;
+            font-weight: 700;
+            cursor: pointer;
+            font-size: 1rem;
+        }
+
+        .login-error {
+            color: #c62828;
+            font-size: 0.9rem;
+            margin-top: 10px;
+            display: none;
+        }
+
+        .admin-wrapper {
+            display: none;
+        }
+
+        .admin-wrapper.active {
+            display: block;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Login Screen -->
+    <div class="login-screen" id="loginScreen">
+        <div class="login-box">
+            <h2>🔐 Đăng nhập Admin</h2>
+            <p>Nhập mật khẩu để truy cập trang quản lý</p>
+            <form id="loginForm">
+                <input type="password" id="loginPassword" placeholder="Mật khẩu..." required>
+                <button type="submit">Đăng nhập</button>
+            </form>
+            <div class="login-error" id="loginError">❌ Mật khẩu không đúng!</div>
+        </div>
+    </div>
+
+    <!-- Admin Content (hidden by default) -->
+    <div class="admin-wrapper" id="adminWrapper">
+        <div class="admin-container">
+            <!-- Header -->
+            <div class="admin-header">
+                <h1>🎛️ Quản lý Portfolio</h1>
+                <div>
+                    <a href="portfolio.html" target="_blank">👁️ Xem Portfolio</a>
+                    <button onclick="logout()"
+                        style="background:rgba(255,255,255,0.2);border:none;color:#fff;padding:8px 16px;border-radius:8px;margin-left:10px;cursor:pointer;">🚪
+                        Đăng xuất</button>
+                </div>
+            </div>
+
+            <!-- Tabs -->
+            <div class="admin-tabs">
+                <button class="admin-tab active" data-tab="profile">👤 Hồ sơ</button>
+                <button class="admin-tab" data-tab="achievements">🏆 Thành tích</button>
+                <button class="admin-tab" data-tab="timeline">🚩 Quá trình</button>
+                <button class="admin-tab" data-tab="albums">📸 Albums</button>
+            </div>
+
+            <!-- Panel: Profile -->
+            <div class="admin-panel active" id="panel-profile">
+                <div class="panel-header">
+                    <h2>Thông tin cá nhân</h2>
+                </div>
+                <form id="profileForm">
+                    <div style="text-align: center;">
+                        <img id="avatarPreview" class="avatar-preview" src="https://placehold.co/120">
+                    </div>
+                    <div class="profile-grid">
+                        <div class="form-group">
+                            <label>Họ và tên</label>
+                            <input type="text" id="inputName" placeholder="Lâm Quốc Minh">
+                        </div>
+                        <div class="form-group">
+                            <label>Email</label>
+                            <input type="email" id="inputEmail" placeholder="email@example.com">
+                        </div>
+                        <div class="form-group">
+                            <label>Trường học</label>
+                            <input type="text" id="inputSchool" placeholder="ĐH Kinh tế - Luật">
+                        </div>
+                        <div class="form-group">
+                            <label>Chức vụ</label>
+                            <input type="text" id="inputPosition" placeholder="UV BCH - Phó Bộ phận TT-KT">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>URL Avatar</label>
+                        <input type="url" id="inputAvatar" placeholder="https://...">
+                    </div>
+                    <button type="submit" class="btn-submit">💾 Lưu thông tin</button>
+                </form>
+            </div>
+
+            <!-- Panel: Achievements -->
+            <div class="admin-panel" id="panel-achievements">
+                <div class="panel-header">
+                    <h2>Danh sách thành tích</h2>
+                    <button class="btn-add" onclick="openAchModal()">+ Thêm mới</button>
+                </div>
+                <div class="item-list" id="achList"></div>
+                <div class="empty-state" id="achEmpty">
+                    <div class="emoji">🏆</div>
+                    <p>Chưa có thành tích nào. Bấm "Thêm mới" để bắt đầu!</p>
+                </div>
+            </div>
+
+            <!-- Panel: Timeline -->
+            <div class="admin-panel" id="panel-timeline">
+                <div class="panel-header">
+                    <h2>Quá trình học tập & hoạt động</h2>
+                    <button class="btn-add" onclick="openTimelineModal()">+ Thêm mốc</button>
+                </div>
+                <div class="item-list" id="timelineList"></div>
+                <div class="empty-state" id="timelineEmpty">
+                    <div class="emoji">🚩</div>
+                    <p>Chưa có mốc thời gian nào.</p>
+                </div>
+            </div>
+
+            <!-- Panel: Albums -->
+            <div class="admin-panel" id="panel-albums">
+                <div class="panel-header">
+                    <h2>Quản lý Albums</h2>
+                    <button class="btn-add" onclick="openAlbumModal()">+ Thêm album</button>
+                </div>
+                <div class="item-list" id="albumList"></div>
+                <div class="empty-state" id="albumEmpty">
+                    <div class="emoji">📸</div>
+                    <p>Chưa có album nào.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal: Achievement -->
+        <div class="modal-overlay" id="achModal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3 id="achModalTitle">Thêm thành tích</h3>
+                    <button class="btn-close" onclick="closeAchModal()">×</button>
+                </div>
+                <form id="achForm">
+                    <input type="hidden" id="achId">
+                    <div class="form-group">
+                        <label>Tên thành tích</label>
+                        <input type="text" id="achName" required placeholder="Sinh viên 5 tốt cấp Cơ sở">
+                    </div>
+                    <div class="form-group">
+                        <label>Phân loại</label>
+                        <select id="achCategory">
+                            <option value="award">🏅 Khen thưởng</option>
+                            <option value="academic">📚 Học tập</option>
+                            <option value="social">🤝 Hoạt động</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Cấp độ</label>
+                        <div class="tier-selector">
+                            <div class="tier-option active" data-tier="gold" onclick="selectTier('gold')">
+                                <div class="emoji">🥇</div>
+                                <div>Vàng</div>
+                            </div>
+                            <div class="tier-option" data-tier="silver" onclick="selectTier('silver')">
+                                <div class="emoji">🥈</div>
+                                <div>Bạc</div>
+                            </div>
+                            <div class="tier-option" data-tier="bronze" onclick="selectTier('bronze')">
+                                <div class="emoji">🥉</div>
+                                <div>Đồng</div>
+                            </div>
+                        </div>
+                        <input type="hidden" id="achTier" value="gold">
+                    </div>
+                    <div class="form-group">
+                        <label>Ngày đạt được</label>
+                        <input type="date" id="achDate">
+                    </div>
+                    <div class="form-group">
+                        <label>URL hình ảnh (tùy chọn)</label>
+                        <input type="url" id="achImage" placeholder="https://drive.google.com/...">
+                    </div>
+                    <button type="submit" class="btn-submit">💾 Lưu thành tích</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Modal: Timeline -->
+        <div class="modal-overlay" id="timelineModal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3 id="timelineModalTitle">Thêm mốc thời gian</h3>
+                    <button class="btn-close" onclick="closeTimelineModal()">×</button>
+                </div>
+                <form id="timelineForm">
+                    <input type="hidden" id="tlId">
+                    <div class="form-group">
+                        <label>Thời gian (VD: 2022-2026)</label>
+                        <input type="text" id="tlTime" required placeholder="2022-2026">
+                    </div>
+                    <div class="form-group">
+                        <label>Tên tổ chức/Trường</label>
+                        <input type="text" id="tlTitle" required placeholder="ĐH Kinh tế - Luật TPHCM">
+                    </div>
+                    <div class="form-group">
+                        <label>Vai trò/Chức vụ</label>
+                        <input type="text" id="tlRole" placeholder="Sinh viên Khoa Luật">
+                    </div>
+                    <div class="form-group">
+                        <label>Loại</label>
+                        <select id="tlType">
+                            <option value="academic">📚 Học tập</option>
+                            <option value="work">💼 Công việc</option>
+                            <option value="activity">🤝 Hoạt động</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Mô tả ngắn</label>
+                        <textarea id="tlDesc" placeholder="Mô tả chi tiết..."></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>URL Logo (tùy chọn)</label>
+                        <input type="url" id="tlLogo" placeholder="https://...">
+                    </div>
+                    <button type="submit" class="btn-submit">💾 Lưu</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Modal: Album -->
+        <div class="modal-overlay" id="albumModal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3 id="albumModalTitle">Thêm Album</h3>
+                    <button class="btn-close" onclick="closeAlbumModal()">×</button>
+                </div>
+                <form id="albumForm">
+                    <input type="hidden" id="albumId">
+                    <div class="form-group">
+                        <label>Tên Album</label>
+                        <input type="text" id="albumTitle" required placeholder="Hội nghị Đại biểu Sinh viên">
+                    </div>
+                    <div class="form-group">
+                        <label>Ngày sự kiện</label>
+                        <input type="date" id="albumDate">
+                    </div>
+                    <div class="form-group">
+                        <label>Địa điểm</label>
+                        <input type="text" id="albumLocation" placeholder="ĐH Kinh tế - Luật">
+                    </div>
+                    <div class="form-group">
+                        <label>Mô tả</label>
+                        <textarea id="albumDesc" placeholder="Mô tả sự kiện..."></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>URL Ảnh bìa</label>
+                        <input type="url" id="albumCover" placeholder="https://drive.google.com/...">
+                    </div>
+                    <div class="form-group">
+                        <label>Danh sách ảnh (mỗi URL 1 dòng)</label>
+                        <textarea id="albumPhotos" placeholder="https://...\nhttps://..."
+                            style="min-height:100px;"></textarea>
+                    </div>
+                    <button type="submit" class="btn-submit">💾 Lưu Album</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Firebase -->
+        <script type="module">
+            import { db } from './js/firebase.js';
+            import {
+                doc, getDoc, setDoc, updateDoc,
+                collection, addDoc, getDocs, deleteDoc,
+                query, orderBy
+            } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+            // UID - Thay bằng UID của bạn
+            const OWNER_UID = "5a6YielwJJYFwB2DyFfUB9DVQXR2";
+
+            // ==== TABS ====
+            document.querySelectorAll('.admin-tab').forEach(tab => {
+                tab.addEventListener('click', () => {
+                    document.querySelectorAll('.admin-tab').forEach(t => t.classList.remove('active'));
+                    document.querySelectorAll('.admin-panel').forEach(p => p.classList.remove('active'));
+                    tab.classList.add('active');
+                    document.getElementById('panel-' + tab.dataset.tab).classList.add('active');
+                });
+            });
+
+            // ==== PROFILE ====
+            async function loadProfile() {
+                try {
+                    const docSnap = await getDoc(doc(db, "users", OWNER_UID));
+                    if (docSnap.exists()) {
+                        const data = docSnap.data();
+                        const info = data.personalInfo || {};
+                        const settings = data.settings || {};
+                        document.getElementById('inputName').value = info.fullName || '';
+                        document.getElementById('inputEmail').value = info.email || '';
+                        document.getElementById('inputSchool').value = info.school || '';
+                        document.getElementById('inputPosition').value = info.occupation || '';
+                        document.getElementById('inputAvatar').value = settings.customAvatarUrl || '';
+                        document.getElementById('avatarPreview').src = settings.customAvatarUrl || 'https://placehold.co/120';
+                    }
+                } catch (e) { console.error(e); }
+            }
+
+            document.getElementById('profileForm').addEventListener('submit', async (e) => {
+                e.preventDefault();
+                try {
+                    await updateDoc(doc(db, "users", OWNER_UID), {
+                        'personalInfo.fullName': document.getElementById('inputName').value,
+                        'personalInfo.email': document.getElementById('inputEmail').value,
+                        'personalInfo.school': document.getElementById('inputSchool').value,
+                        'personalInfo.occupation': document.getElementById('inputPosition').value,
+                        'settings.customAvatarUrl': document.getElementById('inputAvatar').value
+                    });
+                    alert('✅ Đã lưu thông tin!');
+                } catch (e) {
+                    console.error(e);
+                    alert('❌ Lỗi: ' + e.message);
+                }
+            });
+
+            // ==== ACHIEVEMENTS ====
+            let allAchievements = [];
+
+            async function loadAchievements() {
+                try {
+                    const docSnap = await getDoc(doc(db, "users", OWNER_UID));
+                    if (docSnap.exists()) {
+                        allAchievements = docSnap.data().achievements || [];
+                        renderAchList();
+                    }
+                } catch (e) { console.error(e); }
+            }
+
+            function renderAchList() {
+                const list = document.getElementById('achList');
+                const empty = document.getElementById('achEmpty');
+                if (allAchievements.length === 0) {
+                    list.innerHTML = '';
+                    empty.style.display = 'block';
+                    return;
+                }
+                empty.style.display = 'none';
+                const tierEmoji = { gold: '🥇', silver: '🥈', bronze: '🥉' };
+                list.innerHTML = allAchievements.map((a, i) => `
+                <div class="item-card">
+                    <img src="${a.imageUrl || 'https://placehold.co/80?text=' + (tierEmoji[a.tier] || '🏅')}" onerror="this.src='https://placehold.co/80'">
+                    <div class="item-info">
+                        <div class="item-title">${tierEmoji[a.tier] || '🏅'} ${a.name}</div>
+                        <div class="item-meta">${a.category || ''} • ${a.date || ''}</div>
+                    </div>
+                    <div class="item-actions">
+                        <button class="btn-edit" onclick="editAch(${i})">Sửa</button>
+                        <button class="btn-delete" onclick="deleteAch(${i})">Xóa</button>
+                    </div>
+                </div>
+            `).join('');
+            }
+
+            window.openAchModal = (ach = null, index = -1) => {
+                document.getElementById('achModalTitle').textContent = ach ? 'Sửa thành tích' : 'Thêm thành tích';
+                document.getElementById('achId').value = index;
+                document.getElementById('achName').value = ach?.name || '';
+                document.getElementById('achCategory').value = ach?.category || 'award';
+                document.getElementById('achDate').value = ach?.date || '';
+                document.getElementById('achImage').value = ach?.imageUrl || '';
+                selectTier(ach?.tier || 'gold');
+                document.getElementById('achModal').classList.add('active');
+            };
+            window.closeAchModal = () => document.getElementById('achModal').classList.remove('active');
+
+            window.selectTier = (tier) => {
+                document.querySelectorAll('.tier-option').forEach(o => o.classList.remove('active'));
+                document.querySelector(`[data-tier="${tier}"]`).classList.add('active');
+                document.getElementById('achTier').value = tier;
+            };
+
+            window.editAch = (i) => openAchModal(allAchievements[i], i);
+
+            window.deleteAch = async (i) => {
+                if (!confirm('Xóa thành tích này?')) return;
+                allAchievements.splice(i, 1);
+                await saveAchievements();
+            };
+
+            async function saveAchievements() {
+                try {
+                    await updateDoc(doc(db, "users", OWNER_UID), { achievements: allAchievements });
+                    renderAchList();
+                    alert('✅ Đã lưu!');
+                } catch (e) {
+                    console.error(e);
+                    alert('❌ Lỗi: ' + e.message);
+                }
+            }
+
+            document.getElementById('achForm').addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const index = parseInt(document.getElementById('achId').value);
+                const ach = {
+                    name: document.getElementById('achName').value,
+                    category: document.getElementById('achCategory').value,
+                    tier: document.getElementById('achTier').value,
+                    date: document.getElementById('achDate').value,
+                    imageUrl: document.getElementById('achImage').value
+                };
+                if (index >= 0) allAchievements[index] = ach;
+                else allAchievements.push(ach);
+                await saveAchievements();
+                closeAchModal();
+            });
+
+            // ==== TIMELINE ====
+            let allTimeline = [];
+
+            async function loadTimeline() {
+                try {
+                    const q = query(collection(db, `users/${OWNER_UID}/timeline`), orderBy('order', 'asc'));
+                    const snap = await getDocs(q);
+                    allTimeline = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+                    renderTimelineList();
+                } catch (e) { console.error(e); }
+            }
+
+            function renderTimelineList() {
+                const list = document.getElementById('timelineList');
+                const empty = document.getElementById('timelineEmpty');
+                if (allTimeline.length === 0) {
+                    list.innerHTML = '';
+                    empty.style.display = 'block';
+                    return;
+                }
+                empty.style.display = 'none';
+                const typeEmoji = { academic: '📚', work: '💼', activity: '🤝' };
+                list.innerHTML = allTimeline.map((t, i) => `
+                <div class="item-card">
+                    <img src="${t.logo || 'https://placehold.co/80?text=' + (typeEmoji[t.type] || '🚩')}" onerror="this.src='https://placehold.co/80'">
+                    <div class="item-info">
+                        <div class="item-title">${t.title}</div>
+                        <div class="item-meta">${t.time} • ${t.role || ''}</div>
+                    </div>
+                    <div class="item-actions">
+                        <button class="btn-edit" onclick="editTimeline(${i})">Sửa</button>
+                        <button class="btn-delete" onclick="deleteTimeline('${t.id}')">Xóa</button>
+                    </div>
+                </div>
+            `).join('');
+            }
+
+            window.openTimelineModal = (t = null) => {
+                document.getElementById('timelineModalTitle').textContent = t ? 'Sửa mốc' : 'Thêm mốc';
+                document.getElementById('tlId').value = t?.id || '';
+                document.getElementById('tlTime').value = t?.time || '';
+                document.getElementById('tlTitle').value = t?.title || '';
+                document.getElementById('tlRole').value = t?.role || '';
+                document.getElementById('tlType').value = t?.type || 'academic';
+                document.getElementById('tlDesc').value = t?.description || '';
+                document.getElementById('tlLogo').value = t?.logo || '';
+                document.getElementById('timelineModal').classList.add('active');
+            };
+            window.closeTimelineModal = () => document.getElementById('timelineModal').classList.remove('active');
+            window.editTimeline = (i) => openTimelineModal(allTimeline[i]);
+
+            window.deleteTimeline = async (id) => {
+                if (!confirm('Xóa mốc này?')) return;
+                try {
+                    await deleteDoc(doc(db, `users/${OWNER_UID}/timeline`, id));
+                    loadTimeline();
+                } catch (e) { console.error(e); alert('❌ Lỗi: ' + e.message); }
+            };
+
+            document.getElementById('timelineForm').addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const id = document.getElementById('tlId').value;
+                const data = {
+                    time: document.getElementById('tlTime').value,
+                    title: document.getElementById('tlTitle').value,
+                    role: document.getElementById('tlRole').value,
+                    type: document.getElementById('tlType').value,
+                    description: document.getElementById('tlDesc').value,
+                    logo: document.getElementById('tlLogo').value,
+                    order: allTimeline.length + 1
+                };
+                try {
+                    if (id) await updateDoc(doc(db, `users/${OWNER_UID}/timeline`, id), data);
+                    else await addDoc(collection(db, `users/${OWNER_UID}/timeline`), data);
+                    loadTimeline();
+                    closeTimelineModal();
+                    alert('✅ Đã lưu!');
+                } catch (e) { console.error(e); alert('❌ Lỗi: ' + e.message); }
+            });
+
+            // ==== ALBUMS ====
+            let allAlbums = [];
+
+            async function loadAlbums() {
+                try {
+                    const q = query(collection(db, `users/${OWNER_UID}/albums`), orderBy('eventDate', 'desc'));
+                    const snap = await getDocs(q);
+                    allAlbums = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+                    renderAlbumList();
+                } catch (e) { console.error(e); }
+            }
+
+            function renderAlbumList() {
+                const list = document.getElementById('albumList');
+                const empty = document.getElementById('albumEmpty');
+                if (allAlbums.length === 0) {
+                    list.innerHTML = '';
+                    empty.style.display = 'block';
+                    return;
+                }
+                empty.style.display = 'none';
+                list.innerHTML = allAlbums.map((a, i) => `
+                <div class="item-card">
+                    <img src="${a.cover || 'https://placehold.co/80'}" onerror="this.src='https://placehold.co/80'">
+                    <div class="item-info">
+                        <div class="item-title">📸 ${a.title}</div>
+                        <div class="item-meta">📍 ${a.location || '...'} • ${a.photos?.length || 0} ảnh</div>
+                    </div>
+                    <div class="item-actions">
+                        <button class="btn-edit" onclick="editAlbum(${i})">Sửa</button>
+                        <button class="btn-delete" onclick="deleteAlbum('${a.id}')">Xóa</button>
+                    </div>
+                </div>
+            `).join('');
+            }
+
+            window.openAlbumModal = (a = null) => {
+                document.getElementById('albumModalTitle').textContent = a ? 'Sửa Album' : 'Thêm Album';
+                document.getElementById('albumId').value = a?.id || '';
+                document.getElementById('albumTitle').value = a?.title || '';
+                document.getElementById('albumDate').value = a?.eventDate || '';
+                document.getElementById('albumLocation').value = a?.location || '';
+                document.getElementById('albumDesc').value = a?.description || '';
+                document.getElementById('albumCover').value = a?.cover || '';
+                document.getElementById('albumPhotos').value = (a?.photos || []).join('\n');
+                document.getElementById('albumModal').classList.add('active');
+            };
+            window.closeAlbumModal = () => document.getElementById('albumModal').classList.remove('active');
+            window.editAlbum = (i) => openAlbumModal(allAlbums[i]);
+
+            window.deleteAlbum = async (id) => {
+                if (!confirm('Xóa album này?')) return;
+                try {
+                    await deleteDoc(doc(db, `users/${OWNER_UID}/albums`, id));
+                    loadAlbums();
+                } catch (e) { console.error(e); alert('❌ Lỗi: ' + e.message); }
+            };
+
+            document.getElementById('albumForm').addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const id = document.getElementById('albumId').value;
+                const photosText = document.getElementById('albumPhotos').value;
+                const photos = photosText.split('\n').map(s => s.trim()).filter(s => s);
+                const data = {
+                    title: document.getElementById('albumTitle').value,
+                    eventDate: document.getElementById('albumDate').value,
+                    location: document.getElementById('albumLocation').value,
+                    description: document.getElementById('albumDesc').value,
+                    cover: document.getElementById('albumCover').value || photos[0] || '',
+                    photos: photos
+                };
+                try {
+                    if (id) await updateDoc(doc(db, `users/${OWNER_UID}/albums`, id), data);
+                    else await addDoc(collection(db, `users/${OWNER_UID}/albums`), data);
+                    loadAlbums();
+                    closeAlbumModal();
+                    alert('✅ Đã lưu!');
+                } catch (e) { console.error(e); alert('❌ Lỗi: ' + e.message); }
+            });
+
+            // ==== INIT ====
+            function initAdmin() {
+                loadProfile();
+                loadAchievements();
+                loadTimeline();
+                loadAlbums();
+                console.log('🎛️ Quản lý Portfolio loaded!');
+            }
+
+            // Check if already logged in
+            if (sessionStorage.getItem('admin_auth') === 'true') {
+                document.getElementById('loginScreen').classList.add('hidden');
+                document.getElementById('adminWrapper').classList.add('active');
+                initAdmin();
+            }
+        </script>
+
+        <!-- Login Script (non-module) -->
+        <script>
+            const ADMIN_PASSWORD = 'lamquocminh1@';
+
+            document.getElementById('loginForm').addEventListener('submit', function (e) {
+                e.preventDefault();
+                const password = document.getElementById('loginPassword').value;
+                if (password === ADMIN_PASSWORD) {
+                    sessionStorage.setItem('admin_auth', 'true');
+                    document.getElementById('loginScreen').classList.add('hidden');
+                    document.getElementById('adminWrapper').classList.add('active');
+                    // Reload to init firebase data
+                    location.reload();
+                } else {
+                    document.getElementById('loginError').style.display = 'block';
+                    document.getElementById('loginPassword').value = '';
+                }
+            });
+
+            function logout() {
+                sessionStorage.removeItem('admin_auth');
+                location.reload();
+            }
+        </script>
+    </div> <!-- Close admin-container -->
+    </div> <!-- Close admin-wrapper -->
+</body>
+
+</html>
