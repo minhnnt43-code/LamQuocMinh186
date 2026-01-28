@@ -869,15 +869,23 @@ const renderAchievements = () => {
     const achievements = globalData.achievements || [];
     if (achievements.length === 0) return;
 
-    achievements.forEach(ach => {
+    // Sắp xếp theo ngày mới nhất lên trước
+    const sorted = [...achievements].sort((a, b) => {
+        const dateA = new Date(a.date || '1970-01-01');
+        const dateB = new Date(b.date || '1970-01-01');
+        return dateB - dateA; // Mới nhất trước
+    });
+
+    sorted.forEach(ach => {
         const div = document.createElement('div');
         div.className = 'achievement-card';
         div.onclick = () => openEditAchievement(ach);
 
         // Chuyển đổi link Google Drive thành direct URL
         const imageUrl = convertDriveLink(ach.imageUrl);
+        // Dùng object-fit: contain để ảnh không bị cắt
         const imgHtml = imageUrl
-            ? `<img src="${imageUrl}" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'" style="width:100%;height:100%;object-fit:cover;"><span style="display:none;font-size:2rem;justify-content:center;align-items:center;width:100%;height:100%;">🏆</span>`
+            ? `<img src="${imageUrl}" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'" style="width:100%;height:100%;object-fit:contain;background:#f5f5f5;"><span style="display:none;font-size:2rem;justify-content:center;align-items:center;width:100%;height:100%;">🏆</span>`
             : '🏆';
 
         div.innerHTML = `
