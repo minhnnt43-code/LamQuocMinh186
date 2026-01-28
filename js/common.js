@@ -67,7 +67,8 @@ export const formatCurrency = (amount) => {
     return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(amount);
 };
 
-// 5. XỬ LÝ LINK GOOGLE DRIVE (Direct Link)
+// 5. XỬ LÝ LINK GOOGLE DRIVE (Direct Link cho ảnh)
+// Lưu ý: Chỉ hoạt động với file ẢNH (jpg, png, gif...), KHÔNG hoạt động với PDF
 export const convertDriveLink = (url) => {
     if (!url) return '';
     if (!url.includes('drive.google.com') && !url.includes('googleusercontent.com')) return url;
@@ -84,6 +85,7 @@ export const convertDriveLink = (url) => {
         }
 
         if (id) {
+            // Sử dụng Google Content URL - hoạt động với file ẢNH đã share public
             return `https://lh3.googleusercontent.com/d/${id}`;
         }
         return url;

@@ -2,7 +2,7 @@
 
 import {
     escapeHTML, formatDate, generateID, showNotification,
-    openModal, closeModal
+    openModal, closeModal, convertDriveLink
 } from './common.js';
 
 import {
@@ -873,8 +873,15 @@ const renderAchievements = () => {
         const div = document.createElement('div');
         div.className = 'achievement-card';
         div.onclick = () => openEditAchievement(ach);
+
+        // Chuyển đổi link Google Drive thành direct URL
+        const imageUrl = convertDriveLink(ach.imageUrl);
+        const imgHtml = imageUrl
+            ? `<img src="${imageUrl}" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'" style="width:100%;height:100%;object-fit:cover;"><span style="display:none;font-size:2rem;justify-content:center;align-items:center;width:100%;height:100%;">🏆</span>`
+            : '🏆';
+
         div.innerHTML = `
-             <div class="achievement-preview">${ach.imageUrl ? `<img src="${ach.imageUrl}">` : '🏆'}</div>
+             <div class="achievement-preview">${imgHtml}</div>
             <div class="achievement-info"><h3>${escapeHTML(ach.name || ach.title)}</h3><p>${formatDate(ach.date)}</p></div>
         `;
         container.appendChild(div);

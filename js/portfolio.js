@@ -6,6 +6,7 @@ import {
     doc, getDoc, collection, addDoc, getDocs,
     query, orderBy, limit, onSnapshot
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+import { convertDriveLink } from './common.js';
 
 // 2. BIẾN TOÀN CỤC
 const urlParams = new URLSearchParams(window.location.search);
@@ -60,6 +61,7 @@ async function loadOwnerPortfolio() {
             publicData.tasks = data.tasks || [];
             publicData.events = data.calendarEvents || [];
             publicData.achievements = data.achievements || [];
+            console.log("🏆 Dữ liệu thành tích tải về:", publicData.achievements); // [DEBUG]
 
             renderProjects(publicData.projects);
             renderAchievements(publicData.achievements);
@@ -318,18 +320,33 @@ window.filterAchievements = (type) => {
     grid.style.cssText = 'display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:20px;';
 
     filtered.forEach(ach => {
-        const imgHtml = ach.imageUrl
-            ? `<div style="height:150px;overflow:hidden;position:relative;">
-                <img src="${ach.imageUrl}" style="width:100%;height:100%;object-fit:cover;" loading="lazy">
-                <div style="position:absolute;top:10px;right:10px;background:${cardColor};width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1.1rem;box-shadow:0 4px 12px rgba(0,0,0,.3);">${badgeIcon}</div>
+        // Chuyển đổi link Google Drive thành direct URL (chỉ hoạt động với ảnh, không phải PDF)
+        const imageUrl = convertDriveLink(ach.imageUrl);
+
+        // Tạo unique ID để xử lý onerror
+        const cardId = 'ach-img-' + Math.random().toString(36).substr(2, 9);
+
+        const imgHtml = imageUrl
+            ? `<div id="${cardId}" class="ach-img-container" style="height:150px;overflow:hidden;position:relative;background:${cardColor};display:flex;align-items:center;justify-content:center;">
+                <img src="${imageUrl}" style="width:100%;height:100%;object-fit:cover;position:absolute;top:0;left:0;" loading="lazy" 
+                     onload="this.style.opacity='1'" 
+                     onerror="this.style.display='none'; this.parentElement.querySelector('.ach-fallback').style.display='flex'">
+                <div class="ach-fallback" style="display:none;width:100%;height:100%;align-items:center;justify-content:center;font-size:2.5rem;">📄</div>
+                <div style="position:absolute;top:10px;right:10px;background:${cardColor};width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1.1rem;box-shadow:0 4px 12px rgba(0,0,0,.3);z-index:2;">${badgeIcon}</div>
                </div>`
             : `<div style="height:70px;background:${cardColor};display:flex;align-items:center;justify-content:center;font-size:2rem;">${badgeIcon}</div>`;
+
+        // Nếu là link Google Drive, mở link gốc thay vì lightbox (vì có thể là PDF)
+        const isGoogleDrive = ach.imageUrl && (ach.imageUrl.includes('drive.google.com') || ach.imageUrl.includes('googleusercontent.com'));
+        const clickAction = isGoogleDrive
+            ? `window.open('${ach.imageUrl}', '_blank')`
+            : `window.openLightbox([{url:'${imageUrl}', caption:'${ach.name}'}], 0)`;
 
         grid.innerHTML += `
             <div class="pf-card" style="padding:0;overflow:hidden;cursor:pointer;transition:all .3s;" 
                  onmouseenter="this.style.transform='translateY(-6px)';this.style.boxShadow='0 12px 30px rgba(0,0,0,.12)'" 
                  onmouseleave="this.style.transform='';this.style.boxShadow=''"
-                 onclick="window.openLightbox([{url:'${ach.imageUrl}', caption:'${ach.name}'}], 0)">
+                 onclick="${clickAction}">
                 ${imgHtml}
                 <div style="padding:18px;">
                     <h3 style="font-size:1.05rem;margin:0 0 4px;color:#005B96;">${ach.name}</h3>
