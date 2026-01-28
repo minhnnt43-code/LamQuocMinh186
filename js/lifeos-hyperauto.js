@@ -1,0 +1,667 @@
+// ============================================================
+// FILE: js/lifeos-hyperauto.js
+// Mục đích: LifeOS Phase 11 - Siêu Tự động hóa (10 tính năng)
+// Viết lại từ đầu - Clean code, no syntax errors
+// ============================================================
+
+import { showNotification, generateID, toLocalISOString } from './common.js';
+import { aiPowerHub } from './ai-power-hub.js';
+import { saveUserData } from './firebase.js';
+
+// ============================================================
+// GLOBAL DATA
+// ============================================================
+let globalData = null;
+let currentUser = null;
+
+// ============================================================
+// FEATURE #1 - TỰ ĐỘNG HÓA THEO Ý ĐỊNH (Intent-Based Automation)
+// Auto dựa trên ý định, không cần rules
+// ============================================================
+export async function processIntent(intentText) {
+    try {
+        const result = await aiPowerHub.call(`
+            Phân tích ý định: "${intentText}"
+            
+            Trả về JSON với format:
+            {
+                "intent": "loại ý định (create_task/schedule/reminder/delegate/archive)",
+                "action": "hành động cụ thể",
+                "params": { chi tiết để thực hiện },
+                "confirm": true/false (nếu cần xác nhận)
+            }
+        `, { maxTokens: 200 });
+
+        // Parse and execute
+        let parsed;
+        try {
+            const jsonMatch = result.content.match(/\{[\s\S]*\}/);
+            parsed = JSON.parse(jsonMatch[0]);
+        } catch {
+            return { error: 'Không hiểu ý định', raw: result.content };
+        }
+
+        return {
+            understood: true,
+            intent: parsed.intent,
+            action: parsed.action,
+            params: parsed.params,
+            needsConfirmation: parsed.confirm
+        };
+    } catch (error) {
+        return { error: 'Không thể xử lý ý định' };
+    }
+}
+
+// ============================================================
+// FEATURE #2 - HÀNH ĐỘNG THEO NGỮ CẢNH (Context-Aware Actions)
+// Actions thay đổi theo context
+// ============================================================
+export function getContextAwareActions() {
+    const now = new Date();
+    const hour = now.getHours();
+    const day = now.getDay();
+    const isWeekend = day === 0 || day === 6;
+
+    const tasks = globalData?.tasks || [];
+    const pendingTasks = tasks.filter(t => t.status !== 'Hoàn thành');
+    const overdueTasks = tasks.filter(t =>
+        t.status !== 'Hoàn thành' && t.dueDate && new Date(t.dueDate) < now
+    );
+
+    const actions = [];
+
+    // Morning context
+    if (hour >= 7 && hour <= 9) {
+        actions.push({
+            id: 'morning_review',
+            label: '☀️ Xem công việc hôm nay',
+            priority: 'high'
+        });
+    }
+
+    // Evening context
+    if (hour >= 18 && hour <= 21) {
+        actions.push({
+            id: 'evening_wrap',
+            label: '🌙 Tổng kết ngày',
+            priority: 'medium'
+        });
+    }
+
+    // Weekend context
+    if (isWeekend) {
+        actions.push({
+            id: 'weekly_plan',
+            label: '📅 Lập kế hoạch tuần mới',
+            priority: 'medium'
+        });
+    }
+
+    // Overdue context
+    if (overdueTasks.length > 0) {
+        actions.push({
+            id: 'handle_overdue',
+            label: `⚠️ Xử lý ${overdueTasks.length} task quá hạn`,
+            priority: 'critical'
+        });
+    }
+
+    // Light workload
+    if (pendingTasks.length < 3) {
+        actions.push({
+            id: 'add_tasks',
+            label: '✨ Thêm công việc mới',
+            priority: 'low'
+        });
+    }
+
+    // Heavy workload
+    if (pendingTasks.length > 10) {
+        actions.push({
+            id: 'prioritize',
+            label: '🎯 Sắp xếp lại ưu tiên',
+            priority: 'high'
+        });
+    }
+
+    return actions.sort((a, b) => {
+        const priorityOrder = { critical: 0, high: 1, medium: 2, low: 3 };
+        return priorityOrder[a.priority] - priorityOrder[b.priority];
+    });
+}
+
+// ============================================================
+// FEATURE #3 - TạO TASK DỰ ĐOÁN (Predictive Task Creation)
+// AI tạo task trước khi bạn nghĩ
+// ============================================================
+export async function generatePredictedTasks() {
+    const tasks = globalData?.tasks || [];
+    const recentTasks = tasks.slice(-20);
+
+    const patterns = recentTasks.map(t => ({
+        name: t.name,
+        category: t.category,
+        dayOfWeek: new Date(t.createdAt).getDay()
+    }));
+
+    try {
+        const result = await aiPowerHub.call(`
+            Dựa trên các task gần đây:
+            ${JSON.stringify(patterns)}
+            
+            Dự đoán 3 task người dùng có thể sẽ cần tạo.
+            Trả về JSON array:
+            [{"name": "tên task", "category": "category", "reason": "lý do gợi ý"}]
+        `, { maxTokens: 300 });
+
+        let predicted = [];
+        try {
+            const jsonMatch = result.content.match(/\[[\s\S]*\]/);
+            predicted = JSON.parse(jsonMatch[0]);
+        } catch {
+            predicted = [];
+        }
+
+        return predicted;
+    } catch (error) {
+        return [];
+    }
+}
+
+// ============================================================
+// FEATURE #4 - GỢI Ý ỦY QUYỀN THÔNG MINH (Smart Delegation)
+// AI suggest giao việc cho ai
+// ============================================================
+export function suggestDelegation(taskId) {
+    const tasks = globalData?.tasks || [];
+    const task = tasks.find(t => t.id === taskId);
+
+    if (!task || !task.name) return null;
+
+    const suggestions = [];
+    const nameLower = task.name.toLowerCase();
+
+    if (nameLower.includes('design') || nameLower.includes('thiết kế')) {
+        suggestions.push({ role: 'Designer', reason: 'Task liên quan đến thiết kế' });
+    }
+
+    if (nameLower.includes('code') || nameLower.includes('dev')) {
+        suggestions.push({ role: 'Developer', reason: 'Task liên quan đến code' });
+    }
+
+    if (nameLower.includes('viết') || nameLower.includes('content')) {
+        suggestions.push({ role: 'Content Writer', reason: 'Task liên quan đến nội dung' });
+    }
+
+    if (task.priority === 'low') {
+        suggestions.push({ role: 'Intern/Junior', reason: 'Task ưu tiên thấp, phù hợp để đào tạo' });
+    }
+
+    return {
+        task: task.name,
+        suggestions,
+        selfDoReason: suggestions.length === 0 ? 'Task này nên tự làm' : null
+    };
+}
+
+// ============================================================
+// FEATURE #5 - TỰ ĐỘNG ƯU TIÊN AI (Auto-Prioritization)
+// Real-time priority reorder
+// ============================================================
+export function autoPrioritizeTasks() {
+    const tasks = globalData?.tasks || [];
+    const now = new Date();
+
+    const prioritized = tasks.filter(t => t.status !== 'Hoàn thành').map(task => {
+        let score = 50;
+
+        // Deadline urgency
+        if (task.dueDate) {
+            const deadline = new Date(task.dueDate);
+            const daysUntil = Math.ceil((deadline - now) / (1000 * 60 * 60 * 24));
+
+            if (daysUntil <= 0) score += 50;
+            else if (daysUntil <= 1) score += 40;
+            else if (daysUntil <= 3) score += 25;
+            else if (daysUntil <= 7) score += 10;
+        }
+
+        // Priority weight
+        if (task.priority === 'high') score += 20;
+        else if (task.priority === 'low') score -= 10;
+
+        // Category weight
+        if (task.category === 'Công việc') score += 5;
+
+        return {
+            ...task,
+            autoScore: Math.min(100, score),
+            suggestedPriority: score >= 70 ? 'high' : score >= 40 ? 'medium' : 'low'
+        };
+    });
+
+    return prioritized.sort((a, b) => b.autoScore - a.autoScore);
+}
+
+// ============================================================
+// FEATURE #6 - TỰ LÊN LỊCH HỌP (Auto Schedule Meetings)
+// Auto tìm thời gian tối ưu
+// ============================================================
+export function findOptimalMeetingSlots(duration = 60, preferredHours = [9, 10, 14, 15]) {
+    const calendarEvents = globalData?.calendarEvents || [];
+    const now = new Date();
+    const slots = [];
+
+    // Check next 7 days
+    for (let day = 0; day < 7; day++) {
+        const checkDate = new Date(now);
+        checkDate.setDate(checkDate.getDate() + day);
+
+        if (checkDate.getDay() === 0 || checkDate.getDay() === 6) continue; // Skip weekends
+
+        for (const hour of preferredHours) {
+            const slotStart = new Date(checkDate);
+            slotStart.setHours(hour, 0, 0, 0);
+
+            const slotEnd = new Date(slotStart);
+            slotEnd.setMinutes(slotEnd.getMinutes() + duration);
+
+            // Check for conflicts
+            const hasConflict = calendarEvents.some(event => {
+                const eventStart = new Date(event.start);
+                const eventEnd = new Date(event.end);
+                return (slotStart < eventEnd && slotEnd > eventStart);
+            });
+
+            if (!hasConflict && slotStart > now) {
+                slots.push({
+                    start: slotStart.toISOString(),
+                    end: slotEnd.toISOString(),
+                    label: `${checkDate.toLocaleDateString('vi-VN', { weekday: 'short' })} ${hour}:00`
+                });
+            }
+        }
+    }
+
+    return slots.slice(0, 5);
+}
+
+// ============================================================
+// FEATURE #7 - AI PHÂN LOẠI EMAIL (Email Triage)
+// Tự phân loại và draft reply
+// ============================================================
+export async function triageEmail(emailContent) {
+    try {
+        const result = await aiPowerHub.call(`
+            Phân tích email:
+            "${emailContent}"
+            
+            Trả về JSON:
+            {
+                "category": "urgent/follow_up/fyi/spam",
+                "priority": "high/medium/low",
+                "summary": "tóm tắt 1 câu",
+                "suggestedReply": "gợi ý trả lời ngắn",
+                "needsAction": true/false
+            }
+        `, { maxTokens: 300 });
+
+        let parsed;
+        try {
+            const jsonMatch = result.content.match(/\{[\s\S]*\}/);
+            parsed = JSON.parse(jsonMatch[0]);
+        } catch {
+            parsed = { error: 'Không thể phân tích' };
+        }
+
+        return parsed;
+    } catch (error) {
+        return { error: 'Không thể phân tích email' };
+    }
+}
+
+// ============================================================
+// FEATURE #8 - TỰ TỔ CHỨC TÀI LIỆU (Auto File Organization)
+// Auto organize files và docs
+// ============================================================
+export function suggestFileOrganization(fileName, fileType) {
+    const rules = {
+        'pdf': { folder: 'Documents', subfolder: 'PDFs' },
+        'doc': { folder: 'Documents', subfolder: 'Word' },
+        'docx': { folder: 'Documents', subfolder: 'Word' },
+        'xls': { folder: 'Documents', subfolder: 'Excel' },
+        'xlsx': { folder: 'Documents', subfolder: 'Excel' },
+        'jpg': { folder: 'Media', subfolder: 'Images' },
+        'png': { folder: 'Media', subfolder: 'Images' },
+        'mp4': { folder: 'Media', subfolder: 'Videos' },
+        'mp3': { folder: 'Media', subfolder: 'Audio' }
+    };
+
+    const ext = fileType || fileName.split('.').pop().toLowerCase();
+    const rule = rules[ext] || { folder: 'Other', subfolder: 'Misc' };
+
+    // Check for date patterns in filename
+    const datePattern = /\d{4}[-_]\d{2}[-_]\d{2}/;
+    if (datePattern.test(fileName)) {
+        rule.subfolder = `${rule.subfolder}/ByDate`;
+    }
+
+    return {
+        fileName,
+        suggestedPath: `${rule.folder}/${rule.subfolder}`,
+        reason: `File .${ext} nên được đặt trong thư mục ${rule.folder}`
+    };
+}
+
+// ============================================================
+// FEATURE #9 - NHẮC NHỞ THÔNG MINH (Smart Reminders)
+// Nhắc đúng lúc, đúng cách
+// ============================================================
+export function getSmartReminders() {
+    const tasks = globalData?.tasks || [];
+    const now = new Date();
+    const reminders = [];
+
+    for (const task of tasks) {
+        if (task.status === 'Hoàn thành') continue;
+
+        if (task.dueDate) {
+            const deadline = new Date(task.dueDate);
+            const hoursUntil = (deadline - now) / (1000 * 60 * 60);
+
+            if (hoursUntil <= 24 && hoursUntil > 0) {
+                reminders.push({
+                    taskId: task.id,
+                    name: task.name,
+                    type: 'deadline_soon',
+                    message: `⏰ Deadline trong ${Math.round(hoursUntil)} giờ!`,
+                    urgency: 'high'
+                });
+            } else if (hoursUntil <= 0) {
+                reminders.push({
+                    taskId: task.id,
+                    name: task.name,
+                    type: 'overdue',
+                    message: `🔴 Đã quá hạn ${Math.abs(Math.round(hoursUntil))} giờ!`,
+                    urgency: 'critical'
+                });
+            }
+        }
+
+        // Check for forgotten tasks (created > 7 days, not touched)
+        const created = new Date(task.createdAt);
+        const daysSinceCreated = (now - created) / (1000 * 60 * 60 * 24);
+
+        if (daysSinceCreated > 7 && !task.updatedAt) {
+            reminders.push({
+                taskId: task.id,
+                name: task.name,
+                type: 'forgotten',
+                message: `💤 Tạo từ ${Math.round(daysSinceCreated)} ngày trước, chưa có tiến triển`,
+                urgency: 'low'
+            });
+        }
+    }
+
+    return reminders.sort((a, b) => {
+        const urgencyOrder = { critical: 0, high: 1, medium: 2, low: 3 };
+        return urgencyOrder[a.urgency] - urgencyOrder[b.urgency];
+    });
+}
+
+// ============================================================
+// FEATURE #10 - WORKFLOW TỰ TỐI ƯU (Self-Optimizing Workflows)
+// Quy trình tự improve
+// ============================================================
+export function analyzeWorkflowEfficiency() {
+    const tasks = globalData?.tasks || [];
+    const completed = tasks.filter(t => t.status === 'Hoàn thành');
+
+    if (completed.length < 10) {
+        return {
+            status: 'insufficient_data',
+            message: 'Cần ít nhất 10 task hoàn thành để phân tích'
+        };
+    }
+
+    // Analyze patterns
+    const byCategory = {};
+    const byDayOfWeek = {};
+
+    for (const task of completed) {
+        const cat = task.category || 'Khác';
+        byCategory[cat] = (byCategory[cat] || 0) + 1;
+
+        const day = new Date(task.completedAt || task.createdAt).getDay();
+        byDayOfWeek[day] = (byDayOfWeek[day] || 0) + 1;
+    }
+
+    // Find best day
+    const bestDay = Object.entries(byDayOfWeek)
+        .sort((a, b) => b[1] - a[1])[0];
+
+    const dayNames = ['Chủ nhật', 'Thứ 2', 'Thứ 3', 'Thứ 4', 'Thứ 5', 'Thứ 6', 'Thứ 7'];
+
+    // Calculate efficiency trends
+    const recentTasks = completed.filter(t => {
+        const date = new Date(t.completedAt || t.createdAt);
+        return (new Date() - date) <= 14 * 24 * 60 * 60 * 1000;
+    });
+
+    const avgCompletionTime = recentTasks.reduce((sum, t) => {
+        if (t.completedAt && t.createdAt) {
+            return sum + (new Date(t.completedAt) - new Date(t.createdAt));
+        }
+        return sum;
+    }, 0) / recentTasks.length / (1000 * 60 * 60 * 24); // in days
+
+    return {
+        status: 'analyzed',
+        insights: {
+            topCategory: Object.entries(byCategory).sort((a, b) => b[1] - a[1])[0]?.[0],
+            bestDay: dayNames[parseInt(bestDay?.[0])] || 'N/A',
+            avgCompletionDays: Math.round(avgCompletionTime * 10) / 10,
+            totalCompleted: completed.length
+        },
+        recommendations: generateWorkflowRecommendations(avgCompletionTime, byDayOfWeek)
+    };
+}
+
+function generateWorkflowRecommendations(avgTime, byDay) {
+    const recs = [];
+
+    if (avgTime > 5) {
+        recs.push('Chia nhỏ tasks để hoàn thành nhanh hơn');
+    }
+
+    const weekendWork = (byDay[0] || 0) + (byDay[6] || 0);
+    const weekdayWork = Object.entries(byDay)
+        .filter(([d]) => d !== '0' && d !== '6')
+        .reduce((sum, [, c]) => sum + c, 0);
+
+    if (weekendWork > weekdayWork * 0.5) {
+        recs.push('Cân nhắc giảm làm việc cuối tuần');
+    }
+
+    if (recs.length === 0) {
+        recs.push('Workflow hiện tại đang hoạt động tốt!');
+    }
+
+    return recs;
+}
+
+// ============================================================
+// UI RENDER
+// ============================================================
+export function renderHyperAutoDashboard() {
+    const container = document.getElementById('hyperauto-dashboard-content');
+    if (!container) return;
+
+    const contextActions = getContextAwareActions();
+    const prioritized = autoPrioritizeTasks().slice(0, 5);
+    const reminders = getSmartReminders().slice(0, 5);
+    const meetingSlots = findOptimalMeetingSlots();
+    const workflow = analyzeWorkflowEfficiency();
+
+    container.innerHTML = `
+        <div class="hyperauto-grid">
+            <!-- Context Actions -->
+            <div class="hyperauto-card context-card">
+                <h3>🎯 Gợi ý Theo Ngữ cảnh</h3>
+                <div class="action-list">
+                    ${contextActions.map(a => `
+                        <div class="action-item ${a.priority}">
+                            <span>${a.label}</span>
+                        </div>
+                    `).join('') || '<p class="no-data">Không có gợi ý</p>'}
+                </div>
+            </div>
+            
+            <!-- Auto Priority -->
+            <div class="hyperauto-card priority-card">
+                <h3>⚡ Tự động Ưu tiên</h3>
+                <div class="priority-list">
+                    ${prioritized.map((t, i) => `
+                        <div class="priority-item">
+                            <span class="priority-rank">#${i + 1}</span>
+                            <span class="priority-title">${(t.name || t.title || 'Untitled').substring(0, 30)}...</span>
+                            <span class="priority-score">${t.autoScore}</span>
+                        </div>
+                    `).join('') || '<p class="no-data">Không có task</p>'}
+                </div>
+            </div>
+            
+            <!-- Smart Reminders -->
+            <div class="hyperauto-card reminders-card">
+                <h3>🔔 Nhắc nhở Thông minh</h3>
+                <div class="reminders-list">
+                    ${reminders.map(r => `
+                        <div class="reminder-item ${r.urgency}">
+                            <span class="reminder-msg">${r.message}</span>
+                            <span class="reminder-task">${(r.title || r.name || 'Untitled').substring(0, 25)}...</span>
+                        </div>
+                    `).join('') || '<p class="no-data">Không có nhắc nhở</p>'}
+                </div>
+            </div>
+            
+            <!-- Meeting Slots -->
+            <div class="hyperauto-card slots-card">
+                <h3>📅 Slot Họp Trống</h3>
+                <div class="slots-list">
+                    ${meetingSlots.map(s => `
+                        <div class="slot-item">
+                            <span>${s.label}</span>
+                        </div>
+                    `).join('') || '<p class="no-data">Không tìm thấy slot</p>'}
+                </div>
+            </div>
+            
+            <!-- Workflow Analysis -->
+            <div class="hyperauto-card workflow-card">
+                <h3>📊 Phân tích Workflow</h3>
+                ${workflow.status === 'analyzed' ? `
+                    <div class="workflow-insights">
+                        <div class="insight-item">
+                            <span class="insight-label">Ngày hiệu quả nhất</span>
+                            <span class="insight-value">${workflow.insights.bestDay}</span>
+                        </div>
+                        <div class="insight-item">
+                            <span class="insight-label">TB ngày hoàn thành</span>
+                            <span class="insight-value">${workflow.insights.avgCompletionDays} ngày</span>
+                        </div>
+                        <div class="insight-item">
+                            <span class="insight-label">Category chính</span>
+                            <span class="insight-value">${workflow.insights.topCategory}</span>
+                        </div>
+                    </div>
+                    <div class="workflow-recs">
+                        ${workflow.recommendations.map(r => `<p>💡 ${r}</p>`).join('')}
+                    </div>
+                ` : `<p class="no-data">${workflow.message}</p>`}
+            </div>
+            
+            <!-- AI Intent -->
+            <div class="hyperauto-card intent-card">
+                <h3>🤖 AI Hiểu Ý định</h3>
+                <div class="intent-input">
+                    <input type="text" id="intent-input" placeholder="Nói điều bạn muốn làm...">
+                    <button id="btn-process-intent">Xử lý</button>
+                </div>
+                <div id="intent-result" class="intent-result"></div>
+            </div>
+        </div>
+    `;
+
+    setupHyperAutoEvents();
+}
+
+function setupHyperAutoEvents() {
+    document.getElementById('btn-process-intent')?.addEventListener('click', async () => {
+        const input = document.getElementById('intent-input');
+        const result = document.getElementById('intent-result');
+        const intent = input.value.trim();
+
+        if (!intent) return;
+
+        result.innerHTML = '⏳ Đang xử lý...';
+        const processed = await processIntent(intent);
+
+        if (processed.error) {
+            result.innerHTML = `❌ ${processed.error}`;
+        } else {
+            result.innerHTML = `
+                <strong>Ý định:</strong> ${processed.intent}<br>
+                <strong>Hành động:</strong> ${processed.action}<br>
+                ${processed.needsConfirmation ? '<button class="btn-confirm">✅ Xác nhận</button>' : ''}
+            `;
+        }
+    });
+}
+
+// ============================================================
+// INIT
+// ============================================================
+export function initHyperAuto(data, user) {
+    globalData = data;
+    currentUser = user;
+    console.log('✅ LifeOS Phase 11 - Hyper Automation đã sẵn sàng');
+
+    // Auto-render when section becomes visible
+    const section = document.getElementById('hyperauto-dashboard');
+    if (section) {
+        // Check if section is already visible
+        if (!section.classList.contains('hidden') && section.style.display !== 'none') {
+            setTimeout(() => renderHyperAutoDashboard(), 100);
+        }
+
+        // Listen for section visibility changes using MutationObserver
+        const observer = new MutationObserver((mutations) => {
+            mutations.forEach((mutation) => {
+                if (mutation.type === 'attributes' &&
+                    (mutation.attributeName === 'class' || mutation.attributeName === 'style')) {
+                    const isVisible = !section.classList.contains('hidden') &&
+                        section.style.display !== 'none' &&
+                        getComputedStyle(section).display !== 'none';
+
+                    if (isVisible) {
+                        renderHyperAutoDashboard();
+                    }
+                }
+            });
+        });
+
+        observer.observe(section, {
+            attributes: true,
+            attributeFilter: ['class', 'style']
+        });
+    }
+
+    // Also setup menu button listener (backup method)
+    const menuBtn = document.querySelector('[data-target="hyperauto-dashboard"]');
+    if (menuBtn) {
+        menuBtn.addEventListener('click', () => {
+            setTimeout(() => renderHyperAutoDashboard(), 100);
+        });
+    }
+}
