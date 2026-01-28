@@ -403,8 +403,15 @@ function renderAlbums(albums) {
     if (!container) return;
     container.innerHTML = '';
 
+    // Thêm thông báo đang cập nhật
+    const notice = document.createElement('div');
+    notice.className = 'album-update-notice';
+    notice.style.cssText = 'text-align:center; padding:15px 20px; margin-bottom:25px; background:linear-gradient(135deg, rgba(0,91,150,0.08), rgba(255,122,0,0.05)); border-radius:12px; border:1px dashed rgba(0,91,150,0.3); color:#555; font-size:0.9rem; font-style:italic;';
+    notice.innerHTML = '✨ <span style="color:#005B96;">Hiện tại chuyên mục này vẫn đang được cập nhật thêm hình ảnh và thiết kế của mình, cảm ơn bạn đã quan tâm và theo dõi...</span>';
+    container.appendChild(notice);
+
     if (!albums || albums.length === 0) {
-        container.innerHTML = '<p style="text-align:center; color:#999; padding:20px;">Chưa có album nào.</p>';
+        container.innerHTML += '<p style="text-align:center; color:#999; padding:20px;">Chưa có album nào.</p>';
         return;
     }
 
