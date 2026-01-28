@@ -300,6 +300,13 @@ window.filterAchievements = (type) => {
 
     let filtered = (type === 'all') ? window.allAchievementsData : window.allAchievementsData.filter(a => a.category === type);
 
+    // Sắp xếp theo ngày mới nhất lên trước
+    filtered = [...filtered].sort((a, b) => {
+        const dateA = new Date(a.date || '1970-01-01');
+        const dateB = new Date(b.date || '1970-01-01');
+        return dateB - dateA; // Mới nhất trước
+    });
+
     if (filtered.length === 0) {
         container.innerHTML = '<p style="text-align:center; padding:20px; color:#999">Chưa có dữ liệu.</p>';
         return;
@@ -326,9 +333,10 @@ window.filterAchievements = (type) => {
         // Tạo unique ID để xử lý onerror
         const cardId = 'ach-img-' + Math.random().toString(36).substr(2, 9);
 
+        // Dùng object-fit: contain để ảnh không bị cắt, tăng height lên 200px
         const imgHtml = imageUrl
-            ? `<div id="${cardId}" class="ach-img-container" style="height:150px;overflow:hidden;position:relative;background:${cardColor};display:flex;align-items:center;justify-content:center;">
-                <img src="${imageUrl}" style="width:100%;height:100%;object-fit:cover;position:absolute;top:0;left:0;" loading="lazy" 
+            ? `<div id="${cardId}" class="ach-img-container" style="height:200px;overflow:hidden;position:relative;background:#f5f5f5;display:flex;align-items:center;justify-content:center;">
+                <img src="${imageUrl}" style="width:100%;height:100%;object-fit:contain;position:absolute;top:0;left:0;" loading="lazy" 
                      onload="this.style.opacity='1'" 
                      onerror="this.style.display='none'; this.parentElement.querySelector('.ach-fallback').style.display='flex'">
                 <div class="ach-fallback" style="display:none;width:100%;height:100%;align-items:center;justify-content:center;font-size:2.5rem;">📄</div>
