@@ -1,0 +1,343 @@
+/* ============================================
+   🎨 MODERN UI POLISH - CSS-Only Enhancements
+   Improves the look without changing HTML structure
+   ============================================ */
+
+/* ============================================
+   GLOBAL IMPROVEMENTS
+   ============================================ */
+
+/* Smoother font rendering */
+body {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+/* Better focus states */
+*:focus {
+    outline: none;
+}
+
+*:focus-visible {
+    outline: 2px solid var(--primary-color, #0ea5e9);
+    outline-offset: 2px;
+}
+
+/* ============================================
+   SIDEBAR POLISH
+   ============================================ */
+.sidebar {
+    background: linear-gradient(180deg, #0f172a 0%, #1e293b 100%) !important;
+}
+
+.sidebar .nav-btn {
+    border-radius: 10px !important;
+    margin: 2px 8px !important;
+    padding: 12px 16px !important;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    font-weight: 500 !important;
+}
+
+.sidebar .nav-btn:hover {
+    background: rgba(14, 165, 233, 0.15) !important;
+    transform: translateX(4px);
+}
+
+.sidebar .nav-btn.active {
+    background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%) !important;
+    box-shadow: 0 4px 15px rgba(14, 165, 233, 0.4) !important;
+}
+
+.sidebar-header {
+    background: linear-gradient(135deg, rgba(14, 165, 233, 0.2) 0%, rgba(2, 132, 199, 0.1) 100%) !important;
+    border-radius: 0 0 20px 20px !important;
+    margin-bottom: 10px !important;
+}
+
+/* ============================================
+   CONTENT AREA POLISH
+   ============================================ */
+.main-content {
+    background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%) !important;
+}
+
+.content-section h1 {
+    background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    font-weight: 700 !important;
+}
+
+/* ============================================
+   FORM CONTAINER POLISH
+   ============================================ */
+.form-container {
+    background: white !important;
+    border-radius: 20px !important;
+    padding: 25px !important;
+    box-shadow: 0 4px 25px rgba(0, 0, 0, 0.06) !important;
+    border: 1px solid rgba(14, 165, 233, 0.1) !important;
+}
+
+.form-group label {
+    font-weight: 600 !important;
+    color: #334155 !important;
+    font-size: 0.9rem !important;
+}
+
+.form-group input,
+.form-group select,
+.form-group textarea {
+    border: 2px solid #e2e8f0 !important;
+    border-radius: 10px !important;
+    padding: 12px 16px !important;
+    transition: all 0.2s ease !important;
+    background: #f8fafc !important;
+}
+
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+    border-color: #0ea5e9 !important;
+    box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.15) !important;
+    background: white !important;
+}
+
+/* ============================================
+   BUTTON IMPROVEMENTS
+   ============================================ */
+.btn-submit,
+button.btn-submit {
+    background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%) !important;
+    border: none !important;
+    border-radius: 12px !important;
+    padding: 14px 28px !important;
+    font-weight: 600 !important;
+    color: white !important;
+    box-shadow: 0 4px 15px rgba(14, 165, 233, 0.35) !important;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    cursor: pointer !important;
+}
+
+.btn-submit:hover,
+button.btn-submit:hover {
+    transform: translateY(-2px) !important;
+    box-shadow: 0 8px 25px rgba(14, 165, 233, 0.45) !important;
+}
+
+.btn-submit:active,
+button.btn-submit:active {
+    transform: translateY(0) !important;
+}
+
+/* Filter buttons */
+.filter-btn {
+    border: 2px solid #e2e8f0 !important;
+    border-radius: 20px !important;
+    padding: 8px 18px !important;
+    background: white !important;
+    color: #64748b !important;
+    font-weight: 500 !important;
+    transition: all 0.2s ease !important;
+}
+
+.filter-btn:hover {
+    border-color: #0ea5e9 !important;
+    color: #0ea5e9 !important;
+}
+
+.filter-btn.active {
+    background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%) !important;
+    border-color: transparent !important;
+    color: white !important;
+    box-shadow: 0 4px 12px rgba(14, 165, 233, 0.3) !important;
+}
+
+/* ============================================
+   TASK LIST ITEMS POLISH
+   ============================================ */
+.task-item,
+.list-container>div {
+    background: white !important;
+    border-radius: 14px !important;
+    padding: 16px 20px !important;
+    margin-bottom: 10px !important;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.04) !important;
+    border-left: 4px solid transparent !important;
+    transition: all 0.2s ease !important;
+}
+
+.task-item:hover,
+.list-container>div:hover {
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08) !important;
+    transform: translateY(-2px) !important;
+}
+
+/* Priority colors */
+.task-item[data-priority="high"],
+.list-container>div[data-priority="high"] {
+    border-left-color: #f43f5e !important;
+}
+
+.task-item[data-priority="medium"],
+.list-container>div[data-priority="medium"] {
+    border-left-color: #f59e0b !important;
+}
+
+.task-item[data-priority="low"],
+.list-container>div[data-priority="low"] {
+    border-left-color: #10b981 !important;
+}
+
+/* ============================================
+   DASHBOARD CARDS POLISH
+   ============================================ */
+.dashboard-card,
+#dashboard-grid>div {
+    border-radius: 20px !important;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06) !important;
+    transition: all 0.3s ease !important;
+    overflow: hidden !important;
+}
+
+.dashboard-card:hover,
+#dashboard-grid>div:hover {
+    transform: translateY(-4px) !important;
+    box-shadow: 0 12px 35px rgba(0, 0, 0, 0.1) !important;
+}
+
+/* ============================================
+   QUICK ADD INPUT POLISH
+   ============================================ */
+.quick-add-container {
+    background: white !important;
+    border-radius: 16px !important;
+    padding: 16px !important;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05) !important;
+    margin-bottom: 20px !important;
+}
+
+.quick-add-container input,
+#quick-add-task-input {
+    border: 2px solid #e2e8f0 !important;
+    border-radius: 12px !important;
+    padding: 14px 20px !important;
+    font-size: 1rem !important;
+    width: 100% !important;
+    transition: all 0.2s ease !important;
+}
+
+.quick-add-container input:focus,
+#quick-add-task-input:focus {
+    border-color: #0ea5e9 !important;
+    box-shadow: 0 0 0 4px rgba(14, 165, 233, 0.12) !important;
+}
+
+/* ============================================
+   SETTINGS CARDS POLISH
+   ============================================ */
+.settings-card {
+    background: white !important;
+    border-radius: 20px !important;
+    padding: 24px !important;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05) !important;
+    border: 1px solid rgba(14, 165, 233, 0.08) !important;
+}
+
+/* Toggle switch improvement */
+.toggle-switch .slider {
+    border-radius: 34px !important;
+}
+
+.toggle-switch input:checked+.slider {
+    background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%) !important;
+}
+
+/* ============================================
+   SCROLLBAR STYLING
+   ============================================ */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: #f1f5f9;
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%);
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #0284c7;
+}
+
+/* ============================================
+   ANIMATIONS
+   ============================================ */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.content-section.active {
+    animation: fadeInUp 0.3s ease-out;
+}
+
+/* Smooth transitions for all interactive elements */
+a,
+button,
+input,
+select,
+textarea,
+.nav-btn,
+.filter-btn,
+.task-item {
+    transition: all 0.2s ease !important;
+}
+
+/* ============================================
+   DARK MODE ADJUSTMENTS
+   ============================================ */
+.dark-mode .form-container,
+.dark-mode .quick-add-container,
+.dark-mode .settings-card,
+.dark-mode .task-item,
+.dark-mode .dashboard-card {
+    background: #1e293b !important;
+    border-color: #334155 !important;
+}
+
+.dark-mode .form-group input,
+.dark-mode .form-group select,
+.dark-mode .form-group textarea,
+.dark-mode #quick-add-task-input {
+    background: #0f172a !important;
+    border-color: #334155 !important;
+    color: #f1f5f9 !important;
+}
+
+.dark-mode .filter-btn {
+    background: #1e293b !important;
+    border-color: #334155 !important;
+    color: #94a3b8 !important;
+}
+
+.dark-mode .main-content {
+    background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%) !important;
+}
+
+.dark-mode ::-webkit-scrollbar-track {
+    background: #1e293b;
+}

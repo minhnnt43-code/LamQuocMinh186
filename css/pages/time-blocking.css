@@ -1,0 +1,382 @@
+/* ========================================
+   TIME BLOCKING - SPLIT VIEW INTERFACE
+   ======================================== */
+
+/* Main Container - Split Layout */
+.time-blocking-container {
+    display: flex;
+    gap: 20px;
+    height: calc(100vh - 280px);
+    min-height: 500px;
+}
+
+/* Calendar Side (70%) */
+.time-blocking-calendar {
+    flex: 7;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+/* Sidebar (30%) */
+.time-blocking-sidebar {
+    flex: 3;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.95), rgba(248, 250, 252, 0.98));
+    border-radius: 16px;
+    border: 1px solid rgba(102, 126, 234, 0.15);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    transition: width 0.3s ease, opacity 0.3s ease;
+}
+
+.time-blocking-sidebar.collapsed {
+    width: 50px;
+    min-width: 50px;
+    flex: none;
+}
+
+.time-blocking-sidebar.collapsed .sidebar-content {
+    opacity: 0;
+    pointer-events: none;
+}
+
+/* Sidebar Header */
+.tb-sidebar-header {
+    padding: 16px 20px;
+    background: linear-gradient(135deg, #667eea, #764ba2) !important;
+    color: white !important;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-radius: 16px 16px 0 0;
+}
+
+.tb-sidebar-header h3 {
+    margin: 0;
+    font-size: 1rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: white !important;
+}
+
+.tb-sidebar-header .collapse-btn {
+    background: rgba(255, 255, 255, 0.2);
+    border: none;
+    color: white;
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-size: 1.2rem;
+}
+
+.tb-sidebar-header .collapse-btn:hover {
+    background: rgba(255, 255, 255, 0.3);
+    transform: scale(1.1);
+}
+
+/* Sidebar Content */
+.tb-sidebar-content {
+    flex: 1;
+    overflow-y: auto;
+    padding: 16px;
+}
+
+/* Task Filter Pills */
+.tb-filter-pills {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-bottom: 16px;
+}
+
+.tb-filter-pill {
+    padding: 6px 14px;
+    border-radius: 20px;
+    background: #e2e8f0;
+    border: 1px solid #cbd5e1;
+    font-size: 0.8rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    color: #334155;
+    font-weight: 600;
+}
+
+.tb-filter-pill:hover {
+    background: #cbd5e1;
+    border-color: #94a3b8;
+}
+
+.tb-filter-pill.active {
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: white;
+    border-color: transparent;
+}
+
+/* Unscheduled Task List */
+.unscheduled-tasks {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+/* Draggable Task Card */
+.tb-task-card {
+    background: white;
+    border-radius: 12px;
+    padding: 14px 16px;
+    cursor: grab;
+    border: 2px dashed transparent;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    transition: all 0.2s;
+    position: relative;
+}
+
+.tb-task-card:hover {
+    box-shadow: 0 4px 16px rgba(102, 126, 234, 0.2);
+    border-color: #667eea;
+    transform: translateY(-2px);
+}
+
+.tb-task-card:active {
+    cursor: grabbing;
+}
+
+.tb-task-card.dragging {
+    opacity: 0.5;
+    transform: rotate(3deg);
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
+}
+
+/* Task Card Content */
+.tb-task-name {
+    font-weight: 600;
+    font-size: 0.9rem;
+    color: #1f2937;
+    margin-bottom: 8px;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.tb-task-meta {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.75rem;
+    color: #64748b;
+}
+
+/* Priority Badge */
+.tb-priority-badge {
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-weight: 600;
+    font-size: 0.7rem;
+    text-transform: uppercase;
+}
+
+.tb-priority-badge.high {
+    background: linear-gradient(135deg, #fef2f2, #fee2e2);
+    color: #dc2626;
+}
+
+.tb-priority-badge.medium {
+    background: linear-gradient(135deg, #fffbeb, #fef3c7);
+    color: #d97706;
+}
+
+.tb-priority-badge.low {
+    background: linear-gradient(135deg, #f0fdf4, #dcfce7);
+    color: #16a34a;
+}
+
+/* Duration Badge */
+.tb-duration-badge {
+    background: #f1f5f9;
+    padding: 2px 8px;
+    border-radius: 10px;
+    color: #64748b;
+}
+
+/* Drop Zone Highlight */
+.calendar-table-new tbody td.drop-highlight {
+    background: rgba(102, 126, 234, 0.15) !important;
+    border: 2px dashed #667eea !important;
+}
+
+.calendar-table-new tbody td.drop-hover {
+    background: rgba(102, 126, 234, 0.25) !important;
+    transform: scale(1.02);
+}
+
+/* Ghost Preview on Calendar */
+.tb-ghost-preview {
+    position: absolute;
+    left: 3px;
+    right: 3px;
+    background: linear-gradient(135deg, rgba(102, 126, 234, 0.8), rgba(118, 75, 162, 0.8));
+    border-radius: 8px;
+    padding: 8px;
+    color: white;
+    font-size: 0.8rem;
+    font-weight: 600;
+    pointer-events: none;
+    opacity: 0.8;
+    z-index: 100;
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+}
+
+/* Scheduled Task on Calendar */
+.calendar-scheduled-task {
+    position: absolute;
+    left: 3px;
+    right: 3px;
+    background: linear-gradient(135deg, #10b981, #059669);
+    border-radius: 8px;
+    padding: 6px 10px;
+    color: white;
+    font-size: 0.8rem;
+    font-weight: 600;
+    cursor: grab;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
+    z-index: 10;
+    transition: all 0.2s;
+}
+
+.calendar-scheduled-task:hover {
+    transform: scale(1.02);
+    box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4);
+}
+
+.calendar-scheduled-task.priority-high {
+    background: linear-gradient(135deg, #ef4444, #dc2626);
+    box-shadow: 0 2px 8px rgba(239, 68, 68, 0.3);
+}
+
+.calendar-scheduled-task.priority-medium {
+    background: linear-gradient(135deg, #f59e0b, #d97706);
+    box-shadow: 0 2px 8px rgba(245, 158, 11, 0.3);
+}
+
+/* Overlap Warning Modal */
+.overlap-modal {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: white;
+    border-radius: 16px;
+    padding: 24px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+    z-index: 1000;
+    max-width: 400px;
+    width: 90%;
+}
+
+.overlap-modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.4);
+    z-index: 999;
+    backdrop-filter: blur(4px);
+}
+
+.overlap-modal h3 {
+    color: #f59e0b;
+    margin: 0 0 16px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.overlap-modal-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 20px;
+}
+
+.overlap-modal-actions button {
+    flex: 1;
+    padding: 12px;
+    border-radius: 10px;
+    border: none;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.overlap-modal-actions .btn-cancel {
+    background: #f1f5f9;
+    color: #64748b;
+}
+
+.overlap-modal-actions .btn-confirm {
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: white;
+}
+
+/* Empty State */
+.tb-empty-state {
+    text-align: center;
+    padding: 40px 20px;
+    color: #94a3b8;
+}
+
+.tb-empty-state .emoji {
+    font-size: 3rem;
+    margin-bottom: 12px;
+}
+
+.tb-empty-state p {
+    margin: 0;
+    font-size: 0.9rem;
+}
+
+/* Stats Counter */
+.tb-stats {
+    background: linear-gradient(135deg, #f0f9ff, #e0f2fe);
+    padding: 12px 16px;
+    border-radius: 12px;
+    margin-bottom: 16px;
+    display: flex;
+    justify-content: space-between;
+}
+
+.tb-stat-item {
+    text-align: center;
+}
+
+.tb-stat-value {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: #0284c7;
+}
+
+.tb-stat-label {
+    font-size: 0.7rem;
+    color: #64748b;
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+    .time-blocking-container {
+        flex-direction: column;
+        height: auto;
+    }
+
+    .time-blocking-sidebar {
+        order: -1;
+        max-height: 300px;
+    }
+}

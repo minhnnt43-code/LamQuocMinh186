@@ -1,0 +1,336 @@
+/* === GLASS SLIDE-OVER PANEL SYSTEM === */
+
+/* Backdrop */
+.slide-panel-backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(15, 23, 42, 0.2);
+    backdrop-filter: blur(2px);
+    z-index: 2000;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+}
+
+.slide-panel-backdrop.active {
+    opacity: 1;
+    visibility: visible;
+}
+
+/* Panel Container (Modern Center Modal) */
+.slide-panel {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    width: 600px;
+    max-width: 90vw;
+    height: auto;
+    max-height: 90vh;
+    background: #ffffff;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.2);
+    z-index: 2050;
+    transform: translate(-50%, -50%) scale(0.95);
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    display: flex;
+    flex-direction: column;
+    border-radius: 16px;
+    pointer-events: none;
+    overflow: hidden;
+}
+
+.slide-panel.active {
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+}
+
+/* Dark Mode */
+[data-theme="dark"] .slide-panel {
+    background: rgba(30, 41, 59, 0.9);
+    border-left-color: rgba(255, 255, 255, 0.1);
+}
+
+/* Panel Header */
+.panel-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 24px;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+[data-theme="dark"] .panel-header {
+    border-bottom-color: rgba(255, 255, 255, 0.05);
+}
+
+.panel-title {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #1e293b;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+[data-theme="dark"] .panel-title {
+    color: #f1f5f9;
+}
+
+.panel-close-btn {
+    background: transparent;
+    border: none;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: #94a3b8;
+    background: #f1f5f9;
+    transition: all 0.2s;
+    font-size: 1.2rem;
+}
+
+.panel-close-btn:hover {
+    background: #e2e8f0;
+    color: #ef4444;
+    transform: rotate(90deg);
+}
+
+[data-theme="dark"] .panel-close-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+/* Panel Body */
+.panel-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 24px;
+    position: relative;
+    z-index: 1;
+}
+
+/* [FIX] Đảm bảo form inputs trong slide panel luôn tương tác được */
+.slide-panel input,
+.slide-panel select,
+.slide-panel textarea,
+.slide-panel button {
+    pointer-events: auto !important;
+    position: relative;
+    z-index: 2;
+}
+
+.slide-panel .form-group input,
+.slide-panel .form-group select,
+.slide-panel .form-group textarea {
+    background: #ffffff !important;
+    border: 2px solid #e2e8f0 !important;
+    color: #1e293b !important;
+    opacity: 1 !important;
+    cursor: text;
+}
+
+.slide-panel .form-group input:focus,
+.slide-panel .form-group select:focus,
+.slide-panel .form-group textarea:focus {
+    border-color: #667eea !important;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.2) !important;
+    background: #ffffff !important;
+}
+
+/* Panel Footer */
+.panel-footer {
+    padding: 16px 24px;
+    border-top: 1px solid rgba(0, 0, 0, 0.05);
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    background: rgba(255, 255, 255, 0.5);
+}
+
+[data-theme="dark"] .panel-footer {
+    border-top-color: rgba(255, 255, 255, 0.05);
+    background: rgba(30, 41, 59, 0.5);
+}
+
+/* Form Layout in Panel (Modern 2-Column Grid) */
+.panel-form-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+/* Tăng nhẹ chiều rộng slide-panel để 2 cột thoải mái hơn */
+.slide-panel {
+    width: 680px;
+}
+
+/* Form Card (Logical Groups) */
+.form-card {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+    transition: all 0.2s;
+}
+
+.form-card:hover {
+    border-color: #cbd5e1;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+[data-theme="dark"] .form-card {
+    background: rgba(30, 41, 59, 0.6);
+    border-color: rgba(255, 255, 255, 0.05);
+}
+
+/* Section Titles */
+.form-section-title {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: #475569;
+    margin-top: 0;
+    margin-bottom: 16px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border-bottom: 2px solid #f1f5f9;
+    padding-bottom: 8px;
+}
+
+[data-theme="dark"] .form-section-title {
+    color: #94a3b8;
+    border-bottom-color: rgba(255, 255, 255, 0.05);
+}
+
+/* 2-Column Row layout */
+.form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 16px;
+}
+
+.form-row:last-child {
+    margin-bottom: 0;
+}
+
+.form-group.full-width {
+    grid-column: 1 / -1;
+}
+
+.form-group label {
+    display: block;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #64748b;
+    margin-bottom: 6px;
+}
+
+[data-theme="dark"] .form-group label {
+    color: #94a3b8;
+}
+
+/* Beautiful Inputs & Selects */
+.modern-input,
+.modern-select,
+.slide-panel select,
+.slide-panel input:not([type="hidden"]):not([type="checkbox"]) {
+    width: 100%;
+    padding: 10px 14px;
+    border: 2px solid #e2e8f0 !important;
+    border-radius: 8px;
+    font-size: 0.95rem;
+    background: #f8fafc !important;
+    color: #1e293b !important;
+    transition: all 0.2s;
+    font-family: inherit;
+}
+
+.modern-select,
+.slide-panel select {
+    appearance: none;
+    background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%2364748b%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E");
+    background-repeat: no-repeat;
+    background-position: right 14px top 50%;
+    background-size: 10px auto;
+    padding-right: 30px;
+}
+
+.modern-input:focus,
+.modern-select:focus,
+.slide-panel select:focus,
+.slide-panel input:focus {
+    background: #ffffff !important;
+    border-color: #667eea !important;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.15) !important;
+    outline: none;
+}
+
+[data-theme="dark"] .modern-input,
+[data-theme="dark"] .modern-select,
+[data-theme="dark"] .slide-panel select,
+[data-theme="dark"] .slide-panel input:not([type="hidden"]):not([type="checkbox"]) {
+    background: #0f172a !important;
+    border-color: #334155 !important;
+    color: #f1f5f9 !important;
+}
+
+/* Hero Input (Task Name) */
+.form-group-hero input {
+    width: 100%;
+    font-size: 1.25rem !important;
+    font-weight: 700;
+    padding: 16px 20px !important;
+    border: 2px solid #e2e8f0 !important;
+    border-radius: 12px !important;
+    margin-bottom: 20px;
+    background: #ffffff !important;
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.02);
+}
+
+.form-group-hero input:focus {
+    border-color: #667eea !important;
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.1) !important;
+}
+
+[data-theme="dark"] .form-group-hero input {
+    background: #0f172a !important;
+    border-color: #334155 !important;
+    color: #f1f5f9 !important;
+}
+
+/* Modal Submit Button Polish */
+.slide-panel .btn-submit {
+    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%) !important;
+    color: white !important;
+    border: none !important;
+    padding: 12px 28px !important;
+    border-radius: 12px !important;
+    font-size: 1.05rem !important;
+    font-weight: 600 !important;
+    box-shadow: 0 4px 14px rgba(59, 130, 246, 0.3) !important;
+    cursor: pointer !important;
+    transition: all 0.2s ease !important;
+}
+
+.slide-panel .btn-submit:hover {
+    transform: translateY(-2px) !important;
+    box-shadow: 0 6px 20px rgba(59, 130, 246, 0.4) !important;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .slide-panel {
+        width: 100%;
+        border-left: none;
+    }
+}

@@ -1,0 +1,328 @@
+/* ========================================
+   EISENHOWER MATRIX DASHBOARD
+   Ma trận ưu tiên 4 ô
+   ======================================== */
+
+/* Matrix Container */
+.eisenhower-matrix {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: 1fr 1fr;
+    gap: 16px;
+    height: calc(100vh - 280px);
+    min-height: 500px;
+    padding: 20px;
+}
+
+/* Each Quadrant */
+.matrix-quadrant {
+    border-radius: 20px;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    transition: all 0.3s ease;
+    position: relative;
+}
+
+.matrix-quadrant:hover {
+    transform: scale(1.01);
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+}
+
+/* Quadrant Headers */
+.quadrant-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 16px;
+    padding-bottom: 12px;
+    border-bottom: 2px solid rgba(255, 255, 255, 0.3);
+}
+
+.quadrant-title {
+    font-size: 1.1rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.quadrant-count {
+    background: rgba(255, 255, 255, 0.3);
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+
+.quadrant-subtitle {
+    font-size: 0.75rem;
+    opacity: 0.8;
+    margin-top: 4px;
+}
+
+/* Quadrant Colors */
+.quadrant-q1 {
+    background: linear-gradient(135deg, #fef2f2, #fee2e2);
+    border: 2px solid #fecaca;
+}
+
+.quadrant-q1 .quadrant-header {
+    color: #dc2626;
+    border-color: #fca5a5;
+}
+
+.quadrant-q2 {
+    background: linear-gradient(135deg, #eff6ff, #dbeafe);
+    border: 2px solid #bfdbfe;
+}
+
+.quadrant-q2 .quadrant-header {
+    color: #2563eb;
+    border-color: #93c5fd;
+}
+
+.quadrant-q3 {
+    background: linear-gradient(135deg, #fffbeb, #fef3c7);
+    border: 2px solid #fde68a;
+}
+
+.quadrant-q3 .quadrant-header {
+    color: #d97706;
+    border-color: #fcd34d;
+}
+
+.quadrant-q4 {
+    background: linear-gradient(135deg, #f9fafb, #f3f4f6);
+    border: 2px solid #e5e7eb;
+}
+
+.quadrant-q4 .quadrant-header {
+    color: #6b7280;
+    border-color: #d1d5db;
+}
+
+/* Task Cards Container */
+.quadrant-tasks {
+    flex: 1;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding-right: 5px;
+}
+
+/* Task Card */
+.matrix-task-card {
+    background: white;
+    border-radius: 12px;
+    padding: 12px 16px;
+    cursor: grab;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    transition: all 0.2s;
+    border-left: 4px solid transparent;
+}
+
+.matrix-task-card:hover {
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+    transform: translateY(-2px);
+}
+
+.matrix-task-card:active {
+    cursor: grabbing;
+}
+
+.matrix-task-card.dragging {
+    opacity: 0.5;
+    transform: rotate(2deg) scale(1.02);
+}
+
+/* Task Card in different quadrants */
+.quadrant-q1 .matrix-task-card {
+    border-left-color: #dc2626;
+}
+
+.quadrant-q2 .matrix-task-card {
+    border-left-color: #2563eb;
+}
+
+.quadrant-q3 .matrix-task-card {
+    border-left-color: #d97706;
+}
+
+.quadrant-q4 .matrix-task-card {
+    border-left-color: #9ca3af;
+}
+
+/* Task Name */
+.matrix-task-name {
+    font-weight: 600;
+    font-size: 0.9rem;
+    color: #1f2937;
+    margin-bottom: 6px;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+/* Task Meta */
+.matrix-task-meta {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.75rem;
+    color: #6b7280;
+}
+
+/* Due date badge */
+.matrix-due-badge {
+    background: #f1f5f9;
+    padding: 2px 8px;
+    border-radius: 8px;
+}
+
+.matrix-due-badge.overdue {
+    background: #fef2f2;
+    color: #dc2626;
+}
+
+.matrix-due-badge.today {
+    background: #dcfce7;
+    color: #16a34a;
+}
+
+/* Drop Zone Effect */
+.matrix-quadrant.drop-target {
+    box-shadow: inset 0 0 0 3px currentColor;
+    opacity: 0.9;
+}
+
+.matrix-quadrant.drop-target::after {
+    content: 'Thả vào đây';
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255, 255, 255, 0.8);
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: inherit;
+    border-radius: 18px;
+    backdrop-filter: blur(4px);
+}
+
+/* Q4 Delete Animation */
+.quadrant-q4.delete-active::after {
+    content: '🗑️ Bỏ qua task này?';
+    background: rgba(107, 114, 128, 0.9);
+    color: white;
+}
+
+/* Section Header */
+.eisenhower-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    padding: 0 20px;
+}
+
+.eisenhower-header h1 {
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.eisenhower-legend {
+    display: flex;
+    gap: 16px;
+    font-size: 0.85rem;
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.legend-dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 4px;
+}
+
+.legend-dot.q1 {
+    background: #dc2626;
+}
+
+.legend-dot.q2 {
+    background: #2563eb;
+}
+
+.legend-dot.q3 {
+    background: #d97706;
+}
+
+.legend-dot.q4 {
+    background: #9ca3af;
+}
+
+/* Stats Bar */
+.eisenhower-stats {
+    display: flex;
+    gap: 12px;
+    padding: 12px 20px;
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    border-radius: 12px;
+    margin: 0 20px 16px;
+    color: white;
+}
+
+.e-stat-item {
+    flex: 1;
+    text-align: center;
+    padding: 8px;
+    background: rgba(255, 255, 255, 0.15);
+    border-radius: 8px;
+}
+
+.e-stat-value {
+    font-size: 1.5rem;
+    font-weight: 700;
+}
+
+.e-stat-label {
+    font-size: 0.75rem;
+    opacity: 0.9;
+}
+
+/* Empty State */
+.quadrant-empty {
+    text-align: center;
+    padding: 30px;
+    color: inherit;
+    opacity: 0.6;
+}
+
+.quadrant-empty .emoji {
+    font-size: 2rem;
+    margin-bottom: 8px;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .eisenhower-matrix {
+        grid-template-columns: 1fr;
+        grid-template-rows: repeat(4, minmax(200px, 1fr));
+        height: auto;
+    }
+
+    .eisenhower-legend {
+        display: none;
+    }
+}

@@ -1,0 +1,282 @@
+/* ============================================================
+   AGENDA VIEW - Nhật ký thời gian kiểu Todoist
+   ============================================================ */
+
+.agenda-wrapper {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+
+/* Group */
+.agenda-group {
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.04);
+    overflow: hidden;
+    border: 1px solid #e2e8f0;
+}
+
+.agenda-group-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px 20px;
+    border-bottom: 1px solid #f1f5f9;
+}
+
+.agenda-group-title {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: #334155;
+    margin: 0;
+}
+
+.agenda-group-count {
+    background: #f1f5f9;
+    color: #64748b;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+
+/* Overdue group */
+.agenda-overdue {
+    border-color: #fecaca;
+}
+
+.agenda-overdue .agenda-group-header {
+    background: linear-gradient(135deg, #fef2f2, #fee2e2);
+    border-bottom-color: #fecaca;
+}
+
+.agenda-overdue .agenda-group-title {
+    color: #991b1b;
+}
+
+.agenda-overdue .agenda-group-count {
+    background: #ef4444;
+    color: white;
+}
+
+/* Today group */
+.agenda-today {
+    border-color: #bfdbfe;
+    box-shadow: 0 4px 20px rgba(59, 130, 246, 0.1);
+}
+
+.agenda-today .agenda-group-header {
+    background: linear-gradient(135deg, #eff6ff, #dbeafe);
+    border-bottom-color: #bfdbfe;
+}
+
+.agenda-today .agenda-group-title {
+    color: #1e40af;
+}
+
+.agenda-today .agenda-group-count {
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: white;
+}
+
+/* Tomorrow */
+.agenda-tomorrow .agenda-group-header {
+    background: linear-gradient(135deg, #fefce8, #fef9c3);
+}
+
+.agenda-tomorrow .agenda-group-count {
+    background: #f59e0b;
+    color: white;
+}
+
+/* Done group */
+.agenda-done {
+    opacity: 0.7;
+}
+
+.agenda-done .agenda-group-header {
+    background: linear-gradient(135deg, #f0fdf4, #dcfce7);
+}
+
+.agenda-done .agenda-group-count {
+    background: #22c55e;
+    color: white;
+}
+
+/* Items */
+.agenda-group-items {
+    padding: 8px;
+}
+
+.agenda-item {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 12px 14px;
+    border-radius: 10px;
+    transition: background 0.15s;
+    cursor: default;
+}
+
+.agenda-item:hover {
+    background: #f8fafc;
+}
+
+.agenda-item.done {
+    opacity: 0.5;
+}
+
+.agenda-item.done .agenda-item-title {
+    text-decoration: line-through;
+    color: #94a3b8;
+}
+
+/* Checkbox */
+.agenda-checkbox {
+    position: relative;
+    display: flex;
+    cursor: pointer;
+}
+
+.agenda-checkbox input {
+    position: absolute;
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.agenda-checkmark {
+    width: 22px;
+    height: 22px;
+    border: 2px solid #cbd5e1;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+}
+
+.agenda-checkmark.priority-high {
+    border-color: #ef4444;
+}
+
+.agenda-checkmark.priority-medium {
+    border-color: #f59e0b;
+}
+
+.agenda-checkmark.priority-low {
+    border-color: #22c55e;
+}
+
+.agenda-checkbox input:checked+.agenda-checkmark {
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    border-color: transparent;
+}
+
+.agenda-checkbox input:checked+.agenda-checkmark::after {
+    content: '✓';
+    color: white;
+    font-size: 0.7rem;
+    font-weight: 700;
+}
+
+/* Content */
+.agenda-item-content {
+    flex: 1;
+    min-width: 0;
+    cursor: pointer;
+}
+
+.agenda-item-title {
+    font-weight: 600;
+    font-size: 0.95rem;
+    color: #1e293b;
+    margin-bottom: 4px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.agenda-item-content:hover .agenda-item-title {
+    color: #667eea;
+}
+
+.agenda-item-meta {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    font-size: 0.8rem;
+    color: #64748b;
+}
+
+.agenda-cat {
+    background: #f1f5f9;
+    padding: 2px 8px;
+    border-radius: 8px;
+}
+
+.agenda-date {
+    white-space: nowrap;
+}
+
+/* Status Badge */
+.agenda-status-badge {
+    padding: 4px 10px;
+    border-radius: 8px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.agenda-status-badge.status-todo {
+    background: #fef3c7;
+    color: #92400e;
+}
+
+.agenda-status-badge.status-progress {
+    background: #dbeafe;
+    color: #1e40af;
+}
+
+/* Empty */
+.agenda-empty {
+    text-align: center;
+    padding: 24px;
+    color: #94a3b8;
+    font-size: 0.9rem;
+}
+
+/* Dark Mode */
+[data-theme="dark"] .agenda-group {
+    background: #1e293b;
+    border-color: #334155;
+}
+
+[data-theme="dark"] .agenda-group-header {
+    border-bottom-color: #334155;
+}
+
+[data-theme="dark"] .agenda-group-title {
+    color: #e2e8f0;
+}
+
+[data-theme="dark"] .agenda-item:hover {
+    background: #334155;
+}
+
+[data-theme="dark"] .agenda-item-title {
+    color: #f1f5f9;
+}
+
+[data-theme="dark"] .agenda-today {
+    border-color: #3b82f6;
+}
+
+[data-theme="dark"] .agenda-overdue .agenda-group-header {
+    background: linear-gradient(135deg, rgba(239, 68, 68, 0.15), rgba(239, 68, 68, 0.1));
+}
+
+[data-theme="dark"] .agenda-today .agenda-group-header {
+    background: linear-gradient(135deg, rgba(59, 130, 246, 0.15), rgba(59, 130, 246, 0.1));
+}

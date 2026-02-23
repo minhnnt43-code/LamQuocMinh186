@@ -1,0 +1,114 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html,
+body {
+    height: 100%;
+    overflow-x: hidden;
+    overflow-y: auto;
+}
+
+body {
+    font-family: var(--font-body);
+    background-color: #fff !important;
+    background-image: var(--grad-bg);
+    background-attachment: fixed;
+    color: var(--text-color);
+    line-height: 1.6;
+    transition: background-color 0.3s, color 0.3s;
+}
+
+/* CARDS - Dễ nhìn hơn */
+.card-background,
+.dashboard-card,
+.info-widget {
+    background: var(--card-background);
+    border: 1px solid rgba(0, 91, 150, 0.1);
+    border-radius: var(--glass-radius);
+    box-shadow: var(--card-shadow);
+    backdrop-filter: blur(10px);
+}
+
+/* Tiêu đề màu cam - may mắn */
+h1,
+h2,
+h3 {
+    color: var(--text-accent, #FF7A00);
+}
+
+.content-section h1 {
+    color: var(--text-accent, #FF7A00);
+}
+
+/* ============================================
+   FIX: Form container & Filter buttons
+   ============================================ */
+
+/* Form container */
+.form-container {
+    display: block;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    padding: 15px;
+    border-radius: 12px;
+    margin-bottom: 15px;
+}
+
+.form-container.show {
+    display: block;
+}
+
+/* FIX: Filter buttons không thấy được */
+.filter-btn {
+    background: #f1f5f9 !important;
+    color: #1e3a5f !important;
+    border: 1px solid #cbd5e1 !important;
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.filter-btn:hover {
+    background: #e2e8f0 !important;
+    border-color: #FF7A00 !important;
+}
+
+.filter-btn.active {
+    background: linear-gradient(135deg, #005B96, #FF7A00) !important;
+    color: #fff !important;
+    border-color: transparent !important;
+}
+
+/* Input và labels rõ ràng */
+input,
+select,
+textarea {
+    color: #1e3a5f !important;
+    background: #fff !important;
+}
+
+input::placeholder {
+    color: #94a3b8 !important;
+}
+
+label {
+    color: #1e3a5f !important;
+}
+
+/* [SMART] Animation cho Conflict Toast */
+@keyframes slideInRight {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}

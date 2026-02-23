@@ -1,0 +1,730 @@
+/* === WORKSPACE HUB - PHASE 1 FEATURES === */
+
+/* ========================================
+   1. SUBTASKS STYLING
+======================================== */
+.subtasks-container {
+    margin-top: 12px;
+    padding: 12px;
+    background: #f8fafc;
+    border-radius: 10px;
+    border: 1px solid #e2e8f0;
+}
+
+.subtasks-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.subtasks-header h4 {
+    margin: 0;
+    font-size: 0.85rem;
+    color: #64748b;
+    font-weight: 600;
+}
+
+.subtasks-progress {
+    font-size: 0.8rem;
+    color: #667eea;
+    font-weight: 600;
+}
+
+.subtask-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.subtask-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 12px;
+    background: white;
+    border-radius: 8px;
+    border: 1px solid #e2e8f0;
+    transition: all 0.2s ease;
+}
+
+.subtask-item:hover {
+    border-color: #667eea;
+    box-shadow: 0 2px 8px rgba(102, 126, 234, 0.15);
+}
+
+.subtask-item.completed {
+    background: #f0fdf4;
+    border-color: #86efac;
+}
+
+.subtask-item.completed .subtask-text {
+    text-decoration: line-through;
+    color: #94a3b8;
+}
+
+.subtask-checkbox {
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+    accent-color: #667eea;
+}
+
+.subtask-text {
+    flex: 1;
+    font-size: 0.9rem;
+    color: #334155;
+}
+
+.subtask-delete {
+    background: none;
+    border: none;
+    color: #94a3b8;
+    cursor: pointer;
+    font-size: 1rem;
+    padding: 2px 6px;
+    border-radius: 4px;
+    transition: all 0.2s;
+    opacity: 0;
+}
+
+.subtask-item:hover .subtask-delete {
+    opacity: 1;
+}
+
+.subtask-delete:hover {
+    background: #fee2e2;
+    color: #ef4444;
+}
+
+.add-subtask-row {
+    display: flex;
+    gap: 8px;
+    margin-top: 10px;
+}
+
+.add-subtask-row input {
+    flex: 1;
+    padding: 10px 14px;
+    border: 2px dashed #cbd5e1;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    transition: all 0.2s;
+}
+
+.add-subtask-row input:focus {
+    outline: none;
+    border-color: #667eea;
+    border-style: solid;
+}
+
+.add-subtask-row button {
+    padding: 10px 16px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.add-subtask-row button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+}
+
+/* Subtask Progress Bar */
+.subtask-progress-bar {
+    height: 4px;
+    background: #e2e8f0;
+    border-radius: 2px;
+    overflow: hidden;
+    margin-top: 8px;
+}
+
+.subtask-progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #22c55e 0%, #16a34a 100%);
+    border-radius: 2px;
+    transition: width 0.3s ease;
+}
+
+/* ========================================
+   2. SMART TAGS STYLING
+======================================== */
+.tags-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 8px;
+}
+
+.smart-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.smart-tag:hover {
+    transform: scale(1.05);
+}
+
+.smart-tag .tag-remove {
+    background: none;
+    border: none;
+    color: inherit;
+    opacity: 0.7;
+    cursor: pointer;
+    font-size: 0.9rem;
+    padding: 0;
+    margin-left: 2px;
+}
+
+.smart-tag .tag-remove:hover {
+    opacity: 1;
+}
+
+/* Tag Colors */
+.smart-tag.tag-red {
+    background: #fecaca;
+    color: #dc2626;
+}
+
+.smart-tag.tag-orange {
+    background: #fed7aa;
+    color: #ea580c;
+}
+
+.smart-tag.tag-yellow {
+    background: #fef08a;
+    color: #ca8a04;
+}
+
+.smart-tag.tag-green {
+    background: #bbf7d0;
+    color: #16a34a;
+}
+
+.smart-tag.tag-blue {
+    background: #bfdbfe;
+    color: #2563eb;
+}
+
+.smart-tag.tag-purple {
+    background: #ddd6fe;
+    color: #7c3aed;
+}
+
+.smart-tag.tag-pink {
+    background: #fbcfe8;
+    color: #db2777;
+}
+
+.smart-tag.tag-gray {
+    background: #e2e8f0;
+    color: #475569;
+}
+
+/* Tag Selector in Modal */
+.tag-selector {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 8px;
+}
+
+.tag-option {
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    cursor: pointer;
+    border: 2px solid transparent;
+    transition: all 0.2s;
+    opacity: 0.7;
+}
+
+.tag-option:hover {
+    opacity: 1;
+    transform: scale(1.05);
+}
+
+.tag-option.selected {
+    opacity: 1;
+    border-color: #1e293b;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+/* Custom Tag Input */
+.custom-tag-input {
+    display: flex;
+    gap: 8px;
+    margin-top: 10px;
+}
+
+.custom-tag-input input {
+    flex: 1;
+    padding: 8px 12px;
+    border: 2px solid #e2e8f0;
+    border-radius: 20px;
+    font-size: 0.85rem;
+}
+
+.custom-tag-input input:focus {
+    outline: none;
+    border-color: #667eea;
+}
+
+/* ========================================
+   3. PROJECT FOLDERS STYLING
+======================================== */
+.project-folders-section {
+    margin-bottom: 20px;
+}
+
+.project-folders-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.project-folders-header h3 {
+    margin: 0;
+    font-size: 1.1rem;
+    color: #334155;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.btn-add-folder {
+    padding: 8px 16px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn-add-folder:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+}
+
+.project-folders-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 15px;
+}
+
+.project-folder-card {
+    background: white;
+    border-radius: 14px;
+    padding: 18px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.06);
+    border: 2px solid transparent;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    position: relative;
+}
+
+.project-folder-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+    border-color: #667eea;
+}
+
+.project-folder-card.active {
+    border-color: #667eea;
+    background: linear-gradient(135deg, #f0f4ff 0%, #e0e7ff 100%);
+}
+
+.folder-icon {
+    font-size: 2rem;
+    margin-bottom: 10px;
+}
+
+.folder-name {
+    font-weight: 700;
+    font-size: 1rem;
+    color: #1e293b;
+    margin-bottom: 6px;
+}
+
+.folder-count {
+    font-size: 0.85rem;
+    color: #64748b;
+}
+
+.folder-color-dot {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+}
+
+.folder-actions {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    display: flex;
+    gap: 4px;
+    opacity: 0;
+    transition: opacity 0.2s;
+}
+
+.project-folder-card:hover .folder-actions {
+    opacity: 1;
+}
+
+.folder-action-btn {
+    background: rgba(0, 0, 0, 0.05);
+    border: none;
+    border-radius: 6px;
+    width: 28px;
+    height: 28px;
+    cursor: pointer;
+    font-size: 0.8rem;
+    transition: all 0.2s;
+}
+
+.folder-action-btn:hover {
+    background: rgba(0, 0, 0, 0.1);
+}
+
+/* All Tasks Folder */
+.project-folder-card.all-tasks {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+}
+
+.project-folder-card.all-tasks .folder-name,
+.project-folder-card.all-tasks .folder-count {
+    color: white;
+}
+
+/* Project Filter Pills */
+.project-filter-pills {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 15px;
+    flex-wrap: wrap;
+    padding: 12px;
+    background: #f8fafc;
+    border-radius: 12px;
+}
+
+.project-pill {
+    padding: 8px 16px;
+    border: none;
+    border-radius: 20px;
+    background: white;
+    color: #64748b;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+.project-pill:hover {
+    background: #e2e8f0;
+}
+
+.project-pill.active {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+
+.project-pill .pill-count {
+    background: rgba(255, 255, 255, 0.3);
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-size: 0.75rem;
+}
+
+.project-pill.active .pill-count {
+    background: rgba(255, 255, 255, 0.25);
+}
+
+/* ========================================
+   4. TASK SNOOZE STYLING
+======================================== */
+.snooze-btn {
+    background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+    border: none;
+    padding: 6px 12px;
+    border-radius: 8px;
+    color: white;
+    font-size: 0.8rem;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    transition: all 0.2s;
+}
+
+.snooze-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(245, 158, 11, 0.4);
+}
+
+/* Snooze Dropdown */
+.snooze-dropdown {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+    padding: 8px;
+    min-width: 180px;
+    z-index: 100;
+    animation: dropdownFadeIn 0.2s ease;
+}
+
+@keyframes dropdownFadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.snooze-option {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 14px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-size: 0.9rem;
+    color: #334155;
+}
+
+.snooze-option:hover {
+    background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+}
+
+.snooze-option .snooze-icon {
+    font-size: 1.1rem;
+}
+
+.snooze-option .snooze-label {
+    font-weight: 500;
+}
+
+/* Snoozed Task Indicator */
+.task-card-minimal.snoozed {
+    opacity: 0.6;
+    border-left-color: #f59e0b;
+    background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
+}
+
+.snoozed-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 10px;
+    background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+    color: white;
+    border-radius: 15px;
+    font-size: 0.7rem;
+    font-weight: 600;
+    margin-left: 8px;
+}
+
+/* ========================================
+   5. MODAL ENHANCEMENTS
+======================================== */
+.modal-section {
+    margin-bottom: 20px;
+    padding: 15px;
+    background: #f8fafc;
+    border-radius: 12px;
+}
+
+.modal-section-title {
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: #64748b;
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+/* Tags Modal */
+#tags-modal .tag-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    gap: 10px;
+}
+
+.tag-manage-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 14px;
+    background: white;
+    border-radius: 10px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+.tag-manage-color {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    cursor: pointer;
+    border: 2px solid white;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+}
+
+.tag-manage-name {
+    flex: 1;
+    padding: 6px 10px;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    font-size: 0.85rem;
+}
+
+.tag-manage-delete {
+    background: none;
+    border: none;
+    color: #94a3b8;
+    cursor: pointer;
+    padding: 4px;
+    font-size: 1rem;
+}
+
+.tag-manage-delete:hover {
+    color: #ef4444;
+}
+
+/* ========================================
+   6. DARK MODE
+======================================== */
+[data-theme="dark"] .subtasks-container {
+    background: #1e293b;
+    border-color: #334155;
+}
+
+[data-theme="dark"] .subtask-item {
+    background: #0f172a;
+    border-color: #334155;
+}
+
+[data-theme="dark"] .subtask-text {
+    color: #e2e8f0;
+}
+
+[data-theme="dark"] .project-folder-card {
+    background: #1e293b;
+}
+
+[data-theme="dark"] .folder-name {
+    color: #f1f5f9;
+}
+
+[data-theme="dark"] .folder-count {
+    color: #94a3b8;
+}
+
+[data-theme="dark"] .project-filter-pills {
+    background: #1e293b;
+}
+
+[data-theme="dark"] .project-pill {
+    background: #334155;
+    color: #94a3b8;
+}
+
+[data-theme="dark"] .snooze-dropdown {
+    background: #1e293b;
+}
+
+[data-theme="dark"] .snooze-option {
+    color: #e2e8f0;
+}
+
+[data-theme="dark"] .snooze-option:hover {
+    background: #334155;
+}
+
+[data-theme="dark"] .modal-section {
+    background: #0f172a;
+}
+
+/* ========================================
+   7. ANIMATIONS
+======================================== */
+@keyframes subtaskCheck {
+    0% {
+        transform: scale(1);
+    }
+
+    50% {
+        transform: scale(1.2);
+    }
+
+    100% {
+        transform: scale(1);
+    }
+}
+
+.subtask-checkbox:checked {
+    animation: subtaskCheck 0.3s ease;
+}
+
+@keyframes tagPop {
+    0% {
+        transform: scale(0.8);
+        opacity: 0;
+    }
+
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+.smart-tag {
+    animation: tagPop 0.2s ease;
+}
+
+@keyframes folderHover {
+    0% {
+        transform: translateY(0);
+    }
+
+    50% {
+        transform: translateY(-2px);
+    }
+
+    100% {
+        transform: translateY(0);
+    }
+}

@@ -1,0 +1,224 @@
+/* --- LOGIN & LOADING (REFRESHED THEME) --- */
+
+/* 1. CONTAINER BACKGROUND - LIVELY & LIGHT */
+#login-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+    /* Soft, lively gradient background */
+    background: linear-gradient(-45deg, #FF9A9E, #FECFEF, #a1c4fd, #c2e9fb);
+    background-size: 400% 400%;
+    animation: gradientBG 15s ease infinite;
+    overflow: hidden;
+}
+
+@keyframes gradientBG {
+    0% {
+        background-position: 0% 50%;
+    }
+
+    50% {
+        background-position: 100% 50%;
+    }
+
+    100% {
+        background-position: 0% 50%;
+    }
+}
+
+/* Floating Shapes for extra liveliness (Optional, keeping it light) */
+#login-container::before {
+    content: '';
+    position: absolute;
+    top: -10%;
+    left: -10%;
+    width: 50vw;
+    height: 50vw;
+    background: radial-gradient(circle, rgba(255, 255, 255, 0.4), transparent 70%);
+    border-radius: 50%;
+    animation: floating 20s infinite ease-in-out;
+    pointer-events: none;
+}
+
+#login-container::after {
+    content: '';
+    position: absolute;
+    bottom: -10%;
+    right: -10%;
+    width: 60vw;
+    height: 60vw;
+    background: radial-gradient(circle, rgba(255, 255, 255, 0.3), transparent 70%);
+    border-radius: 50%;
+    animation: floating 25s infinite ease-in-out reverse;
+    pointer-events: none;
+}
+
+@keyframes floating {
+    0% {
+        transform: translate(0, 0);
+    }
+
+    50% {
+        transform: translate(30px, 50px);
+    }
+
+    100% {
+        transform: translate(0, 0);
+    }
+}
+
+/* 2. LOGIN BOX - GLASSMORPHISM */
+.login-box {
+    background: rgba(255, 255, 255, 0.65);
+    /* More transparent/white */
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    padding: 3.5rem 2.5rem;
+    border-radius: 30px;
+    box-shadow: 0 15px 35px rgba(214, 8, 8, 0.1), 0 5px 15px rgba(0, 0, 0, 0.05);
+    /* Softer shadow */
+    border: 1px solid rgba(255, 255, 255, 0.8);
+    width: 90%;
+    max-width: 400px;
+    text-align: center;
+    position: relative;
+    z-index: 10;
+    transition: transform 0.3s ease;
+}
+
+.login-box:hover {
+    transform: translateY(-5px);
+}
+
+.login-welcome-text {
+    font-size: 1.1rem;
+    font-weight: 800;
+    /* Gradient Text for title */
+    background: linear-gradient(90deg, #667eea, #764ba2);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin-bottom: 2rem;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+}
+
+/* 3. GOOGLE BUTTON - PROMINENT */
+.btn-google-custom {
+    width: 100%;
+    padding: 14px 20px;
+    background: white;
+    color: #444;
+    border: 1px solid transparent;
+    border-radius: 50px;
+    font-size: 1.05rem;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+    /* Light shadow */
+    position: relative;
+    overflow: hidden;
+}
+
+.btn-google-custom::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, #eee, #f9f9f9, #eee);
+    opacity: 0;
+    transition: opacity 0.3s;
+    z-index: -1;
+}
+
+.btn-google-custom:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(255, 255, 255, 0.12);
+    border-color: #275da3;
+}
+
+.btn-google-custom:active {
+    transform: translateY(0);
+    box-shadow: 0 4px 10px rgba(255, 72, 0, 0.08);
+}
+
+/* 4. LOADING SPINNER (Keep specific to loading but match theme) */
+.loading-spinner {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    z-index: 10000;
+    background: rgba(255, 255, 255, 0.9);
+    /* Lighter loading bg */
+    backdrop-filter: blur(15px);
+}
+
+.spinner {
+    width: 50px;
+    height: 50px;
+    border: 4px solid rgba(102, 126, 234, 0.1);
+    border-top-color: #667eea;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+.loading-text {
+    color: #555;
+    margin-top: 20px;
+    font-size: 1.1rem;
+    font-weight: 600;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* Error Message */
+#login-error {
+    color: #e53e3e;
+    font-weight: 600;
+    font-size: 0.9rem;
+    margin-top: 15px;
+    padding: 10px;
+    border-radius: 8px;
+    background: rgba(255, 50, 50, 0.1);
+    display: none;
+    animation: shake 0.4s ease-in-out;
+}
+
+@keyframes shake {
+
+    0%,
+    100% {
+        transform: translateX(0);
+    }
+
+    25% {
+        transform: translateX(-5px);
+    }
+
+    75% {
+        transform: translateX(5px);
+    }
+}

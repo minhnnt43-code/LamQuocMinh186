@@ -1,0 +1,1815 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lâm Quốc Minh - Hệ Thống Quản Lý</title>
+
+    <!-- SEO & Open Graph -->
+    <meta name="description" content="Hệ thống quản lý cá nhân & Portfolio của Lâm Quốc Minh.">
+    <meta property="og:title" content="Lâm Quốc Minh - Dashboard">
+    <meta property="og:image" content="https://placehold.co/600x400?text=LQM+System">
+
+    <!-- Favicon LQM -->
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
+
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#667eea">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="LifeOS">
+    <link rel="apple-touch-icon" href="favicon.svg">
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Montserrat:wght@600;700&display=swap"
+        rel="stylesheet">
+
+    <!-- Libs CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/quill@2.0.0/dist/quill.snow.css" rel="stylesheet" />
+
+    <!-- CSS Chính -->
+    <link rel="stylesheet" href="style.css">
+
+    <!-- Chart.js for Task Analytics -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+
+    <!-- SheetJS for Excel Import/Export -->
+    <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
+</head>
+
+<body>
+
+    <!-- 1. LOGIN SCREEN -->
+    <div id="login-container">
+        <div class="login-box">
+            <div class="login-welcome-text">XIN CHÀO LÂM QUỐC MINH</div>
+
+            <!-- Auth Tabs Removed -->
+
+            <!-- Google Login Only -->
+            <div style="margin-top: 20px;">
+                <button id="btn-login-google" class="btn-google-custom">
+                    <svg width="24" height="24" viewBox="0 0 48 48">
+                        <path fill="#EA4335"
+                            d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z" />
+                        <path fill="#4285F4"
+                            d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z" />
+                        <path fill="#FBBC05"
+                            d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z" />
+                        <path fill="#34A853"
+                            d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z" />
+                        <path fill="none" d="M0 0h48v48H0z" />
+                    </svg>
+                    <span>Đăng nhập với Google</span>
+                </button>
+            </div>
+            <p id="login-error" style="color: red; margin-top: 10px; font-size: 0.9rem; display: none;"></p>
+        </div>
+    </div>
+
+    <!-- 2. LOADING -->
+    <div id="loading-spinner" class="loading-spinner" style="display: none;">
+        <div class="spinner"></div>
+        <div class="loading-text">Đang tải dữ liệu...</div>
+    </div>
+
+    <!-- 3. MAIN APP -->
+    <div id="app-container" style="display: none;">
+        <!-- External Link Button (Bottom Left) -->
+
+
+        <!-- HEADER MOBILE -->
+        <div class="mobile-top-bar" style="display:none;">
+            <button id="btn-toggle-sidebar" style="background:none; border:none; font-size:1.5rem;">☰</button>
+            <span style="font-weight:bold; color:var(--primary-blue);">Lâm Quốc Minh</span>
+            <img id="mobile-avatar" src="https://placehold.co/40" style="width:35px; height:35px; border-radius:50%;">
+        </div>
+        <div id="mobile-menu-overlay"></div>
+
+        <!-- SIDEBAR -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <button id="btn-collapse-sidebar" title="Thu gọn sidebar"
+                    style="position:absolute;top:10px;right:10px;background:rgba(255,255,255,0.2);border:none;color:white;width:28px;height:28px;border-radius:6px;cursor:pointer;font-size:1rem;">
+                    ◀
+                </button>
+                <img id="sidebar-profile-pic" class="profile-picture" src="https://placehold.co/80" alt="Avatar">
+                <div class="welcome-message">Xin chào, <strong id="sidebar-user-name">Admin</strong></div>
+            </div>
+
+            <div class="info-widget">
+                <div id="current-time" style="font-weight:bold; font-size: 1.2rem;">--:--:--</div>
+                <div id="current-date" style="opacity:0.8; font-size:0.9rem;">--/--/----</div>
+            </div>
+
+            <ul class="nav-menu">
+                <!-- Nút Dashboard -->
+                <li><button class="nav-btn active" data-target="dashboard">📊 Tổng quan</button></li>
+
+                <!-- MỤC MỚI: YÊU CẦU HẸN -->
+                <li>
+                    <button class="nav-btn" data-target="appointment-requests">
+                        🗓️ Yêu cầu hẹn
+                        <span id="appt-badge" class="badge-count"
+                            style="background:red; color:white; padding:2px 6px; border-radius:10px; font-size:0.7rem; margin-left:5px; display:none;">0</span>
+                    </button>
+                </li>
+
+                <li class="nav-group">
+                    <button class="nav-group-toggle">📂 Không gian làm việc</button>
+                    <ul class="nav-submenu">
+                        <li>
+                            <button class="nav-btn" data-target="tasks">
+                                Công việc (Tasks)
+                                <span id="tasks-badge" class="badge-count"
+                                    style="background:#FF7A00; color:white; padding:2px 6px; border-radius:10px; font-size:0.7rem; margin-left:5px;">0</span>
+                            </button>
+                        </li>
+
+                        <li>
+                            <button class="nav-btn" data-target="time-management">
+                                Lịch biểu
+                                <span id="calendar-badge" class="badge-count"
+                                    style="background:#4CAF50; color:white; padding:2px 6px; border-radius:10px; font-size:0.7rem; margin-left:5px;">0</span>
+                            </button>
+                        </li>
+                        <li>
+                            <button class="nav-btn" data-target="drafts">
+                                Bản Nháp
+                                <span id="drafts-badge" class="badge-count"
+                                    style="background:#64748b; color:white; padding:2px 6px; border-radius:10px; font-size:0.7rem; margin-left:5px;">0</span>
+                            </button>
+                        </li>
+                        <li>
+                            <button class="nav-btn" data-target="eisenhower">
+                                🎯 Ma trận Eisenhower
+                            </button>
+                        </li>
+                        <li>
+                            <button class="nav-btn" data-target="goals">
+                                🏆 Mục tiêu & OKR
+                            </button>
+                        </li>
+                    </ul>
+                </li>
+
+                <li class="nav-group">
+                    <button class="nav-group-toggle">✨ Quản trị Nội dung</button>
+                    <ul class="nav-submenu">
+                        <li><button class="nav-btn" id="nav-btn-timeline" data-target="manage-timeline">🚩 Quản lý Lộ
+                                trình</button></li>
+                        <li><button class="nav-btn" id="nav-btn-albums" data-target="manage-albums">📸 Quản lý
+                                Album</button></li>
+                    </ul>
+                </li>
+
+                <li class="nav-group">
+                    <button class="nav-group-toggle">🎓 Học tập & Phát triển</button>
+                    <ul class="nav-submenu">
+
+                        <!-- MỤC MỚI: BẢNG ĐIỂM -->
+
+                        <li><button class="nav-btn" data-target="achievements">Thành tích</button></li>
+                        <li><button class="nav-btn" data-target="student-journey">Hành trình SV5T</button></li>
+                        <li><button class="nav-btn" data-target="proofs-management">Quản lý Minh chứng</button></li>
+                    </ul>
+                </li>
+
+
+
+
+
+
+                <!-- [DISABLED] LÁ SỐ - Đã bỏ -->
+
+                <li class="nav-group">
+                    <button class="nav-group-toggle">⚙️ Hệ thống</button>
+                    <ul class="nav-submenu">
+                        <li><button class="nav-btn" data-target="personal-info">Hồ sơ cá nhân</button></li>
+
+                        <li><button class="nav-btn" data-target="settings">Cài đặt</button></li>
+                    </ul>
+                </li>
+            </ul>
+
+            <div class="sidebar-footer">
+                <div class="data-actions">
+                    <button class="import-btn" id="btn-import-data">📥 Nhập</button>
+                    <button class="export-btn" id="btn-export-data">📤 Xuất</button>
+                </div>
+                <button class="diary-sidebar-btn" id="secret-diary-btn"><span class="diary-lock-icon">🔒</span> Ghi
+                    chú</button>
+                <button class="logout-btn" id="btn-logout">Đăng xuất</button>
+            </div>
+        </aside>
+
+        <!-- MAIN CONTENT -->
+        <main class="main-content">
+
+            <!-- Secret Diary Section (ẩn mặc định) -->
+            <div id="secret-diary-section" style="display:none; padding: 30px;"></div>
+
+            <!-- DASHBOARD -->
+            <section id="dashboard" class="content-section active">
+                <h1>🏠 Tổng quan</h1>
+
+
+
+
+                <!-- Weekly Summary (thay thế 3 heatmaps) -->
+                <div id="weekly-summary" style="
+                    background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%);
+                    padding: 20px 25px;
+                    border-radius: 16px;
+                    margin-bottom: 25px;
+                    color: white;
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    flex-wrap: wrap;
+                    gap: 15px;
+                    box-shadow: 0 4px 20px rgba(14, 165, 233, 0.3);
+                ">
+                    <div style="font-size: 1.1rem; font-weight: 600;">
+                        📊 Tóm tắt tuần này
+                    </div>
+                    <div style="display: flex; gap: 25px; flex-wrap: wrap;">
+                        <div style="text-align: center;">
+                            <div style="font-size: 1.8rem; font-weight: bold;" id="weekly-completed">0</div>
+                            <div style="font-size: 0.85rem; opacity: 0.9;">✅ Hoàn thành</div>
+                        </div>
+                        <div style="text-align: center;">
+                            <div style="font-size: 1.8rem; font-weight: bold;" id="weekly-inprogress">0</div>
+                            <div style="font-size: 0.85rem; opacity: 0.9;">🔄 Đang làm</div>
+                        </div>
+                        <div style="text-align: center;">
+                            <div style="font-size: 1.8rem; font-weight: bold;" id="weekly-overdue">0</div>
+                            <div style="font-size: 0.85rem; opacity: 0.9;">⚠️ Trễ hạn</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Weekly Review Banner (hiện T7/CN) -->
+                <div id="weekly-review-banner" style="display:none;"></div>
+
+                <!-- Redesigned Dashboard Cards -->
+                <div id="dashboard-grid" style="
+                    display: grid;
+                    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+                    gap: 20px;
+                ">
+                    <!-- Card 1: Hôm nay -->
+                    <div class="dashboard-card" style="
+                        background: linear-gradient(135deg, #fff 0%, #f0fdf4 100%);
+                        border-left: 4px solid #22c55e;
+                        padding: 20px;
+                        border-radius: 16px;
+                        box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+                    ">
+                        <h3 style="color: #22c55e; margin-bottom: 15px; font-size: 1.1rem;">
+                            📌 Hôm nay làm gì?
+                        </h3>
+                        <ul class="dashboard-list" id="dashboard-today-tasks" style="margin: 0; padding-left: 20px;">
+                        </ul>
+                        <p class="empty-state" id="dashboard-today-tasks-empty" style="
+                            text-align: center;
+                            padding: 20px;
+                            color: #22c55e;
+                            font-size: 1rem;
+                        ">🎉 Thảnh thơi, không có việc!</p>
+                    </div>
+
+                    <!-- Card 2: Sắp tới -->
+                    <div class="dashboard-card" style="
+                        background: linear-gradient(135deg, #fff 0%, #fef3c7 100%);
+                        border-left: 4px solid #f59e0b;
+                        padding: 20px;
+                        border-radius: 16px;
+                        box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+                    ">
+                        <h3 style="color: #f59e0b; margin-bottom: 15px; font-size: 1.1rem;">
+                            📅 Sắp tới (7 ngày)
+                        </h3>
+                        <ul class="dashboard-list" id="dashboard-upcoming-events"
+                            style="margin: 0; padding-left: 20px;"></ul>
+                        <p class="empty-state" id="dashboard-upcoming-events-empty" style="
+                            text-align: center;
+                            padding: 20px;
+                            color: #f59e0b;
+                            font-size: 1rem;
+                        ">📭 Không có sự kiện nào!</p>
+                    </div>
+
+                    <!-- Card 3: Việc vặt -->
+                    <div class="dashboard-card" style="
+                        background: linear-gradient(135deg, #fff 0%, #dbeafe 100%);
+                        border-left: 4px solid #3b82f6;
+                        padding: 20px;
+                        border-radius: 16px;
+                        box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+                    ">
+                        <h3 style="color: #3b82f6; margin-bottom: 15px; font-size: 1.1rem;">
+                            ✅ Công việc quan trọng
+                        </h3>
+                        <ul class="dashboard-list" id="dashboard-todo-list" style="margin: 0; padding-left: 20px;"></ul>
+                        <p class="empty-state" id="dashboard-todo-list-empty" style="
+                            text-align: center;
+                            padding: 20px;
+                            color: #3b82f6;
+                            font-size: 1rem;
+                        ">✨ Trống trơn!</p>
+                    </div>
+
+                    <!-- Card 4: Nháp mới -->
+                    <div class="dashboard-card" style="
+                        background: linear-gradient(135deg, #fff 0%, #fce7f3 100%);
+                        border-left: 4px solid #ec4899;
+                        padding: 20px;
+                        border-radius: 16px;
+                        box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+                    ">
+                        <h3 style="color: #ec4899; margin-bottom: 15px; font-size: 1.1rem;">
+                            📝 Bản nháp gần đây
+                        </h3>
+                        <ul class="dashboard-list" id="dashboard-recent-drafts" style="margin: 0; padding-left: 20px;">
+                        </ul>
+                        <p class="empty-state" id="dashboard-recent-drafts-empty" style="
+                            text-align: center;
+                            padding: 20px;
+                            color: #ec4899;
+                            font-size: 1rem;
+                        ">📄 Chưa có bản nháp nào!</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- TASKS (Công việc) -->
+
+
+            <!-- PROJECTS -->
+
+
+            <!-- TIME MANAGEMENT (Calendar) - REDESIGNED -->
+            <section id="time-management" class="content-section">
+
+                <!-- New Calendar Layout: Mini Calendar + Main Grid -->
+                <div class="calendar-redesign-container">
+
+                    <!-- Left Sidebar: Mini Calendar -->
+                    <aside class="calendar-sidebar">
+                        <div class="mini-calendar">
+                            <div class="mini-cal-header">
+                                <button id="mini-cal-prev" class="mini-nav">‹</button>
+                                <span id="mini-cal-title">Tháng 2 2026</span>
+                                <button id="mini-cal-next" class="mini-nav">›</button>
+                            </div>
+                            <div class="mini-cal-grid">
+                                <div class="mini-day-header">CN</div>
+                                <div class="mini-day-header">T2</div>
+                                <div class="mini-day-header">T3</div>
+                                <div class="mini-day-header">T4</div>
+                                <div class="mini-day-header">T5</div>
+                                <div class="mini-day-header">T6</div>
+                                <div class="mini-day-header">T7</div>
+                                <!-- Days populated by JS -->
+                                <div id="mini-cal-days"></div>
+                            </div>
+                        </div>
+
+                        <!-- Filter Pills -->
+                        <div class="calendar-filters">
+                            <h4>🏷️ Lọc sự kiện</h4>
+                            <label class="filter-pill filter-all active">
+                                <input type="checkbox" checked data-filter="all"> Tất cả
+                            </label>
+                            <label class="filter-pill filter-meeting">
+                                <input type="checkbox" checked data-filter="meeting"> 🟣 Họp
+                            </label>
+                            <label class="filter-pill filter-task">
+                                <input type="checkbox" checked data-filter="task"> 🟢 Công việc
+                            </label>
+                            <label class="filter-pill filter-deadline">
+                                <input type="checkbox" checked data-filter="deadline"> 🟠 Hạn chót
+                            </label>
+                        </div>
+
+                        <!-- Quick Stats -->
+                        <div class="calendar-quick-stats">
+                            <h4>📊 Tuần này</h4>
+                            <div class="stat-row">
+                                <span>Họp</span>
+                                <span id="stat-meetings">0</span>
+                            </div>
+                            <div class="stat-row">
+                                <span>Công việc</span>
+                                <span id="stat-tasks">0</span>
+                            </div>
+                            <div class="stat-row">
+                                <span>Hạn chót</span>
+                                <span id="stat-deadlines">0</span>
+                            </div>
+                        </div>
+                    </aside>
+
+                    <!-- Main Calendar Area -->
+                    <main class="calendar-main">
+                        <!-- Gradient Header -->
+                        <div class="calendar-header-new">
+                            <div class="header-left">
+                                <button id="btn-google-sync" class="btn-sync">🔄 Đồng bộ Google</button>
+                                <button id="btn-export-calendar-csv" class="btn-export">📤 Xuất CSV</button>
+                                <button id="btn-export-ics" class="btn-export">📤 Tải Lịch (.ics)</button>
+                            </div>
+                            <div class="header-center">
+                                <button id="cal-prev-btn" class="nav-arrow">‹</button>
+                                <div class="date-range-display" id="current-view-range">02/02/2026 - 08/02/2026</div>
+                                <button id="cal-next-btn" class="nav-arrow">›</button>
+                                <button id="cal-today-btn" class="btn-today">📍 Hôm nay</button>
+                            </div>
+                            <div class="header-right"></div>
+                        </div>
+
+                        <!-- View Mode Buttons -->
+                        <div class="calendar-view-modes">
+                            <span class="view-label">👁️ Chế độ xem:</span>
+                            <button class="view-btn active" data-calendar-view="week">📅 Tuần</button>
+                            <button class="view-btn" data-calendar-view="timeblock">🧩 Time Block</button>
+                            <button class="view-btn" data-calendar-view="month">📆 Tháng</button>
+                            <button class="view-btn" data-calendar-view="year">🗓️ Năm</button>
+                        </div>
+
+                        <!-- Calendar Grid -->
+                        <div id="calendar-view" class="calendar-grid-new">
+                            <!-- Current Time Indicator -->
+                            <div class="current-time-line" id="current-time-line"></div>
+
+                            <table class="calendar-table-new">
+                                <thead>
+                                    <tr id="calendar-header">
+                                        <!-- JS populates: Time + 7 days -->
+                                    </tr>
+                                </thead>
+                                <tbody id="calendar-body">
+                                    <!-- JS populates time slots -->
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <!-- Time Blocking View (Hidden by default) -->
+                        <div id="time-blocking-view" class="time-blocking-container" style="display: none;">
+                            <!-- Calendar Side -->
+                            <div class="time-blocking-calendar">
+                                <div id="tb-calendar-view" class="calendar-grid-new">
+                                    <div class="current-time-line" id="tb-current-time-line"></div>
+                                    <table class="calendar-table-new">
+                                        <thead>
+                                            <tr id="tb-calendar-header"></tr>
+                                        </thead>
+                                        <tbody id="tb-calendar-body"></tbody>
+                                    </table>
+                                </div>
+                            </div>
+
+                            <!-- Sidebar: Unscheduled Tasks -->
+                            <aside class="time-blocking-sidebar" id="tb-sidebar">
+                                <div class="tb-sidebar-header">
+                                    <h3>📋 Chưa lên lịch</h3>
+                                    <button class="collapse-btn" id="tb-collapse-btn" title="Thu gọn">◀</button>
+                                </div>
+                                <div class="tb-sidebar-content" id="tb-sidebar-content">
+                                    <div class="tb-stats">
+                                        <div class="tb-stat-item">
+                                            <div class="tb-stat-value" id="tb-unscheduled-count">0</div>
+                                            <div class="tb-stat-label">Chưa lên lịch</div>
+                                        </div>
+                                        <div class="tb-stat-item">
+                                            <div class="tb-stat-value" id="tb-scheduled-count">0</div>
+                                            <div class="tb-stat-label">Đã lên lịch</div>
+                                        </div>
+                                    </div>
+                                    <div class="tb-filter-pills">
+                                        <button class="tb-filter-pill active" data-tb-filter="all">Tất cả</button>
+                                        <button class="tb-filter-pill" data-tb-filter="high">🔴 Cao</button>
+                                        <button class="tb-filter-pill" data-tb-filter="today">Hôm nay</button>
+                                    </div>
+                                    <div class="unscheduled-tasks" id="unscheduled-tasks-list">
+                                        <!-- Populated by JS -->
+                                    </div>
+                                </div>
+                            </aside>
+                        </div>
+                    </main>
+                </div>
+            </section>
+
+            <!-- EISENHOWER MATRIX -->
+            <section id="eisenhower" class="content-section">
+                <div class="eisenhower-header">
+                    <h1>🎯 Ma trận Eisenhower</h1>
+                    <div class="eisenhower-legend">
+                        <div class="legend-item"><span class="legend-dot q1"></span> Khẩn cấp & Quan trọng</div>
+                        <div class="legend-item"><span class="legend-dot q2"></span> Quan trọng, Không khẩn</div>
+                        <div class="legend-item"><span class="legend-dot q3"></span> Khẩn cấp, Không quan trọng</div>
+                        <div class="legend-item"><span class="legend-dot q4"></span> Không khẩn, Không quan trọng</div>
+                    </div>
+                </div>
+
+                <div class="eisenhower-stats">
+                    <div class="e-stat-item">
+                        <div class="e-stat-value" id="e-stat-total">0</div>
+                        <div class="e-stat-label">Tổng task</div>
+                    </div>
+                    <div class="e-stat-item">
+                        <div class="e-stat-value" id="e-stat-q1">0</div>
+                        <div class="e-stat-label">Làm ngay</div>
+                    </div>
+                    <div class="e-stat-item">
+                        <div class="e-stat-value" id="e-stat-q2">0</div>
+                        <div class="e-stat-label">Lên lịch</div>
+                    </div>
+                    <div class="e-stat-item">
+                        <div class="e-stat-value" id="e-stat-done">0</div>
+                        <div class="e-stat-label">Hoàn thành</div>
+                    </div>
+                </div>
+
+                <div class="eisenhower-matrix" id="eisenhower-matrix">
+                    <!-- Q1: Do First (Urgent & Important) -->
+                    <div class="matrix-quadrant quadrant-q1" data-quadrant="q1">
+                        <div class="quadrant-header">
+                            <div>
+                                <div class="quadrant-title">🔥 LÀM NGAY</div>
+                                <div class="quadrant-subtitle">Khẩn cấp & Quan trọng</div>
+                            </div>
+                            <span class="quadrant-count" id="count-q1">0</span>
+                        </div>
+                        <div class="quadrant-tasks" id="tasks-q1"></div>
+                    </div>
+
+                    <!-- Q2: Schedule (Important, Not Urgent) -->
+                    <div class="matrix-quadrant quadrant-q2" data-quadrant="q2">
+                        <div class="quadrant-header">
+                            <div>
+                                <div class="quadrant-title">📅 LÊN LỊCH</div>
+                                <div class="quadrant-subtitle">Quan trọng, Không khẩn</div>
+                            </div>
+                            <span class="quadrant-count" id="count-q2">0</span>
+                        </div>
+                        <div class="quadrant-tasks" id="tasks-q2"></div>
+                    </div>
+
+                    <!-- Q3: Delegate (Urgent, Not Important) -->
+                    <div class="matrix-quadrant quadrant-q3" data-quadrant="q3">
+                        <div class="quadrant-header">
+                            <div>
+                                <div class="quadrant-title">🤝 ỦY QUYỀN</div>
+                                <div class="quadrant-subtitle">Khẩn cấp, Không quan trọng</div>
+                            </div>
+                            <span class="quadrant-count" id="count-q3">0</span>
+                        </div>
+                        <div class="quadrant-tasks" id="tasks-q3"></div>
+                    </div>
+
+                    <!-- Q4: Delete (Not Urgent, Not Important) -->
+                    <div class="matrix-quadrant quadrant-q4" data-quadrant="q4">
+                        <div class="quadrant-header">
+                            <div>
+                                <div class="quadrant-title">🗑️ BỎ QUA</div>
+                                <div class="quadrant-subtitle">Không khẩn, Không quan trọng</div>
+                            </div>
+                            <span class="quadrant-count" id="count-q4">0</span>
+                        </div>
+                        <div class="quadrant-tasks" id="tasks-q4"></div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SECTION: GOALS / OKR -->
+            <section id="goals" class="content-section">
+                <div class="goals-header">
+                    <h1>🏆 Mục tiêu & OKR</h1>
+                    <button class="btn-add-task-primary" id="btn-add-goal">
+                        <span class="plus-icon">+</span> Tạo Mục tiêu
+                    </button>
+                </div>
+                <div id="goals-grid" class="goals-grid"></div>
+            </section>
+
+            <!-- DRAFTS -->
+            <section id="drafts" class="content-section">
+                <h1>Bản Nháp</h1>
+
+                <!-- [CLEANED] Simple Writing Input -->
+                <div class="writing-studio" style="margin-bottom: 20px;">
+                    <label style="display:block; margin-bottom:10px; font-weight:600; color:#4a5568;">📝 Soạn thảo
+                        nhanh</label>
+                    <div
+                        style="background:var(--card-bg); padding:15px; border-radius:12px; border: 1px solid #e2e8f0; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
+                        <textarea id="ai-writing-input" placeholder="Viết ý tưởng của bạn vào đây..."
+                            style="width:100%; padding:12px 15px; border:1px solid #cbd5e1; border-radius:8px; resize:vertical; min-height:100px; font-size:1rem; box-sizing:border-box; font-family: inherit; line-height: 1.6;"></textarea>
+                    </div>
+                </div>
+
+                <!-- Search & Create Row -->
+                <div style="display:flex; gap:10px; margin-bottom:15px; align-items:center;">
+                    <input type="text" id="drafts-search" placeholder="🔍 Tìm nháp..."
+                        style="flex:1; padding:10px 15px; border:2px solid #e2e8f0; border-radius:10px; font-size:0.9rem;">
+                    <button class="btn-primary" id="btn-create-draft"
+                        style="background:linear-gradient(135deg, #667eea, #764ba2); border:none; padding:10px 20px; border-radius:10px; color:white; font-weight:600; cursor:pointer;">+
+                        Tạo Mới</button>
+                </div>
+
+                <!-- Drafts Layout -->
+                <div class="drafts-layout" style="display: flex; gap: 20px;">
+                    <!-- Left Column: Drafts List -->
+                    <div class="drafts-sidebar"
+                        style="width: 280px; flex-shrink: 0; background: var(--card-bg); border-radius: 12px; padding: 15px; box-shadow:0 2px 8px rgba(0,0,0,0.05);">
+                        <h3 style="margin-top: 0; display:flex; align-items:center; gap:8px;">📋 Danh sách bản nháp</h3>
+                        <div id="drafts-list-column" class="list-container"
+                            style="max-height: 500px; overflow-y: auto;"></div>
+                    </div>
+
+                    <!-- Right Column: Editor -->
+                    <div class="drafts-editor"
+                        style="flex: 1; background: var(--card-bg); border-radius: 12px; padding: 20px; box-shadow:0 2px 8px rgba(0,0,0,0.05);">
+                        <div id="drafts-editor-welcome" style="text-align: center; padding: 50px; color: #666;">
+                            <div style="font-size:4rem; margin-bottom:15px;">📝</div>
+                            <h2 style="margin:0 0 10px;">Chọn bản nháp để xem</h2>
+                            <p style="color:#9ca3af;">Hoặc tạo bản nháp mới bằng nút "+ Tạo Mới" bên trên</p>
+                        </div>
+
+                        <div id="drafts-editor-content" style="display: none;">
+                            <input type="text" id="draft-main-title-input" placeholder="Tiêu đề bản nháp..."
+                                style="width: 100%; padding: 12px 15px; font-size: 1.2rem; font-weight: bold; border: 2px solid #e2e8f0; border-radius: 10px; margin-bottom: 15px; box-sizing: border-box;">
+                            <div id="editor-container"
+                                style="height: 400px; background: white; border-radius: 10px; border:1px solid #e2e8f0;">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SECTION MỚI: YÊU CẦU HẸN (APPOINTMENT REQUESTS) -->
+            <section id="appointment-requests" class="content-section">
+                <h1>Quản lý Yêu cầu hẹn</h1>
+                <div class="task-controls">
+                    <div class="task-filter-controls">
+                        <button class="filter-btn active" onclick="filterAppointments('pending')">Chờ duyệt</button>
+                        <button class="filter-btn" onclick="filterAppointments('approved')">Đã duyệt</button>
+                        <button class="filter-btn" onclick="filterAppointments('rejected')">Đã từ chối</button>
+                    </div>
+                </div>
+                <div id="appointment-list-container" class="list-container">
+                    <p class="empty-state">Đang tải danh sách hẹn...</p>
+                </div>
+            </section>
+
+
+
+            <!-- SECTION: QUẢN LÝ LỘ TRÌNH (Timeline) -->
+            <section id="manage-timeline" class="content-section">
+                <h1>Quản lý Lộ trình (Timeline)</h1>
+                <div class="form-container">
+                    <input type="hidden" id="tl-edit-id">
+                    <div class="form-grid">
+                        <div class="form-group"><label>Thời gian</label><input type="text" id="tl-time"
+                                placeholder="VD: 2020 - 2024"></div>
+                        <div class="form-group"><label>Tiêu đề</label><input type="text" id="tl-title"
+                                placeholder="VD: Đại học Kinh tế - Luật"></div>
+                        <div class="form-group"><label>Vai trò</label><input type="text" id="tl-role"
+                                placeholder="VD: Sinh viên"></div>
+                        <div class="form-group">
+                            <label>Loại hình</label>
+                            <select id="tl-type">
+                                <option value="academic">🟦 Học tập</option>
+                                <option value="work">🟧 Công việc</option>
+                                <option value="activity">🟩 Hoạt động</option>
+                            </select>
+                        </div>
+                        <div class="form-group"><label>Logo (Link)</label><input type="text" id="tl-logo"
+                                placeholder="Link ảnh..."></div>
+                        <div class="form-group" style="grid-column:1/-1"><label>Mô tả chi tiết</label><textarea
+                                id="tl-desc"></textarea></div>
+                    </div>
+                    <div style="margin-top:10px; display:flex; gap:10px;">
+                        <button id="btn-create-timeline" class="btn-submit">Thêm Mốc Lộ Trình</button>
+                        <button id="btn-cancel-timeline" class="btn-submit"
+                            style="background:#666; display:none;">Hủy</button>
+                    </div>
+                </div>
+                <div id="admin-timeline-list" style="margin-top:20px;"></div>
+                <p style="text-align:center; color:#666; margin-top:10px;">💡 Mẹo: Kéo thả các ô để thay đổi thứ tự
+                    hiển
+                    thị.</p>
+            </section>
+
+            <!-- SECTION: QUẢN LÝ ALBUM -->
+            <section id="manage-albums" class="content-section">
+                <h1>Quản lý Album Ảnh</h1>
+                <div class="form-container">
+                    <input type="hidden" id="album-edit-id">
+                    <div class="form-grid">
+                        <div class="form-group"><label>Tên Album</label><input type="text" id="album-title"
+                                placeholder="VD: Mùa Hè Xanh 2024"></div>
+                        <div class="form-group"><label>Ảnh bìa (Link)</label><input type="text" id="album-cover"
+                                placeholder="Link ảnh..."></div>
+
+                        <!-- [MỚI] THÊM NGÀY DIỄN RA & ĐỊA ĐIỂM -->
+                        <div class="form-group"><label>Thời gian diễn ra</label><input type="date" id="album-date">
+                        </div>
+                        <div class="form-group"><label>Địa điểm (Check-in)</label><input type="text" id="album-location"
+                                placeholder="VD: Đà Lạt, Lâm Đồng"></div>
+
+                        <div class="form-group" style="grid-column:1/-1"><label>Mô tả (Câu chuyện)</label><textarea
+                                id="album-desc"></textarea></div>
+                        <div class="form-group" style="grid-column:1/-1">
+                            <label>Danh sách link ảnh (Mỗi dòng 1 link)</label>
+                            <textarea id="album-photos" style="height:150px; font-family:monospace;"
+                                placeholder="https://...&#10;https://..."></textarea>
+                        </div>
+                    </div>
+                    <div style="margin-top:10px; display:flex; gap:10px;">
+                        <button id="btn-create-album" class="btn-submit">Tạo Album Mới</button>
+                        <button id="btn-cancel-album" class="btn-submit"
+                            style="background:#666; display:none;">Hủy</button>
+                    </div>
+                </div>
+                <div id="admin-album-list"
+                    style="display:grid; grid-template-columns:repeat(auto-fill, minmax(250px, 1fr)); gap:15px; margin-top:20px;">
+                </div>
+            </section>
+
+            <!-- SECTION: HỒ SƠ CÁ NHÂN -->
+            <section id="personal-info" class="content-section">
+                <h1>Hồ sơ cá nhân</h1>
+                <div class="personal-info-card" style="max-width: 800px;">
+                    <h2>1. Thông tin cơ bản</h2>
+                    <div class="form-grid">
+                        <div class="form-group"><label>Họ và tên</label><input type="text" id="pi-fullname"></div>
+                        <div class="form-group"><label>Email</label><input type="text" id="pi-email"></div>
+                        <div class="form-group"><label>SĐT</label><input type="text" id="pi-phone"></div>
+                        <div class="form-group"><label>Nghề nghiệp</label><input type="text" id="pi-occupation">
+                        </div>
+                    </div>
+                    <h2 style="margin-top:20px; border-top:1px dashed #ccc; padding-top:10px;">2. Hiển thị trên
+                        Portfolio</h2>
+                    <div class="form-grid">
+                        <div class="form-group"><label>🎓 Trường học</label><input type="text" id="pf-school"></div>
+                        <div class="form-group"><label>⭐ Danh hiệu</label><input type="text" id="pf-award"></div>
+                        <div class="form-group"><label>💼 Vai trò</label><input type="text" id="pf-role"></div>
+                        <div class="form-group"><label>📍 Địa điểm</label><input type="text" id="pf-location"></div>
+                    </div>
+                    <button id="btn-save-profile" class="btn-submit" style="margin-top:20px; width:100%;">💾 Lưu Hồ
+                        Sơ</button>
+                </div>
+            </section>
+
+            <section id="tasks" class="content-section">
+                <!-- Header with Add Button -->
+                <div class="task-header">
+                    <h1>Quản lý công việc</h1>
+                    <div class="task-header-actions">
+                        <button id="btn-delete-all-tasks"
+                            style="background: white; border: 1px solid #fecaca; border-radius: 8px; padding: 10px 16px; font-weight: 600; color: #ef4444; cursor: pointer; display: flex; align-items: center; gap: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); transition: all 0.2s;"
+                            title="Xoá toàn bộ công việc">
+                            🗑️ Xoá tất cả
+                        </button>
+                        <button class="btn-import-excel" id="btn-open-import-modal"
+                            style="background: white; border: 1px solid #e2e8f0; border-radius: 8px; padding: 10px 16px; font-weight: 600; color: #4b5563; cursor: pointer; display: flex; align-items: center; gap: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); transition: all 0.2s;">
+                            📊 Excel
+                        </button>
+                        <button class="btn-add-task-primary" id="btn-add-task-main">
+                            <span class="plus-icon">+</span> Thêm công việc
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Statistics Cards -->
+                <div class="task-stats-grid">
+                    <div class="stat-card stat-total">
+                        <div class="stat-icon">📊</div>
+                        <div class="stat-info">
+                            <div class="stat-value" id="stat-total">0</div>
+                            <div class="stat-label">Tổng công việc</div>
+                        </div>
+                    </div>
+                    <div class="stat-card stat-pending">
+                        <div class="stat-icon">📋</div>
+                        <div class="stat-info">
+                            <div class="stat-value" id="stat-pending">0</div>
+                            <div class="stat-label">Chưa làm</div>
+                        </div>
+                    </div>
+                    <div class="stat-card stat-progress">
+                        <div class="stat-icon">🔄</div>
+                        <div class="stat-info">
+                            <div class="stat-value" id="stat-progress">0</div>
+                            <div class="stat-label">Đang làm</div>
+                        </div>
+                    </div>
+                    <div class="stat-card stat-done">
+                        <div class="stat-icon">✅</div>
+                        <div class="stat-info">
+                            <div class="stat-value" id="stat-done">0</div>
+                            <div class="stat-label">Hoàn thành</div>
+                        </div>
+                    </div>
+                    <!-- Donut Chart -->
+                    <div class="stat-card stat-chart">
+                        <canvas id="task-donut-chart" width="120" height="120"></canvas>
+                        <div class="chart-legend">
+                            <div class="legend-item"><span class="dot pending"></span>Chưa làm</div>
+                            <div class="legend-item"><span class="dot progress"></span>Đang làm</div>
+                            <div class="legend-item"><span class="dot done"></span>Hoàn thành</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quick Add -->
+                <div class="quick-add-container">
+                    <input type="text" id="quick-add-task-input" placeholder="⚡ Thêm nhanh công việc (Enter)...">
+                </div>
+
+                <!-- Filter Pills -->
+                <div class="task-filter-pills">
+                    <button class="filter-pill active" data-filter="all">Tất cả</button>
+                    <button class="filter-pill" data-filter="today">Hôm nay</button>
+                    <button class="filter-pill" data-filter="important">Quan trọng</button>
+                    <button class="filter-pill" data-filter="incomplete">Chưa xong</button>
+                </div>
+
+                <!-- Search & Sort Row with Date Filter -->
+                <div class="task-search-row">
+                    <input type="search" id="task-search" placeholder="🔍 Tìm công việc...">
+                    <input type="date" id="task-date-filter" title="Lọc theo ngày">
+                    <select id="task-sort">
+                        <option value="priority">Sắp xếp: Ưu tiên</option>
+                        <option value="dueDate-asc">Hạn chót (gần nhất)</option>
+                        <option value="dueDate-desc">Hạn chót (xa nhất)</option>
+                    </select>
+                </div>
+
+
+                <!-- Project Folders Filter (NEW - Phase 1) -->
+                <div id="project-folders-filter" class="project-folders-section">
+                    <!-- Will be populated by workspace-hub.js -->
+                </div>
+
+                <!-- View Toggle (Smart Views) -->
+                <div class="task-view-toggle" id="task-view-toggle">
+                    <button class="view-btn active" data-task-view="kanban">📋 Kanban</button>
+                    <button class="view-btn" data-task-view="list">📝 Danh sách</button>
+                    <button class="view-btn" data-task-view="agenda">📅 Nhật ký</button>
+                    <button class="view-btn" data-task-view="focus">🎯 Tập trung</button>
+                    <button class="view-btn" data-task-view="gantt">📊 Gantt</button>
+                    <button class="view-btn" data-task-view="analytics">📈 Thống kê</button>
+                </div>
+
+                <!-- View Containers (ẩn/hiện theo nút bấm) -->
+                <div id="gantt-view" class="gantt-container" style="display:none;"></div>
+                <div id="list-view" style="display:none;"></div>
+                <div id="agenda-view" style="display:none;"></div>
+                <div id="focus-view" style="display:none;"></div>
+                <div id="analytics-view" style="display:none;"></div>
+
+                <!-- Kanban Board -->
+                <div class="task-kanban-board" id="task-kanban-board">
+                    <!-- Column: Chưa làm -->
+                    <div class="task-kanban-column" data-status="todo">
+                        <div class="column-header">
+                            <span class="column-title">📋 Chưa làm</span>
+                            <span class="column-count" id="count-todo">0</span>
+                            <button class="column-toggle" title="Thu gọn">▼</button>
+                        </div>
+                        <div class="column-cards" id="cards-todo"></div>
+                    </div>
+
+                    <!-- Column: Đang làm -->
+                    <div class="task-kanban-column" data-status="in-progress">
+                        <div class="column-header">
+                            <span class="column-title">🔄 Đang làm</span>
+                            <span class="column-count" id="count-in-progress">0</span>
+                            <button class="column-toggle" title="Thu gọn">▼</button>
+                        </div>
+                        <div class="column-cards" id="cards-in-progress"></div>
+                    </div>
+
+                    <!-- Column: Hoàn thành -->
+                    <div class="task-kanban-column" data-status="done">
+                        <div class="column-header">
+                            <span class="column-title">✅ Hoàn thành</span>
+                            <span class="column-count" id="count-done">0</span>
+                            <button class="column-toggle" title="Thu gọn">▼</button>
+                        </div>
+                        <div class="column-cards" id="cards-done"></div>
+                    </div>
+
+                    <!-- Column: Đang chờ (NEW) -->
+                    <div class="task-kanban-column" data-status="waiting">
+                        <div class="column-header">
+                            <span class="column-title">⏳ Đang chờ</span>
+                            <span class="column-count" id="count-waiting">0</span>
+                            <button class="column-toggle" title="Thu gọn">▼</button>
+                        </div>
+                        <div class="column-cards" id="cards-waiting"></div>
+                    </div>
+                </div>
+
+
+
+
+
+
+                <!-- Task Form Panel (Slide-Over) -->
+                <div id="task-form-panel" class="slide-panel">
+                    <div class="panel-header">
+                        <h3 class="panel-title">
+                            <span id="task-panel-title">Thêm công việc</span>
+                        </h3>
+                        <button class="panel-close-btn" id="close-task-panel">&times;</button>
+                    </div>
+                    <div class="panel-body">
+                        <div class="panel-form-grid">
+                            <!-- Helper: Hidden ID for editing -->
+                            <input type="hidden" id="task-id-hidden">
+
+                            <!-- Section 1: Thông tin chính -->
+                            <div class="form-card">
+                                <div class="form-group form-group-hero">
+                                    <input type="text" id="task-name" placeholder="Tên công việc *" autocomplete="off">
+                                </div>
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label>🎯 Ưu tiên</label>
+                                        <select id="task-priority" class="modern-select">
+                                            <option value="low">🟡 Thấp</option>
+                                            <option value="medium" selected>🟠 Trung bình</option>
+                                            <option value="high">🔴 Cao</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>🏷️ Phân loại</label>
+                                        <select id="task-category" class="modern-select"></select>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Section 2: Lịch chiếu & Hạn chót -->
+                            <div class="form-card">
+                                <h4 class="form-section-title">Thời gian & Lịch</h4>
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label>📅 Ngày làm <small>(sync lịch)</small></label>
+                                        <input type="date" id="task-scheduled-date" class="modern-input">
+                                    </div>
+                                    <div class="form-group">
+                                        <label>⏰ Giờ bắt đầu</label>
+                                        <input type="time" id="task-scheduled-time" value="08:00" class="modern-input">
+                                    </div>
+                                </div>
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label>🏁 Hạn chót (ngày)</label>
+                                        <input type="date" id="task-due-date" class="modern-input">
+                                    </div>
+                                    <div class="form-group">
+                                        <label>🕐 Hạn chót (giờ)</label>
+                                        <input type="time" id="task-due-time" value="23:59" class="modern-input">
+                                    </div>
+                                    <!-- Sync to Calendar Checkbox -->
+                                    <div class="form-group full-width" style="margin-top: 8px;">
+                                        <label
+                                            style="display: flex; align-items: center; gap: 8px; font-weight: 500; cursor: pointer;">
+                                            <input type="checkbox" id="task-sync-calendar" checked
+                                                style="width: 18px; height: 18px; accent-color: #667eea;">
+                                            Đồng bộ lên Lịch (Tạo sự kiện tương ứng)
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label>⏱️ Thời lượng</label>
+                                        <select id="task-duration" class="modern-select">
+                                            <option value="30">30 phút</option>
+                                            <option value="60" selected>1 giờ</option>
+                                            <option value="90">1.5 giờ</option>
+                                            <option value="120">2 giờ</option>
+                                            <option value="180">3 giờ</option>
+                                            <option value="240">4 giờ</option>
+                                            <option value="480">Cả ngày</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>🔔 Nhắc nhở</label>
+                                        <select id="task-reminder" class="modern-select">
+                                            <option value="0">Không</option>
+                                            <option value="15" selected>Trước 15 phút</option>
+                                            <option value="30">Trước 30 phút</option>
+                                            <option value="60">Trước 1 giờ</option>
+                                            <option value="1440">Trước 1 ngày</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label>🔁 Lặp lại</label>
+                                        <select id="task-recurrence" class="modern-select">
+                                            <option value="none">Không</option>
+                                            <option value="daily">Hàng ngày</option>
+                                            <option value="weekly">Hàng tuần</option>
+                                            <option value="monthly">Hàng tháng</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>🚥 Tiến độ</label>
+                                        <select id="task-status" class="modern-select"></select>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Section 3: Tổ chức (Simplified) -->
+                            <div class="form-card">
+                                <h4 class="form-section-title">Tổ chức & Liên kết</h4>
+                                <div class="form-row">
+                                    <div class="form-group" style="width: 100%;">
+                                        <label>🔗 Trạng thái Link</label>
+                                        <input type="text" id="task-link" placeholder="https://..."
+                                            class="modern-input">
+                                    </div>
+                                </div>
+                                <div class="form-group full-width">
+                                    <label>🏷️ Nhãn thông minh (Smart Tags)</label>
+                                    <div id="task-smart-tags-container"></div>
+                                    <input type="hidden" id="task-tags" value="">
+                                </div>
+                            </div>
+
+                            <!-- Section 4: Ghi chú -->
+                            <div class="form-card">
+                                <div class="form-group full-width" style="margin-bottom: 0;">
+                                    <label>📝 Ghi chú</label>
+                                    <textarea id="task-notes" rows="3" placeholder="Ghi chú chi tiết về công việc..."
+                                        class="modern-input"></textarea>
+                                </div>
+                            </div>
+
+                            <!-- Section 5: Dependencies & Blocked (NEW) -->
+                            <div class="form-card">
+                                <h4 class="form-section-title">🔗 Phụ thuộc & Trạng thái chờ</h4>
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label>🔒 Phụ thuộc vào task</label>
+                                        <select id="task-depends-on" class="dependency-select">
+                                            <option value="">Không phụ thuộc</option>
+                                            <!-- Populated by JS -->
+                                        </select>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>🚫 Lý do chờ (nếu có)</label>
+                                        <input type="text" id="task-blocked-reason" placeholder="VD: Chờ duyệt từ sếp..." class="modern-input">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Subtasks Section -->
+                            <div id="subtasks-section">
+                                <!-- Populated by workspace-hub.js when editing -->
+                            </div>
+                        </div> <!-- End panel-form-grid -->
+                    </div> <!-- End panel-body -->
+
+                    <!-- Panel Footer -->
+                    <div class="panel-footer">
+                        <div class="calendar-sync-notice" id="calendar-sync-notice"
+                            style="display:none; margin-right: auto; background: none; border: none; padding: 0;">
+                            📆 Syncs with Calendar
+                        </div>
+                        <button id="btn-delete-task" class="btn-cancel"
+                            style="display: none; color: #ef4444; border: none; background: transparent; cursor: pointer;">Xóa</button>
+                        <button id="add-task-btn" class="btn-submit">💾 Lưu công việc</button>
+                    </div>
+                </div> <!-- End slide-panel -->
+    </div>
+
+    <!-- Excel Options Modal -->
+    <div id="import-tasks-modal" class="modal" style="display:none;">
+        <div class="modal-content" style="max-width: 450px; text-align: center; border-radius: 16px; padding: 24px;">
+            <div class="modal-header"
+                style="border-bottom: none; display: flex; justify-content: space-between; align-items: center;">
+                <h2 style="margin: 0; font-size: 1.25rem;">📊 Nhập dữ liệu Excel</h2>
+                <button class="close-btn" id="close-import-modal"
+                    style="font-size: 1.5rem; background: none; border: none; cursor: pointer;">&times;</button>
+            </div>
+            <div class="modal-body" style="padding: 20px 0;">
+                <p style="color: #64748b; margin-bottom: 24px;">Bạn có thể tải file mẫu về, điền thông tin và tải lên
+                    lại để thêm hàng loạt công việc cùng lúc.</p>
+                <div style="display: flex; flex-direction: column; gap: 16px;">
+                    <button id="btn-download-template"
+                        style="width: 100%; padding: 14px; border-radius: 12px; border: 2px solid #e2e8f0; background: white; font-weight: 600; color: #3b82f6; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; transition: all 0.2s;">
+                        📥 Tải file Excel mẫu
+                    </button>
+                    <label for="excel-import-input"
+                        style="width: 100%; padding: 14px; border-radius: 12px; border: none; background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%); color: white; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; box-shadow: 0 4px 12px rgba(34, 197, 94, 0.2); transition: all 0.2s;">
+                        📤 Upload file Excel
+                        <input type="file" id="excel-import-input" accept=".xlsx,.xls,.csv" hidden>
+                    </label>
+                </div>
+            </div>
+        </div>
+    </div>
+    </section>
+
+
+    <!-- TODO LIST section đã được gộp vào section bên trên (line ~385) để tránh duplicate ID -->
+
+
+
+
+
+
+
+
+
+    <!-- LIBRARY -->
+
+
+    <!-- SV5T -->
+    <section id="student-journey" class="content-section">
+        <h1>Hành trình Sinh viên 5 tốt</h1>
+        <div id="sv5t-board-container"></div>
+    </section>
+
+    <!-- PROOFS -->
+    <section id="proofs-management" class="content-section">
+        <h1>Quản lý Minh chứng</h1>
+        <div id="proof-management-toolbar">
+            <input type="search" id="proof-search" placeholder="Tìm kiếm...">
+        </div>
+        <div class="proof-table-container">
+            <table class="proof-table">
+                <thead>
+                    <tr>
+                        <th>Tên</th>
+                        <th>Tiêu chí</th>
+                        <th>Hành động</th>
+                    </tr>
+                </thead>
+                <tbody id="proof-list-body"></tbody>
+            </table>
+        </div>
+    </section>
+
+    <!-- ACHIEVEMENTS -->
+    <section id="achievements" class="content-section">
+        <div class="achievements-header">
+            <h1>Thành tích</h1>
+            <button class="btn-submit" id="btn-add-achievement">Thêm Mới +</button>
+        </div>
+        <div id="achievements-grid"></div>
+    </section>
+
+
+
+    <!-- SETTINGS -->
+    <section id="settings" class="content-section">
+        <h1>Cài đặt</h1>
+        <div class="settings-grid">
+            <div class="settings-card">
+                <h3>Ảnh đại diện</h3>
+                <div class="profile-picture-controls">
+                    <img id="settings-profile-preview" class="profile-picture-preview" src="" alt="Preview">
+                    <div style="flex-grow:1;">
+                        <div class="settings-input-group">
+                            <input type="text" id="profile-pic-link" placeholder="Link ảnh...">
+                            <button class="btn-submit" id="btn-save-avatar">Lưu</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="settings-card">
+                <h3>Hiển thị</h3>
+                <div style="display:flex; justify-content:space-between;">
+                    <label>Chế độ tối</label>
+                    <label class="toggle-switch"><input type="checkbox" id="toggle-dark-mode"><span
+                            class="slider"></span></label>
+                </div>
+                <div style="display:flex; justify-content:space-between; margin-top:10px;">
+                    <label>Auto Dark (7PM-6AM)</label>
+                    <label class="toggle-switch"><input type="checkbox" id="toggle-auto-dark"><span
+                            class="slider"></span></label>
+                </div>
+            </div>
+
+
+        </div>
+    </section>
+
+
+
+    <!-- SECTION: QUẢN LÝ TÀI KHOẢN (ADMIN ONLY) -->
+    <section id="admin-user-management" class="content-section">
+        <h1>Quản lý Tài khoản (Admin Mode)</h1>
+        <div class="form-container">
+            <div style="display: flex; gap: 10px; margin-bottom: 20px;">
+                <input type="text" id="admin-search-user" placeholder="Tìm kiếm người dùng (Tên, Email)..."
+                    style="flex: 1; padding: 12px; border-radius: 8px; border: 1px solid #ccc;">
+            </div>
+
+            <div class="proof-table-container">
+                <table class="proof-table" id="admin-users-table">
+                    <thead>
+                        <tr>
+                            <th>Avatar</th>
+                            <th>Tên hiển thị</th>
+                            <th>Email</th>
+                            <th>Ngày tạo</th>
+                            <th>Vai trò</th>
+                            <th>Hành động</th>
+                        </tr>
+                    </thead>
+                    <tbody id="admin-user-list-body">
+                        <!-- User list populated by JS -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </section>
+
+
+
+
+
+    </main>
+    </div>
+
+    <!-- ================= MODALS ================= -->
+
+    <div id="event-modal" class="modal">
+        <div class="modal-content event-modal-gcal">
+            <div class="modal-header event-modal-header">
+                <h2 id="event-modal-title">Thêm sự kiện mới</h2>
+                <button class="close-btn" id="close-event-modal">&times;</button>
+            </div>
+            <div class="modal-body event-modal-body">
+                <input type="hidden" id="event-id">
+
+                <!-- Title - Large Input Like Google Calendar -->
+                <div class="form-group gcal-title-group">
+                    <input type="text" id="event-title" placeholder="Thêm tiêu đề và thời gian"
+                        class="gcal-title-input">
+                </div>
+
+                <!-- Event Type Tabs -->
+                <div class="gcal-type-tabs">
+                    <button type="button" class="gcal-tab active" data-type="event">Sự kiện</button>
+                    <button type="button" class="gcal-tab" data-type="task">Việc cần làm</button>
+                </div>
+
+                <!-- Date & Time Row -->
+                <div class="gcal-row">
+                    <span class="gcal-icon">
+                        <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2"
+                            fill="none">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <polyline points="12 6 12 12 16 14"></polyline>
+                        </svg>
+                    </span>
+                    <div class="gcal-datetime">
+                        <div class="gcal-date-display">
+                            <input type="date" id="event-date">
+                            <span class="gcal-date-separator">–</span>
+                            <input type="date" id="event-end-date">
+                        </div>
+                        <div class="gcal-time-display">
+                            <input type="time" id="event-start-time">
+                            <span>→</span>
+                            <input type="time" id="event-end-time">
+                        </div>
+                        <label class="gcal-checkbox">
+                            <input type="checkbox" id="event-all-day"> Cả ngày
+                        </label>
+                        <!-- Lặp lại (Recurring) -->
+                        <div style="margin-top: 8px; display: flex; align-items: center; gap: 8px; width: 100%;">
+                            <span
+                                style="font-size: 0.85rem; color: #6b7280; display: flex; align-items: center; gap: 4px;">
+                                <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2"
+                                    fill="none" class="gcal-icon-primary">
+                                    <path d="M17 1l4 4-4 4"></path>
+                                    <path d="M3 11V9a4 4 0 0 1 4-4h14"></path>
+                                    <path d="M7 23l-4-4 4-4"></path>
+                                    <path d="M21 13v2a4 4 0 0 1-4 4H3"></path>
+                                </svg>
+                                Lặp lại:
+                            </span>
+                            <select id="event-recurrence" class="gcal-select-small">
+                                <option value="">Không</option>
+                                <option value="daily">Hàng ngày</option>
+                                <option value="weekly">Hàng tuần</option>
+                                <option value="monthly">Hàng tháng</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Location -->
+                <div class="gcal-row">
+                    <span class="gcal-icon">
+                        <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2"
+                            fill="none">
+                            <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+                            <circle cx="12" cy="10" r="3"></circle>
+                        </svg>
+                    </span>
+                    <input type="text" id="event-location" placeholder="Thêm vị trí" class="gcal-input">
+                </div>
+
+                <!-- Google Meet (Optional) -->
+                <div class="gcal-row">
+                    <span class="gcal-icon">
+                        <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2"
+                            fill="none">
+                            <polygon points="23 7 16 12 23 17 23 7"></polygon>
+                            <rect x="1" y="5" width="15" height="14" rx="2" ry="2"></rect>
+                        </svg>
+                    </span>
+                    <input type="text" id="event-meet-link" placeholder="Thêm link Google Meet / Zoom"
+                        class="gcal-input">
+                </div>
+
+                <!-- Description -->
+                <div class="gcal-row gcal-row-align-top">
+                    <span class="gcal-icon" style="margin-top: 10px;">
+                        <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2"
+                            fill="none">
+                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                            <polyline points="14 2 14 8 20 8"></polyline>
+                            <line x1="16" y1="13" x2="8" y2="13"></line>
+                            <line x1="16" y1="17" x2="8" y2="17"></line>
+                            <polyline points="10 9 9 9 8 9"></polyline>
+                        </svg>
+                    </span>
+                    <textarea id="event-description" placeholder="Thêm mô tả hoặc tệp đính kèm" class="gcal-textarea"
+                        rows="3"></textarea>
+                </div>
+
+                <!-- Task Link -->
+                <div class="gcal-row">
+                    <span class="gcal-icon">
+                        <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2"
+                            fill="none">
+                            <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path>
+                            <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path>
+                        </svg>
+                    </span>
+                    <select id="event-task-link" class="gcal-select">
+                        <option value="">-- Có thể liên kết task --</option>
+                    </select>
+                </div>
+
+                <!-- Color Picker -->
+                <div class="gcal-row gcal-row-no-border">
+                    <span class="gcal-icon">
+                        <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2"
+                            fill="none">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <circle cx="8" cy="10" r="1"></circle>
+                            <circle cx="12" cy="7" r="1"></circle>
+                            <circle cx="16" cy="10" r="1"></circle>
+                            <path d="M12 22v-3a2 2 0 0 0-2-2h-1a2 2 0 0 1-2-2V9"></path>
+                        </svg>
+                    </span>
+                    <div class="gcal-color-picker">
+                        <label>Màu:</label>
+                        <input type="color" id="event-color" value="#667eea">
+                    </div>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="gcal-actions">
+                    <button id="btn-delete-event" class="btn-delete" style="display:none;">Xóa</button>
+                    <div class="gcal-actions-right">
+                        <button type="button" class="btn-secondary"
+                            onclick="document.getElementById('event-modal').style.display='none'">Hủy</button>
+                        <button id="btn-save-event" class="btn-primary">Lưu</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- TASK DETAIL MODAL (for calendar click) -->
+    <div id="task-detail-modal" class="modal">
+        <div class="modal-content" style="max-width: 480px; border-radius: 16px; overflow: hidden;">
+            <div class="modal-header"
+                style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 16px 20px;">
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <span style="font-size: 1.3rem;">📋</span>
+                    <h2 id="task-modal-title" style="margin: 0; font-size: 1.1rem; font-weight: 600;">Chi tiết công việc
+                    </h2>
+                </div>
+                <button class="close-btn" id="close-task-detail-modal"
+                    style="color: white; font-size: 1.5rem;">&times;</button>
+            </div>
+            <div class="modal-body" style="padding: 20px;">
+                <input type="hidden" id="task-modal-id">
+
+                <!-- Task Name -->
+                <div class="form-group" style="margin-bottom: 16px;">
+                    <input type="text" id="task-modal-name" placeholder="Tên công việc..."
+                        style="width: 100%; padding: 12px 16px; border: 2px solid #e5e7eb; border-radius: 10px; font-size: 1rem; font-weight: 500; transition: border-color 0.2s;"
+                        onfocus="this.style.borderColor='#667eea'" onblur="this.style.borderColor='#e5e7eb'">
+                </div>
+
+                <!-- Date & Time Row -->
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px;">
+                    <div style="background: #f8fafc; padding: 12px; border-radius: 10px;">
+                        <label style="font-size: 0.75rem; color: #64748b; display: block; margin-bottom: 4px;">📅 Ngày
+                            làm</label>
+                        <input type="date" id="task-modal-date"
+                            style="width: 100%; border: none; background: transparent; font-size: 0.95rem; font-weight: 500;">
+                    </div>
+                    <div style="background: #f8fafc; padding: 12px; border-radius: 10px;">
+                        <label style="font-size: 0.75rem; color: #64748b; display: block; margin-bottom: 4px;">⏰ Giờ bắt
+                            đầu</label>
+                        <input type="time" id="task-modal-time"
+                            style="width: 100%; border: none; background: transparent; font-size: 0.95rem; font-weight: 500;">
+                    </div>
+                </div>
+
+                <!-- Status & Priority Row -->
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px;">
+                    <div>
+                        <label style="font-size: 0.8rem; color: #64748b; display: block; margin-bottom: 6px;">Trạng
+                            thái</label>
+                        <select id="task-modal-status"
+                            style="width: 100%; padding: 10px 12px; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 0.9rem; background: white;">
+                            <option value="Chưa thực hiện">⏳ Chưa thực hiện</option>
+                            <option value="Đang thực hiện">🔄 Đang thực hiện</option>
+                            <option value="Hoàn thành">✅ Hoàn thành</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label style="font-size: 0.8rem; color: #64748b; display: block; margin-bottom: 6px;">Độ ưu
+                            tiên</label>
+                        <div id="task-modal-priority-pills" style="display: flex; gap: 6px;">
+                            <button type="button" data-priority="high" class="priority-pill"
+                                style="flex: 1; padding: 8px; border: 2px solid #ef4444; border-radius: 8px; background: white; cursor: pointer; font-size: 0.8rem; transition: all 0.2s;">🔴
+                                Cao</button>
+                            <button type="button" data-priority="medium" class="priority-pill"
+                                style="flex: 1; padding: 8px; border: 2px solid #f59e0b; border-radius: 8px; background: white; cursor: pointer; font-size: 0.8rem; transition: all 0.2s;">🟡
+                                TB</button>
+                            <button type="button" data-priority="low" class="priority-pill"
+                                style="flex: 1; padding: 8px; border: 2px solid #22c55e; border-radius: 8px; background: white; cursor: pointer; font-size: 0.8rem; transition: all 0.2s;">🟢
+                                Thấp</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Notes -->
+                <div style="margin-bottom: 16px;">
+                    <label style="font-size: 0.8rem; color: #64748b; display: block; margin-bottom: 6px;">📝 Ghi
+                        chú</label>
+                    <textarea id="task-modal-notes" placeholder="Thêm ghi chú..." rows="3"
+                        style="width: 100%; padding: 12px; border: 2px solid #e5e7eb; border-radius: 10px; font-size: 0.9rem; resize: vertical; transition: border-color 0.2s;"
+                        onfocus="this.style.borderColor='#667eea'" onblur="this.style.borderColor='#e5e7eb'"></textarea>
+                </div>
+
+                <!-- Action Buttons -->
+                <div
+                    style="display: flex; justify-content: space-between; align-items: center; padding-top: 8px; border-top: 1px solid #f1f5f9;">
+                    <button id="btn-delete-task-modal"
+                        style="padding: 10px 16px; border: 2px solid #fee2e2; background: #fef2f2; color: #dc2626; border-radius: 8px; cursor: pointer; font-weight: 500; transition: all 0.2s;"
+                        onmouseover="this.style.background='#fecaca'" onmouseout="this.style.background='#fef2f2'">🗑️
+                        Xóa</button>
+                    <div style="display: flex; gap: 10px;">
+                        <button id="btn-goto-task-detail"
+                            style="padding: 10px 16px; border: 2px solid #e5e7eb; background: white; color: #64748b; border-radius: 8px; cursor: pointer; font-weight: 500; transition: all 0.2s;"
+                            onmouseover="this.style.borderColor='#667eea';this.style.color='#667eea'"
+                            onmouseout="this.style.borderColor='#e5e7eb';this.style.color='#64748b'">📝 Chi
+                            tiết</button>
+                        <button id="btn-save-task-modal"
+                            style="padding: 10px 20px; border: none; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border-radius: 8px; cursor: pointer; font-weight: 600; transition: all 0.2s; box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);"
+                            onmouseover="this.style.transform='translateY(-1px)';this.style.boxShadow='0 6px 16px rgba(102, 126, 234, 0.5)'"
+                            onmouseout="this.style.transform='translateY(0)';this.style.boxShadow='0 4px 12px rgba(102, 126, 234, 0.4)'">💾
+                            Lưu</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="achievement-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Thành tích</h2><button class="close-btn" id="close-achievement-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="achievement-id">
+                <div class="form-group"><label>Tên</label><input type="text" id="achievement-title"></div>
+                <div class="form-group"><label>Loại</label><select id="achievement-category">
+                        <option value="academic">Học tập</option>
+                        <option value="social">Đoàn Hội</option>
+                        <option value="award">Khen thưởng</option>
+                        <option value="other">Khác</option>
+                    </select></div>
+                <div class="form-group"><label>Ngày</label><input type="date" id="achievement-date"></div>
+                <div class="form-group"><label>Mô tả</label><textarea id="achievement-description"></textarea></div>
+                <div class="form-group"><label>Link ảnh</label><input type="text" id="achievement-drive-link"></div>
+                <div class="form-group"><label style="display:inline;"><input type="checkbox" id="achievement-featured">
+                        Đánh dấu Nổi bật</label></div>
+                <div style="display:flex; gap:10px; margin-top:15px; justify-content:flex-end;">
+                    <button id="btn-delete-achievement" class="btn-submit"
+                        style="background:var(--danger-color); display:none;">Xóa</button>
+                    <button id="btn-save-achievement" class="btn-submit">Lưu</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Project Form Panel -->
+    <div id="project-form-panel" class="slide-panel">
+        <div class="panel-header">
+            <h3 class="panel-title">
+                <span id="project-panel-title">Dự án</span>
+            </h3>
+            <button class="panel-close-btn" id="close-project-panel">&times;</button>
+        </div>
+        <div class="panel-body">
+            <div class="panel-form-grid">
+                <input type="hidden" id="project-id">
+                <div class="panel-section">
+                    <div class="form-group">
+                        <label>Tên dự án</label>
+                        <input type="text" id="project-name" placeholder="Nhập tên dự án...">
+                    </div>
+                </div>
+                <div class="panel-section">
+                    <div class="form-group">
+                        <label>Mô tả</label>
+                        <textarea id="project-description" rows="3" placeholder="Mô tả dự án..."></textarea>
+                    </div>
+                </div>
+                <div class="panel-section">
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                        <div class="form-group">
+                            <label>Bắt đầu</label>
+                            <input type="date" id="project-start-date">
+                        </div>
+                        <div class="form-group">
+                            <label>Kết thúc</label>
+                            <input type="date" id="project-end-date">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="panel-footer">
+            <button id="btn-delete-project" class="btn-cancel" style="display:none; color: #ef4444;">Xóa</button>
+            <button id="btn-save-project" class="btn-submit">💾 Lưu dự án</button>
+        </div>
+    </div>
+
+    <div id="document-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Tài liệu</h2><button class="close-btn" id="close-document-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="doc-id">
+                <div class="form-group"><label>Tiêu đề</label><input type="text" id="doc-title"></div>
+                <div class="form-group"><label>Loại</label><select id="doc-type">
+                        <option value="article">Bài báo</option>
+                        <option value="book">Sách</option>
+                        <option value="other">Khác</option>
+                    </select></div>
+                <div class="form-group"><label>Link</label><input type="url" id="doc-source"></div>
+                <div class="form-group"><label>Tags</label><input type="text" id="doc-tags"></div>
+                <div class="form-group"><label>File</label><button class="btn-submit"
+                        onclick="document.getElementById('document-file-input').click()">Chọn File</button><span
+                        id="document-file-name" style="margin-left:10px; font-size:0.8rem;"></span></div>
+                <div class="form-group"><label>Ghi chú</label><textarea id="doc-notes"></textarea></div>
+                <div style="display:flex; gap:10px; margin-top:15px; justify-content:flex-end;">
+                    <button id="btn-delete-doc" class="btn-submit"
+                        style="background:var(--danger-color); display:none;">Xóa</button>
+                    <button id="btn-save-doc" class="btn-submit">Lưu</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="outline-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Dàn ý</h2><button class="close-btn" id="close-outline-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="outline-id">
+                <div class="form-group"><label>Tên Dàn ý</label><input type="text" id="outline-title"></div>
+                <div style="display:flex; gap:10px; margin-top:15px; justify-content:flex-end;">
+                    <button class="btn-submit" id="btn-save-outline">Lưu</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL ADMIN -->
+    <div id="admin-modal" class="modal">
+        <div class="modal-content" style="max-width:900px;">
+            <div class="modal-header">
+                <h2>Dashboard Admin</h2><button class="close-btn" id="close-admin-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div style="display:flex; gap:10px; margin-bottom:20px;">
+                    <div class="stat-card" style="flex:1; background:#e3f2fd;">
+                        <h4>User</h4><b id="admin-total-users">0</b>
+                    </div>
+                    <div class="stat-card" style="flex:1; background:#fff3e0;">
+                        <h4>Tasks</h4><b id="admin-total-tasks">0</b>
+                    </div>
+                    <div class="stat-card" style="flex:1; background:#e8f5e9;">
+                        <h4>Active</h4><b id="admin-active-users">0</b>
+                    </div>
+                </div>
+                <h3>Users</h3>
+                <div class="proof-table-container" style="max-height:200px; overflow:auto;">
+                    <table class="proof-table">
+                        <thead>
+                            <tr>
+                                <th>Tên</th>
+                                <th>Email</th>
+                                <th>ID</th>
+                            </tr>
+                        </thead>
+                        <tbody id="admin-user-list"></tbody>
+                    </table>
+                </div>
+                <h3>Mẫu</h3>
+                <div id="template-list-container"></div>
+                <div style="display:flex; gap:10px; margin-top:10px;">
+                    <input id="tpl-name" placeholder="Tên mẫu..." style="flex:1; padding:8px;">
+                    <button id="btn-create-template" class="btn-submit">Tạo</button>
+                </div>
+                <h3>Tin nhắn</h3>
+                <div id="admin-msg-list"></div>
+
+                <!-- [MỚI] PHÂN QUYỀN -->
+                <h3>Phân quyền</h3>
+                <div class="proof-table-container" style="max-height:200px; overflow:auto; margin-bottom:20px;">
+                    <table class="proof-table">
+                        <thead>
+                            <tr>
+                                <th>Email</th>
+                                <th>Quyền</th>
+                                <th>Hành động</th>
+                            </tr>
+                        </thead>
+                        <tbody id="admin-role-list"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- HELPER DIVS -->
+        <div id="confirm-modal" class="modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2>Xác nhận</h2><button class="close-btn" id="close-confirm-modal">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <p id="confirm-modal-text"></p>
+                    <div style="display:flex; justify-content:flex-end; gap:10px;"><button class="btn-submit"
+                            style="background:#666;" id="btn-cancel-confirm">Hủy</button><button class="btn-submit"
+                            style="background:var(--danger-color);" id="btn-ok-confirm">OK</button></div>
+                </div>
+            </div>
+        </div>
+        <div id="sv5t-panel-overlay" class="sv5t-panel-overlay"></div>
+        <div id="sv5t-side-panel" class="sv5t-side-panel">
+            <div class="sv5t-panel-header">
+                <h2 id="sv5t-panel-title"></h2><button id="sv5t-panel-close-btn">&times;</button>
+            </div>
+            <div class="sv5t-panel-body" id="condition-list-container"></div>
+        </div>
+        <div id="outline-node-panel-overlay" class="sv5t-panel-overlay"></div>
+        <div id="outline-node-side-panel" class="sv5t-side-panel">
+            <div class="sv5t-panel-header">
+                <h2 id="outline-node-panel-title"></h2><button id="outline-node-panel-close-btn">&times;</button>
+            </div>
+            <div class="sv5t-panel-body" id="outline-node-panel-body"></div>
+        </div>
+        <div id="notification-container"></div>
+
+
+        <!-- ============================================
+             SLIDE PANEL - Replaces all modals
+             ============================================ -->
+        <div class="slide-panel-overlay" id="slide-panel-overlay"></div>
+        <div class="slide-panel" id="slide-panel">
+            <div class="slide-panel-header">
+                <h2 class="slide-panel-title" id="slide-panel-title">
+                    <span id="slide-panel-icon">📝</span>
+                    <span id="slide-panel-title-text">Thêm công việc</span>
+                </h2>
+                <button class="slide-panel-close" id="slide-panel-close">&times;</button>
+            </div>
+            <div class="slide-panel-body" id="slide-panel-body">
+                <!-- Dynamic content will be inserted here by JS -->
+
+                <!-- Default Task Form -->
+                <div id="panel-task-form">
+                    <div class="panel-form-group">
+                        <label>Tên công việc</label>
+                        <input type="text" id="panel-task-name" placeholder="VD: Nộp báo cáo cuối kỳ...">
+                    </div>
+
+                    <div class="panel-form-row">
+                        <div class="panel-form-group">
+                            <label>Hạn chót</label>
+                            <input type="date" id="panel-task-date">
+                        </div>
+                        <div class="panel-form-group">
+                            <label>Phân loại</label>
+                            <select id="panel-task-category">
+                                <option value="Học tập">📚 Học tập</option>
+                                <option value="Công việc">💼 Công việc</option>
+                                <option value="Cá nhân">👤 Cá nhân</option>
+                                <option value="Khác">📌 Khác</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="panel-form-group">
+                        <label>Mức độ ưu tiên</label>
+                        <div class="priority-selector">
+                            <div class="priority-option high" data-priority="high">🔴 Cao</div>
+                            <div class="priority-option medium selected" data-priority="medium">🟡 Trung bình</div>
+                            <div class="priority-option low" data-priority="low">🟢 Thấp</div>
+                        </div>
+                    </div>
+
+                    <div class="panel-form-group">
+                        <label>Tags</label>
+                        <input type="text" id="panel-task-tags"
+                            placeholder="VD: urgent, homework (phân cách bằng dấu phẩy)">
+                    </div>
+
+                    <div class="panel-form-group">
+                        <label>Ghi chú</label>
+                        <textarea id="panel-task-notes" placeholder="Thêm ghi chú chi tiết..."></textarea>
+                    </div>
+                </div>
+            </div>
+            <div class="slide-panel-footer">
+                <button class="panel-btn panel-btn-secondary" id="panel-cancel-btn">Hủy</button>
+                <button class="panel-btn panel-btn-primary" id="panel-save-btn">💾 Lưu</button>
+            </div>
+        </div>
+
+
+        <!-- HIDDEN INPUTS -->
+        <!-- Note: import-file-input is inside the label in task section -->
+        <input type="file" id="proof-upload-input" style="display:none;">
+        <input type="file" id="achievement-file-input" style="display:none;">
+        <input type="file" id="document-file-input" style="display:none;">
+
+        <!-- SCRIPTS -->
+        <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.2/dist/confetti.browser.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/quill@2.0.0/dist/quill.min.js"></script>
+        <!-- SortableJS (Quan trọng cho Timeline) -->
+        <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
+        <!-- PDF.js và Mammoth.js cho File Upload -->
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
+        <!-- SheetJS for Excel Import -->
+        <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
+        <script>
+            // Cấu hình PDF.js worker
+            if (typeof pdfjsLib !== 'undefined') {
+                pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+            }
+        </script>
+        <script type="module" src="js/main.js"></script>
+        <script type="module" src="js/theme-customizer.js"></script>
+        <script type="module" src="js/day-preview.js"></script>
+
+        <!-- PWA Service Worker Registration -->
+        <script>
+            if ('serviceWorker' in navigator) {
+                window.addEventListener('load', () => {
+                    navigator.serviceWorker.register('/service-worker.js')
+                        .then(reg => console.log('✅ LifeOS PWA: Service Worker registered!', reg.scope))
+                        .catch(err => console.log('❌ LifeOS PWA: SW registration failed:', err));
+                });
+            }
+        </script>
+
+
+
+</body>
+
+</html>

@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Excel to Google Calendar - Auto Link</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <style>
+        :root {
+            --primary: #1a73e8;
+            --success: #188038;
+            --bg: #f8f9fa;
+            --text: #202124;
+            --white: #ffffff;
+        }
+
+        body {
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            display: flex;
+            justify-content: center;
+            padding-top: 50px;
+            margin: 0;
+        }
+
+        .container {
+            background: var(--white);
+            padding: 40px;
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            width: 100%;
+            max-width: 650px;
+            text-align: center;
+        }
+
+        h1 { margin-bottom: 10px; color: var(--primary); }
+        .subtitle { color: #5f6368; margin-bottom: 30px; font-size: 0.95em;}
+
+        .upload-area {
+            border: 2px dashed #dadce0;
+            padding: 30px 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            transition: all 0.3s;
+            cursor: pointer;
+            position: relative;
+            background: #fff;
+        }
+
+        .upload-area:hover { border-color: var(--primary); background-color: #f1f3f4; }
+
+        input[type="file"] {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            opacity: 0;
+            cursor: pointer;
+        }
+
+        .file-info {
+            font-weight: bold; color: var(--success);
+            margin-bottom: 20px; display: none;
+        }
+
+        .btn-group { display: flex; gap: 10px; justify-content: center; margin-top: 20px; }
+
+        button {
+            border: none; padding: 12px 25px; font-size: 15px;
+            border-radius: 50px; cursor: pointer; font-weight: 600;
+            transition: transform 0.1s;
+        }
+        
+        button:active { transform: scale(0.98); }
+
+        .btn-primary {
+            background-color: var(--primary); color: white;
+            box-shadow: 0 2px 5px rgba(26, 115, 232, 0.3);
+        }
+        .btn-primary:disabled { background-color: #dadce0; cursor: not-allowed; box-shadow: none; }
+        .btn-primary:hover:not(:disabled) { background-color: #1557b0; }
+
+        .btn-secondary {
+            background-color: #fff; border: 1px solid #dadce0; color: var(--text);
+            display: none; /* Ẩn mặc định */
+        }
+        .btn-secondary:hover { background-color: #f1f3f4; }
+
+        #error-msg { color: #d93025; margin-top: 15px; font-size: 14px; display: none; }
+
+        .step-guide {
+            text-align: left; background: #e8f0fe; padding: 15px;
+            border-radius: 8px; font-size: 0.9em; margin-top: 30px;
+            border-left: 5px solid var(--primary);
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Công cụ Import Lịch tự động</h1>
+    <p class="subtitle">Chọn file Excel, tải CSV và mở nhanh trang Google Calendar</p>
+
+    <div class="upload-area" id="dropZone">
+        <span id="dropText">📂 Kéo thả file Excel hoặc Click để chọn</span>
+        <input type="file" id="fileInput" accept=".xlsx, .xls">
+    </div>
+
+    <div class="file-info" id="fileName"></div>
+
+    <div class="btn-group">
+        <button id="convertBtn" class="btn-primary" onclick="processFile()" disabled>1. Tải CSV & Mở Calendar</button>
+        <!-- Nút phụ nếu người dùng muốn mở lại -->
+        <a id="linkBtn" href="https://calendar.google.com/calendar/r/settings/export" target="_blank" style="text-decoration: none;">
+            <button class="btn-secondary" id="directLinkBtn">🔗 Mở lại trang Import</button>
+        </a>
+    </div>
+
+    <div id="error-msg"></div>
+
+    <div class="step-guide">
+        <strong>⚡ Quy trình sau khi bấm nút màu xanh:</strong>
+        <ol>
+            <li>File <code>calendar_import.csv</code> sẽ tự tải về máy.</li>
+            <li>Trang <strong>Google Calendar Import</strong> sẽ tự động bật ra ở tab mới.</li>
+            <li>Bạn chỉ cần kéo file vừa tải vào ô "Chọn tệp từ máy tính" và ấn <strong>Nhập (Import)</strong>.</li>
+        </ol>
+    </div>
+</div>
+
+<script>
+    let selectedFile = null;
+
+    document.getElementById('fileInput').addEventListener('change', function(e) {
+        if (e.target.files.length > 0) {
+            selectedFile = e.target.files[0];
+            document.getElementById('fileName').style.display = 'block';
+            document.getElementById('fileName').innerText = '✅ Đã chọn: ' + selectedFile.name;
+            document.getElementById('convertBtn').disabled = false;
+            document.getElementById('error-msg').style.display = 'none';
+        }
+    });
+
+    function processFile() {
+        if (!selectedFile) return;
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            try {
+                const data = new Uint8Array(e.target.result);
+                const workbook = XLSX.read(data, {type: 'array'});
+                const worksheet = workbook.Sheets[workbook.SheetNames[0]];
+                const jsonData = XLSX.utils.sheet_to_json(worksheet, {header: 1, raw: false, defval: ""});
+
+                if (jsonData.length < 2) throw new Error("File Excel rỗng!");
+
+                const csvContent = generateCSV(jsonData);
+                
+                // 1. Tải file xuống
+                downloadCSV(csvContent);
+                
+                // 2. Mở trang Google Calendar Import ngay lập tức
+                // Link này sẽ tự động redirect tới tài khoản đang login
+                setTimeout(() => {
+                    window.open('https://calendar.google.com/calendar/r/settings/export', '_blank');
+                    document.getElementById('directLinkBtn').style.display = 'block'; // Hiện nút phụ
+                }, 1000); // Đợi 1s để chắc chắn file đã bắt đầu tải
+
+            } catch (err) {
+                console.error(err);
+                document.getElementById('error-msg').style.display = 'block';
+                document.getElementById('error-msg').innerText = "Lỗi: " + err.message;
+            }
+        };
+        reader.readAsArrayBuffer(selectedFile);
+    }
+
+    function generateCSV(rows) {
+        let csvRows = [];
+        // Header chuẩn Google
+        csvRows.push(['Subject', 'Start Date', 'Start Time', 'End Date', 'End Time', 'Description', 'Location'].join(','));
+
+        for (let i = 1; i < rows.length; i++) {
+            const row = rows[i];
+            // Cấu trúc cột dựa trên ảnh: A=0(Tên), D=3(Ngày), E=4(Giờ BĐ), F=5(Ngày KT), G=6(Giờ KT), L=11(Note)
+            const subject = row[0] || "Không tên";
+            const startDateRaw = row[3];
+            if (!startDateRaw) continue;
+
+            const startTimeRaw = row[4];
+            const endDateRaw = row[5];
+            const endTimeRaw = row[6];
+
+            // Gộp thông tin vào mô tả
+            let description = "";
+            if(row[1]) description += `[Priority: ${row[1]}] `;
+            if(row[2]) description += `[Type: ${row[2]}] `;
+            if(row[8]) description += `\nStatus: ${row[8]}`;
+            if(row[10]) description += `\nTags: ${row[10]}`;
+            if(row[11]) description += `\n\nLink/Note:\n${row[11]}`;
+
+            const startDate = formatDate(startDateRaw);
+            const endDate = endDateRaw ? formatDate(endDateRaw) : startDate;
+            const startTime = formatTime(startTimeRaw);
+            const endTime = endTimeRaw ? formatTime(endTimeRaw) : "";
+
+            const csvLine = [
+                escapeCSV(subject), startDate, startTime, endDate, endTime, escapeCSV(description), ""
+            ].join(',');
+            csvRows.push(csvLine);
+        }
+        return csvRows.join('\n');
+    }
+
+    function formatDate(dateStr) {
+        if (!dateStr) return "";
+        const parts = dateStr.trim().split('/');
+        if (parts.length === 3) return `${parts[2]}-${parts[1]}-${parts[0]}`;
+        return dateStr;
+    }
+
+    function formatTime(timeStr) {
+        if (!timeStr) return "";
+        timeStr = timeStr.trim().replace(/h/gi, ':');
+        if (timeStr.length === 4 && timeStr.indexOf(':') === 1) return "0" + timeStr;
+        if (timeStr.length <= 2) return timeStr.padStart(2,'0') + ":00";
+        return timeStr;
+    }
+
+    function escapeCSV(str) {
+        if (!str) return "";
+        str = str.toString().replace(/"/g, '""');
+        if (str.search(/("|,|\n)/g) >= 0) str = `"${str}"`;
+        return str;
+    }
+
+    function downloadCSV(content) {
+        const blob = new Blob(["\uFEFF" + content], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.setAttribute("href", url);
+        link.setAttribute("download", "calendar_import.csv");
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    }
+</script>
+
+</body>
+</html>

@@ -1,0 +1,83 @@
+/* Font UTM Avo */
+@font-face {
+    font-family: 'UTM Avo';
+    src: url('../fonts/UTM-Avo.ttf') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'UTM Avo';
+    src: url('../fonts/UTM-AvoBold.ttf') format('truetype');
+    font-weight: bold;
+    font-style: normal;
+}
+
+:root {
+    /* MÀU SẮC THƯƠNG HIỆU */
+    --blue: #005B96;
+    --orange: #FF7A00;
+    --white: #ffffff;
+
+    /* THEME SYSTEM - Các biến được set bởi JS applyTheme() */
+    --primary-color: #667eea;
+    /* Default theme primary */
+    --secondary-color: #764ba2;
+    /* Default theme secondary */
+    --bg-color: #f8fafc;
+    /* Default theme background */
+    --text-color: #1e3a5f;
+    /* Xanh navy đậm - chuyên nghiệp */
+    --text-accent: #FF7A00;
+    /* Cam - cho tiêu đề và nhấn mạnh */
+    --text-color-primary: #1e3a5f;
+    /* Định nghĩa Primary Text tránh bị đen mặc định */
+    --text-color-secondary: #64748b;
+    /* Secondary Text */
+    --card-bg: #ffffff;
+    --border-color: #e2e8f0;
+
+    /* GRADIENTS */
+    --grad-main: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+    --glass-bg: rgba(255, 255, 255, 0.85);
+    --sidebar-background: linear-gradient(135deg, #1a1a2e, #16213e);
+
+    /* SHADOWS */
+    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+    --card-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+
+    /* AURA SYSTEM cho sidebar + Dashboard */
+    --aura-color-1: var(--primary-color);
+    --aura-color-2: var(--secondary-color);
+    --aura-gradient: var(--grad-main);
+    --aura-glow: 0 0 20px rgba(102, 126, 234, 0.3);
+
+    /* Priority Colors */
+    --priority-high-color: #ef4444;
+    --priority-medium-color: #f59e0b;
+    --priority-low-color: #22c55e;
+
+    /* Calendar */
+    --calendar-event-color: #3b82f6;
+    --calendar-task-color: #f59e0b;
+
+    /* Status Colors */
+    --success-color: #22c55e;
+    --warning-color: #f59e0b;
+    --danger-color: #ef4444;
+    --info-color: #3b82f6;
+
+    /* Due Soon */
+    --due-soon-color: #f97316;
+
+    /* Legacy compatibility */
+    --primary-blue: var(--blue);
+    --primary-orange: var(--orange);
+    --secondary-orange: #fbbf24;
+
+    /* FONTS - UTM Avo */
+    --font-body: 'UTM Avo', Arial, sans-serif;
+    --font-title: 'UTM Avo', Arial, sans-serif;
+}

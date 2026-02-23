@@ -1,0 +1,211 @@
+/* ============================================================
+   UTILITY CLASSES - Thay thế inline styles phổ biến
+   Sử dụng thay vì viết style="" trong HTML
+   ============================================================ */
+
+/* ================================
+   LAYOUT UTILITIES
+   ================================ */
+
+/* Flex containers */
+.flex { display: flex; }
+.flex-col { flex-direction: column; }
+.flex-wrap { flex-wrap: wrap; }
+.flex-center { display: flex; align-items: center; justify-content: center; }
+.flex-between { display: flex; justify-content: space-between; align-items: center; }
+.flex-start { display: flex; align-items: flex-start; }
+.flex-grow { flex-grow: 1; }
+
+/* Grid containers */
+.grid { display: grid; }
+.grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); }
+.grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); }
+.grid-auto-fit { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); }
+.grid-auto-fill { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); }
+
+/* ================================
+   SPACING UTILITIES
+   ================================ */
+
+/* Gaps */
+.gap-5 { gap: 5px; }
+.gap-8 { gap: 8px; }
+.gap-10 { gap: 10px; }
+.gap-12 { gap: 12px; }
+.gap-15 { gap: 15px; }
+.gap-20 { gap: 20px; }
+
+/* Margins */
+.mb-0 { margin-bottom: 0; }
+.mb-10 { margin-bottom: 10px; }
+.mb-15 { margin-bottom: 15px; }
+.mb-20 { margin-bottom: 20px; }
+.mb-25 { margin-bottom: 25px; }
+.mt-0 { margin-top: 0; }
+.mt-10 { margin-top: 10px; }
+.mt-15 { margin-top: 15px; }
+.mt-20 { margin-top: 20px; }
+
+/* Paddings */
+.p-10 { padding: 10px; }
+.p-15 { padding: 15px; }
+.p-20 { padding: 20px; }
+.p-25 { padding: 25px; }
+.px-15 { padding-left: 15px; padding-right: 15px; }
+.px-20 { padding-left: 20px; padding-right: 20px; }
+.py-10 { padding-top: 10px; padding-bottom: 10px; }
+.py-15 { padding-top: 15px; padding-bottom: 15px; }
+
+/* ================================
+   TYPOGRAPHY UTILITIES
+   ================================ */
+
+.text-center { text-align: center; }
+.text-left { text-align: left; }
+.text-right { text-align: right; }
+.text-white { color: white; }
+.text-muted { color: #64748b; }
+.font-semibold { font-weight: 600; }
+.font-bold { font-weight: 700; }
+.text-sm { font-size: 0.85rem; }
+.text-base { font-size: 1rem; }
+.text-lg { font-size: 1.1rem; }
+.text-xl { font-size: 1.25rem; }
+.text-2xl { font-size: 1.5rem; }
+
+/* ================================
+   WIDGET / CARD STYLES
+   (Thay thế inline styles trong dashboard)
+   ================================ */
+
+/* Gradient backgrounds - Purple/Blue theme */
+.bg-gradient-purple {
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: white;
+}
+
+.bg-gradient-orange {
+    background: linear-gradient(135deg, #f59e0b, #f97316);
+    color: white;
+}
+
+.bg-gradient-cyan {
+    background: linear-gradient(135deg, #4facfe, #00f2fe);
+    color: white;
+}
+
+.bg-gradient-green {
+    background: linear-gradient(135deg, #10b981, #059669);
+    color: white;
+}
+
+.bg-gradient-pink {
+    background: linear-gradient(135deg, #f093fb, #f5576c);
+    color: white;
+}
+
+/* Card styles */
+.widget-card {
+    padding: 20px;
+    border-radius: 16px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+}
+
+.widget-card-sm {
+    padding: 15px;
+    border-radius: 12px;
+}
+
+/* AI Toolbar style */
+.ai-toolbar-gradient {
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    padding: 15px 20px;
+    border-radius: 12px;
+    margin-bottom: 15px;
+}
+
+.ai-toolbar-orange {
+    background: linear-gradient(135deg, #f59e0b, #f97316);
+    padding: 15px 20px;
+    border-radius: 12px;
+    margin-bottom: 15px;
+}
+
+/* ================================
+   FORM UTILITIES
+   ================================ */
+
+.input-clean {
+    padding: 10px 15px;
+    border: none;
+    border-radius: 8px;
+    font-size: 0.9rem;
+}
+
+.input-full {
+    width: 100%;
+    padding: 12px 15px;
+    border: 2px solid #e2e8f0;
+    border-radius: 10px;
+    font-size: 1rem;
+    box-sizing: border-box;
+}
+
+/* ================================
+   BUTTON UTILITIES
+   ================================ */
+
+.btn-white-text {
+    background: rgba(255, 255, 255, 0.9);
+    color: #667eea;
+    font-weight: 700;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 8px;
+    cursor: pointer;
+}
+
+.btn-glass {
+    background: rgba(255, 255, 255, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    color: white;
+    padding: 8px 16px;
+    border-radius: 8px;
+    cursor: pointer;
+}
+
+/* ================================
+   VISIBILITY UTILITIES
+   ================================ */
+
+.hidden { display: none; }
+.visible { display: block; }
+.opacity-90 { opacity: 0.9; }
+.opacity-80 { opacity: 0.8; }
+
+/* ================================
+   BORDER RADIUS
+   ================================ */
+
+.rounded-8 { border-radius: 8px; }
+.rounded-10 { border-radius: 10px; }
+.rounded-12 { border-radius: 12px; }
+.rounded-16 { border-radius: 16px; }
+.rounded-full { border-radius: 50%; }
+
+/* ================================
+   RESPONSIVE UTILITIES
+   ================================ */
+
+@media (max-width: 768px) {
+    .hide-mobile { display: none !important; }
+    .show-mobile { display: block !important; }
+    .flex-col-mobile { flex-direction: column; }
+    .text-center-mobile { text-align: center; }
+    .grid-1-mobile { grid-template-columns: 1fr !important; }
+}
+
+@media (min-width: 769px) {
+    .hide-desktop { display: none !important; }
+    .show-desktop { display: block !important; }
+}

@@ -1,0 +1,286 @@
+/* ============================================================
+   LIST VIEW - Bảng danh sách kiểu Notion/Airtable
+   ============================================================ */
+
+.list-view-wrapper {
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.06);
+    overflow: hidden;
+    border: 1px solid #e2e8f0;
+}
+
+/* Table */
+.task-list-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.95rem;
+}
+
+.task-list-table thead {
+    background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+
+.task-list-table th {
+    padding: 14px 16px;
+    text-align: left;
+    font-weight: 700;
+    color: #475569;
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border-bottom: 2px solid #e2e8f0;
+    white-space: nowrap;
+    user-select: none;
+}
+
+.task-list-table th.sortable {
+    cursor: pointer;
+    transition: color 0.2s;
+}
+
+.task-list-table th.sortable:hover {
+    color: #667eea;
+}
+
+.sort-icon {
+    font-size: 0.75rem;
+    color: #94a3b8;
+    margin-left: 4px;
+}
+
+.sort-icon.active {
+    color: #667eea;
+    font-weight: 700;
+}
+
+/* Rows */
+.task-list-table tbody tr {
+    border-bottom: 1px solid #f1f5f9;
+    transition: background-color 0.15s;
+}
+
+.task-list-table tbody tr:hover {
+    background: #f8fafc;
+}
+
+.task-list-table td {
+    padding: 12px 16px;
+    vertical-align: middle;
+}
+
+/* Done row */
+.task-row.done {
+    opacity: 0.55;
+}
+
+.task-row.done .task-name-text {
+    text-decoration: line-through;
+    color: #94a3b8;
+}
+
+/* Overdue row */
+.task-row.overdue {
+    background: #fef2f2;
+}
+
+.task-row.overdue:hover {
+    background: #fee2e2;
+}
+
+.text-overdue {
+    color: #ef4444 !important;
+    font-weight: 600;
+}
+
+/* Checkbox */
+.list-checkbox {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+}
+
+.list-checkbox input {
+    position: absolute;
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.list-checkbox .checkmark {
+    width: 22px;
+    height: 22px;
+    border: 2px solid #cbd5e1;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+    background: white;
+}
+
+.list-checkbox input:checked+.checkmark {
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    border-color: transparent;
+}
+
+.list-checkbox input:checked+.checkmark::after {
+    content: '✓';
+    color: white;
+    font-size: 0.75rem;
+    font-weight: 700;
+}
+
+.list-checkbox .checkmark:hover {
+    border-color: #667eea;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.15);
+}
+
+/* Task Name */
+.col-name {
+    cursor: pointer;
+}
+
+.task-name-text {
+    font-weight: 600;
+    color: #1e293b;
+    transition: color 0.2s;
+}
+
+.col-name:hover .task-name-text {
+    color: #667eea;
+}
+
+/* Inline Status Dropdown */
+.inline-status {
+    padding: 6px 10px;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    background: #f8fafc;
+    color: #334155;
+    cursor: pointer;
+    transition: all 0.2s;
+    width: 100%;
+}
+
+.inline-status:focus {
+    outline: none;
+    border-color: #667eea;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.15);
+}
+
+/* Priority Dot */
+.priority-dot {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    margin-right: 6px;
+}
+
+.priority-dot.priority-high {
+    background: #ef4444;
+}
+
+.priority-dot.priority-medium {
+    background: #f59e0b;
+}
+
+.priority-dot.priority-low {
+    background: #22c55e;
+}
+
+/* Category Tags */
+.category-tag {
+    display: inline-block;
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+
+.cat-study {
+    background: #dbeafe;
+    color: #1e40af;
+}
+
+.cat-work {
+    background: #fef3c7;
+    color: #92400e;
+}
+
+.cat-personal {
+    background: #fce7f3;
+    color: #9d174d;
+}
+
+.cat-family {
+    background: #d1fae5;
+    color: #065f46;
+}
+
+.cat-other {
+    background: #e2e8f0;
+    color: #475569;
+}
+
+/* No Date */
+.no-date {
+    color: #cbd5e1;
+}
+
+/* Empty State */
+.list-empty {
+    text-align: center;
+    padding: 60px 20px !important;
+    color: #94a3b8;
+}
+
+.list-empty-icon {
+    font-size: 3rem;
+    margin-bottom: 12px;
+}
+
+/* Dark Mode */
+[data-theme="dark"] .list-view-wrapper {
+    background: #1e293b;
+    border-color: #334155;
+}
+
+[data-theme="dark"] .task-list-table thead {
+    background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+}
+
+[data-theme="dark"] .task-list-table th {
+    color: #94a3b8;
+    border-bottom-color: #334155;
+}
+
+[data-theme="dark"] .task-list-table tbody tr {
+    border-bottom-color: #1e293b;
+}
+
+[data-theme="dark"] .task-list-table tbody tr:hover {
+    background: #334155;
+}
+
+[data-theme="dark"] .task-name-text {
+    color: #e2e8f0;
+}
+
+[data-theme="dark"] .inline-status {
+    background: #0f172a;
+    border-color: #334155;
+    color: #e2e8f0;
+}
+
+[data-theme="dark"] .list-checkbox .checkmark {
+    background: #0f172a;
+    border-color: #475569;
+}
