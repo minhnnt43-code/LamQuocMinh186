@@ -20,10 +20,10 @@
     --white: #ffffff;
 
     /* THEME SYSTEM - Các biến được set bởi JS applyTheme() */
-    --primary-color: #667eea;
-    /* Default theme primary */
-    --secondary-color: #764ba2;
-    /* Default theme secondary */
+    --primary-color: #3b82f6;
+    /* Default theme primary — Ocean Blue */
+    --secondary-color: #1e40af;
+    /* Default theme secondary — Deep Blue */
     --bg-color: #f8fafc;
     /* Default theme background */
     --text-color: #1e3a5f;
@@ -52,7 +52,7 @@
     --aura-color-1: var(--primary-color);
     --aura-color-2: var(--secondary-color);
     --aura-gradient: var(--grad-main);
-    --aura-glow: 0 0 20px rgba(102, 126, 234, 0.3);
+    --aura-glow: 0 0 20px rgba(59, 130, 246, 0.3);
 
     /* Priority Colors */
     --priority-high-color: #ef4444;

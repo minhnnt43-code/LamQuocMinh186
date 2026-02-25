@@ -35,8 +35,8 @@
 #habit-tracker input[type="text"]:focus,
 #goals input[type="text"]:focus,
 #finance input:focus {
-    border-color: #667eea !important;
-    box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.15);
+    border-color: #3b82f6 !important;
+    box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.15);
     outline: none;
 }
 
@@ -58,8 +58,8 @@
 
 #habit-tracker select:focus,
 #goals select:focus {
-    border-color: #667eea !important;
-    box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.15);
+    border-color: #3b82f6 !important;
+    box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.15);
 }
 
 /* ============================================================
@@ -74,7 +74,7 @@
 #btn-add-goal,
 #btn-add-transaction,
 #btn-save-health {
-    background: linear-gradient(135deg, #667eea, #764ba2) !important;
+    background: linear-gradient(135deg, #3b82f6, #1e40af) !important;
     color: white !important;
     border: none !important;
     padding: 14px 28px !important;
@@ -83,7 +83,7 @@
     font-size: 0.95rem !important;
     cursor: pointer;
     transition: all 0.3s ease;
-    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+    box-shadow: 0 4px 15px rgba(59, 130, 246, 0.4);
 }
 
 #habit-tracker .btn-primary:hover,
@@ -95,7 +95,7 @@
 #btn-add-goal:hover,
 #btn-add-transaction:hover {
     transform: translateY(-2px);
-    box-shadow: 0 8px 25px rgba(102, 126, 234, 0.5);
+    box-shadow: 0 8px 25px rgba(59, 130, 246, 0.5);
 }
 
 /* ============================================================
@@ -117,11 +117,11 @@
 }
 
 [id^="btn-ai-"]:hover {
-    background: linear-gradient(135deg, #667eea, #764ba2) !important;
+    background: linear-gradient(135deg, #3b82f6, #1e40af) !important;
     color: white !important;
     border-color: transparent !important;
     transform: translateY(-2px);
-    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+    box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);
 }
 
 /* ============================================================
@@ -189,7 +189,7 @@
 #goals-list>div:hover {
     background: white;
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
-    border-color: #667eea;
+    border-color: #3b82f6;
 }
 
 /* ============================================================
@@ -199,7 +199,7 @@
 #goals-list input[type="checkbox"] {
     width: 22px;
     height: 22px;
-    accent-color: #667eea;
+    accent-color: #3b82f6;
     cursor: pointer;
 }
 

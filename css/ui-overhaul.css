@@ -149,11 +149,11 @@ b,
 
 /* =========== 6. COLOR SYSTEM =========== */
 :root {
-    --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    --primary-gradient: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%);
     --secondary-gradient: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
     --accent-gradient: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-    --primary-blue: #667eea;
-    --primary-purple: #764ba2;
+    --primary-blue: #3b82f6;
+    --primary-purple: #1e40af;
     --success-green: #10b981;
     --warning-orange: #f59e0b;
     --error-red: #ef4444;
@@ -228,9 +228,9 @@ button:focus-visible,
 input:focus-visible,
 select:focus-visible,
 textarea:focus-visible {
-    outline: 3px solid rgba(102, 126, 234, 0.5);
+    outline: 3px solid rgba(59, 130, 246, 0.5);
     outline-offset: 2px;
-    box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.15);
+    box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.15);
 }
 
 /* =========== 10. MOBILE NAVIGATION =========== */
@@ -280,7 +280,7 @@ textarea:focus-visible {
 }
 
 .enhanced-table tr:hover td {
-    background: rgba(102, 126, 234, 0.05);
+    background: rgba(59, 130, 246, 0.05);
 }
 
 /* =========== 16. FORM VALIDATION =========== */
@@ -296,7 +296,7 @@ textarea:focus-visible {
 
 .form-input:focus {
     border-color: var(--primary-blue);
-    box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+    box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
 }
 
 .form-input.valid {
@@ -435,11 +435,11 @@ textarea:focus-visible {
 
     0%,
     100% {
-        box-shadow: 0 0 0 0 rgba(102, 126, 234, 0.4);
+        box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.4);
     }
 
     50% {
-        box-shadow: 0 0 0 10px rgba(102, 126, 234, 0);
+        box-shadow: 0 0 0 10px rgba(59, 130, 246, 0);
     }
 }
 
@@ -675,7 +675,7 @@ textarea:focus-visible {
 }
 
 ::-webkit-scrollbar-thumb {
-    background: linear-gradient(135deg, #667eea, #764ba2);
+    background: linear-gradient(135deg, #3b82f6, #1e40af);
     border-radius: 4px;
 }
 
@@ -750,7 +750,7 @@ textarea:focus-visible {
     left: 20px;
     width: 50px;
     height: 50px;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%);
     border-radius: 50%;
     display: flex;
     align-items: center;
@@ -766,7 +766,7 @@ textarea:focus-visible {
 
 .external-link-btn:hover {
     transform: translateY(-5px) scale(1.1);
-    box-shadow: 0 8px 25px rgba(102, 126, 234, 0.5);
+    box-shadow: 0 8px 25px rgba(59, 130, 246, 0.5);
 }
 
 /* =========== LOGIN UI FIXES =========== */
@@ -786,8 +786,8 @@ textarea:focus-visible {
 
 .login-input:focus {
     background: #fff !important;
-    border-color: #667eea !important;
-    box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1) !important;
+    border-color: #3b82f6 !important;
+    box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1) !important;
 }
 
 /* Fix Tab Readability */
@@ -881,8 +881,8 @@ textarea:focus-visible {
 }
 
 .ai-btn-premium:nth-child(3) {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    box-shadow: 0 3px 10px rgba(102, 126, 234, 0.3);
+    background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%);
+    box-shadow: 0 3px 10px rgba(59, 130, 246, 0.3);
 }
 
 .ai-btn-premium:nth-child(4) {
@@ -935,18 +935,18 @@ textarea:focus-visible {
 }
 
 .view-btn:hover {
-    background: linear-gradient(135deg, #667eea, #764ba2);
+    background: linear-gradient(135deg, #3b82f6, #1e40af);
     color: white;
     border-color: transparent;
     transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.35);
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.35);
 }
 
 .view-btn.active {
-    background: linear-gradient(135deg, #667eea, #764ba2);
+    background: linear-gradient(135deg, #3b82f6, #1e40af);
     color: white;
     border-color: transparent;
-    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+    box-shadow: 0 4px 15px rgba(59, 130, 246, 0.4);
     transform: scale(1.02);
 }
 
@@ -968,7 +968,7 @@ textarea:focus-visible {
 }
 
 .calendar-table td:hover {
-    background: rgba(102, 126, 234, 0.05);
+    background: rgba(59, 130, 246, 0.05);
 }
 
 /* Responsive View Buttons */
@@ -1003,11 +1003,11 @@ textarea:focus-visible {
 }
 
 .btn-secondary:hover {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%);
     color: white;
     border-color: transparent;
     transform: translateY(-2px);
-    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.35);
+    box-shadow: 0 4px 15px rgba(59, 130, 246, 0.35);
 }
 
 .btn-secondary:active {
@@ -1027,7 +1027,7 @@ textarea:focus-visible {
 }
 
 .calendar-controls .nav-btn:hover {
-    background: linear-gradient(135deg, #667eea, #764ba2);
+    background: linear-gradient(135deg, #3b82f6, #1e40af);
     color: white;
     border-color: transparent;
 }
@@ -1052,7 +1052,7 @@ textarea:focus-visible {
 
 .tone-btn.active {
     background: rgba(255, 255, 255, 0.95);
-    color: #667eea;
+    color: #3b82f6;
     border-color: transparent;
     font-weight: 600;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
@@ -1107,7 +1107,7 @@ textarea:focus-visible {
     background: #eef2ff !important;
     color: #3730a3 !important;
     font-weight: 600;
-    border-color: #a5b4fc !important;
+    border-color: #93c5fd !important;
 }
 
 .outline-list-item .btn-delete-draft {
@@ -1198,7 +1198,7 @@ textarea:focus-visible {
 
 /* =========== TO-DO LIST IMPROVEMENTS =========== */
 #todo-list .ai-toolbar {
-    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+    box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);
 }
 
 #todo-list .task-controls {
@@ -1232,7 +1232,7 @@ textarea:focus-visible {
 }
 
 #todo-list .filter-btn.active {
-    background: linear-gradient(135deg, #667eea, #764ba2);
+    background: linear-gradient(135deg, #3b82f6, #1e40af);
     color: white;
     border-color: transparent;
 }
@@ -1387,7 +1387,7 @@ body.dark-mode .outline-list-item:hover {
 }
 
 body.dark-mode .outline-list-item.active {
-    background: linear-gradient(135deg, #667eea, #764ba2) !important;
+    background: linear-gradient(135deg, #3b82f6, #1e40af) !important;
     color: white !important;
 }
 
@@ -1448,9 +1448,9 @@ textarea {
 input:focus,
 select:focus,
 textarea:focus {
-    border-color: #667eea !important;
+    border-color: #3b82f6 !important;
     outline: none;
-    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.15);
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
 }
 
 /* Admin filter buttons and selects */
@@ -1510,10 +1510,10 @@ body.dark-mode textarea:focus {
 }
 
 .filter-btn.active {
-    background: linear-gradient(135deg, #667eea, #764ba2) !important;
-    border-color: #667eea !important;
+    background: linear-gradient(135deg, #3b82f6, #1e40af) !important;
+    border-color: #3b82f6 !important;
     color: white !important;
-    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4) !important;
+    box-shadow: 0 4px 15px rgba(59, 130, 246, 0.4) !important;
 }
 
 /* Search Box Enhancement */
@@ -1533,8 +1533,8 @@ body.dark-mode textarea:focus {
 .task-controls input[type="text"]:focus,
 .task-controls input[type="search"]:focus,
 #task-search:focus {
-    border-color: #667eea !important;
-    box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.15) !important;
+    border-color: #3b82f6 !important;
+    box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.15) !important;
     background: white !important;
 }
 
@@ -1560,7 +1560,7 @@ body.dark-mode .filter-btn:hover {
 }
 
 body.dark-mode .filter-btn.active {
-    background: linear-gradient(135deg, #667eea, #764ba2) !important;
+    background: linear-gradient(135deg, #3b82f6, #1e40af) !important;
     color: white !important;
 }
 

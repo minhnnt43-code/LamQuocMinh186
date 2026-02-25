@@ -43,7 +43,7 @@
 }
 
 .task-list-table th.sortable:hover {
-    color: #667eea;
+    color: #3b82f6;
 }
 
 .sort-icon {
@@ -53,7 +53,7 @@
 }
 
 .sort-icon.active {
-    color: #667eea;
+    color: #3b82f6;
     font-weight: 700;
 }
 
@@ -125,7 +125,7 @@
 }
 
 .list-checkbox input:checked+.checkmark {
-    background: linear-gradient(135deg, #667eea, #764ba2);
+    background: linear-gradient(135deg, #3b82f6, #1e40af);
     border-color: transparent;
 }
 
@@ -137,8 +137,8 @@
 }
 
 .list-checkbox .checkmark:hover {
-    border-color: #667eea;
-    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.15);
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
 }
 
 /* Task Name */
@@ -153,7 +153,7 @@
 }
 
 .col-name:hover .task-name-text {
-    color: #667eea;
+    color: #3b82f6;
 }
 
 /* Inline Status Dropdown */
@@ -171,8 +171,8 @@
 
 .inline-status:focus {
     outline: none;
-    border-color: #667eea;
-    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.15);
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
 }
 
 /* Priority Dot */

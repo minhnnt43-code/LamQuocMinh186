@@ -76,7 +76,7 @@
 }
 
 .agenda-today .agenda-group-count {
-    background: linear-gradient(135deg, #667eea, #764ba2);
+    background: linear-gradient(135deg, #3b82f6, #1e40af);
     color: white;
 }
 
@@ -170,7 +170,7 @@
 }
 
 .agenda-checkbox input:checked+.agenda-checkmark {
-    background: linear-gradient(135deg, #667eea, #764ba2);
+    background: linear-gradient(135deg, #3b82f6, #1e40af);
     border-color: transparent;
 }
 
@@ -199,7 +199,7 @@
 }
 
 .agenda-item-content:hover .agenda-item-title {
-    color: #667eea;
+    color: #3b82f6;
 }
 
 .agenda-item-meta {

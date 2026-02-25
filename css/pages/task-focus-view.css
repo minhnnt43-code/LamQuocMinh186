@@ -35,7 +35,7 @@
 
 .focus-queue-fill {
     height: 100%;
-    background: linear-gradient(90deg, #667eea, #764ba2);
+    background: linear-gradient(90deg, #3b82f6, #1e40af);
     border-radius: 3px;
     transition: width 0.5s ease;
 }
@@ -113,7 +113,7 @@
 .timer-progress {
     fill: none;
     stroke: url(#focusGradient);
-    stroke: #667eea;
+    stroke: #3b82f6;
     stroke-width: 8;
     stroke-linecap: round;
     transition: stroke-dashoffset 1s linear;
@@ -147,14 +147,14 @@
 }
 
 .focus-btn-start {
-    background: linear-gradient(135deg, #667eea, #764ba2);
+    background: linear-gradient(135deg, #3b82f6, #1e40af);
     color: white;
-    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+    box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);
 }
 
 .focus-btn-start:hover {
     transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+    box-shadow: 0 6px 20px rgba(59, 130, 246, 0.4);
 }
 
 .focus-btn-reset {

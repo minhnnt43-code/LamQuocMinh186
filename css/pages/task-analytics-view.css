@@ -38,9 +38,9 @@
 }
 
 .analytics-tab.active {
-    background: linear-gradient(135deg, #667eea, #764ba2);
+    background: linear-gradient(135deg, #3b82f6, #1e40af);
     color: white;
-    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
 }
 
 /* Hero Metrics */
@@ -78,7 +78,7 @@
 .metric-value {
     font-size: 2.5rem;
     font-weight: 800;
-    background: linear-gradient(135deg, #667eea, #764ba2);
+    background: linear-gradient(135deg, #3b82f6, #1e40af);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
@@ -114,7 +114,7 @@
 
 .ring-fill {
     fill: none;
-    stroke: #667eea;
+    stroke: #3b82f6;
     stroke-width: 6;
     stroke-linecap: round;
     transition: stroke-dashoffset 1s ease;
@@ -127,7 +127,7 @@
     transform: translate(-50%, -50%);
     font-size: 1.1rem;
     font-weight: 800;
-    color: #667eea;
+    color: #3b82f6;
 }
 
 /* Smart Insights */
@@ -279,7 +279,7 @@
 .trend-bar {
     width: 100%;
     max-width: 40px;
-    background: linear-gradient(180deg, #667eea, #764ba2);
+    background: linear-gradient(180deg, #3b82f6, #1e40af);
     border-radius: 6px 6px 0 0;
     min-height: 4px;
     transition: height 0.5s ease;
@@ -381,7 +381,7 @@
 
 .breakdown-bar-wrap .breakdown-bar {
     height: 8px;
-    background: linear-gradient(90deg, #667eea, #764ba2);
+    background: linear-gradient(90deg, #3b82f6, #1e40af);
     border-radius: 4px;
     min-width: 4px;
     max-width: 100px;
@@ -390,7 +390,7 @@
 .breakdown-bar-wrap span {
     font-size: 0.8rem;
     font-weight: 700;
-    color: #667eea;
+    color: #3b82f6;
 }
 
 /* Dark Mode */

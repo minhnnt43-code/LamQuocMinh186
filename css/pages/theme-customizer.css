@@ -27,7 +27,7 @@
 
 /* Popup Header */
 .popup-header {
-    background: linear-gradient(135deg, var(--primary-color, #667eea), var(--secondary-color, #764ba2));
+    background: linear-gradient(135deg, var(--primary-color, #3b82f6), var(--secondary-color, #1e40af));
     color: white;
     padding: 16px 20px;
     display: flex;
@@ -79,7 +79,7 @@
     background: #f8fafc;
     border-radius: 10px;
     padding: 12px 14px;
-    border-left: 4px solid var(--primary-color, #667eea);
+    border-left: 4px solid var(--primary-color, #3b82f6);
     cursor: pointer;
     transition: all 0.2s;
 }
@@ -133,7 +133,7 @@
 .popup-add-btn {
     width: 100%;
     padding: 12px;
-    background: linear-gradient(135deg, var(--primary-color, #667eea), var(--secondary-color, #764ba2));
+    background: linear-gradient(135deg, var(--primary-color, #3b82f6), var(--secondary-color, #1e40af));
     color: white;
     border: none;
     border-radius: 10px;
@@ -145,7 +145,7 @@
 
 .popup-add-btn:hover {
     transform: translateY(-2px);
-    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+    box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);
 }
 
 /* Overlay */
@@ -173,11 +173,11 @@
     width: 56px;
     height: 56px;
     border-radius: 50%;
-    background: linear-gradient(135deg, var(--primary-color, #667eea), var(--secondary-color, #764ba2));
+    background: linear-gradient(135deg, var(--primary-color, #3b82f6), var(--secondary-color, #1e40af));
     color: white;
     border: none;
     cursor: pointer;
-    box-shadow: 0 4px 20px rgba(102, 126, 234, 0.4);
+    box-shadow: 0 4px 20px rgba(59, 130, 246, 0.4);
     font-size: 1.5rem;
     display: flex;
     align-items: center;
@@ -188,7 +188,7 @@
 
 .theme-toggle-btn:hover {
     transform: scale(1.1) rotate(15deg);
-    box-shadow: 0 6px 25px rgba(102, 126, 234, 0.5);
+    box-shadow: 0 6px 25px rgba(59, 130, 246, 0.5);
 }
 
 /* Panel */
@@ -213,7 +213,7 @@
 
 /* Panel Header */
 .tc-header {
-    background: linear-gradient(135deg, var(--primary-color, #667eea), var(--secondary-color, #764ba2));
+    background: linear-gradient(135deg, var(--primary-color, #3b82f6), var(--secondary-color, #1e40af));
     color: white;
     padding: 20px 24px;
     display: flex;
@@ -320,12 +320,12 @@
 }
 
 .tc-preset-btn:hover {
-    border-color: var(--primary-color, #667eea);
+    border-color: var(--primary-color, #3b82f6);
     transform: translateY(-2px);
 }
 
 .tc-preset-btn.active {
-    border-color: var(--primary-color, #667eea);
+    border-color: var(--primary-color, #3b82f6);
     background: #f0f4ff;
 }
 
@@ -368,13 +368,13 @@
 }
 
 .tc-btn-primary {
-    background: linear-gradient(135deg, var(--primary-color, #667eea), var(--secondary-color, #764ba2));
+    background: linear-gradient(135deg, var(--primary-color, #3b82f6), var(--secondary-color, #1e40af));
     color: white;
 }
 
 .tc-btn-primary:hover {
     transform: translateY(-2px);
-    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+    box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);
 }
 
 .tc-btn-secondary {

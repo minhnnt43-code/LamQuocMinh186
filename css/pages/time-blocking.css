@@ -23,7 +23,7 @@
     flex: 3;
     background: linear-gradient(180deg, rgba(255, 255, 255, 0.95), rgba(248, 250, 252, 0.98));
     border-radius: 16px;
-    border: 1px solid rgba(102, 126, 234, 0.15);
+    border: 1px solid rgba(59, 130, 246, 0.15);
     display: flex;
     flex-direction: column;
     overflow: hidden;
@@ -45,7 +45,7 @@
 /* Sidebar Header */
 .tb-sidebar-header {
     padding: 16px 20px;
-    background: linear-gradient(135deg, #667eea, #764ba2) !important;
+    background: linear-gradient(135deg, #3b82f6, #1e40af) !important;
     color: white !important;
     display: flex;
     justify-content: space-between;
@@ -113,7 +113,7 @@
 }
 
 .tb-filter-pill.active {
-    background: linear-gradient(135deg, #667eea, #764ba2);
+    background: linear-gradient(135deg, #3b82f6, #1e40af);
     color: white;
     border-color: transparent;
 }
@@ -138,8 +138,8 @@
 }
 
 .tb-task-card:hover {
-    box-shadow: 0 4px 16px rgba(102, 126, 234, 0.2);
-    border-color: #667eea;
+    box-shadow: 0 4px 16px rgba(59, 130, 246, 0.2);
+    border-color: #3b82f6;
     transform: translateY(-2px);
 }
 
@@ -208,12 +208,12 @@
 
 /* Drop Zone Highlight */
 .calendar-table-new tbody td.drop-highlight {
-    background: rgba(102, 126, 234, 0.15) !important;
-    border: 2px dashed #667eea !important;
+    background: rgba(59, 130, 246, 0.15) !important;
+    border: 2px dashed #3b82f6 !important;
 }
 
 .calendar-table-new tbody td.drop-hover {
-    background: rgba(102, 126, 234, 0.25) !important;
+    background: rgba(59, 130, 246, 0.25) !important;
     transform: scale(1.02);
 }
 
@@ -222,7 +222,7 @@
     position: absolute;
     left: 3px;
     right: 3px;
-    background: linear-gradient(135deg, rgba(102, 126, 234, 0.8), rgba(118, 75, 162, 0.8));
+    background: linear-gradient(135deg, rgba(59, 130, 246, 0.8), rgba(118, 75, 162, 0.8));
     border-radius: 8px;
     padding: 8px;
     color: white;
@@ -231,7 +231,7 @@
     pointer-events: none;
     opacity: 0.8;
     z-index: 100;
-    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+    box-shadow: 0 4px 15px rgba(59, 130, 246, 0.4);
 }
 
 /* Scheduled Task on Calendar */
@@ -322,7 +322,7 @@
 }
 
 .overlap-modal-actions .btn-confirm {
-    background: linear-gradient(135deg, #667eea, #764ba2);
+    background: linear-gradient(135deg, #3b82f6, #1e40af);
     color: white;
 }
 

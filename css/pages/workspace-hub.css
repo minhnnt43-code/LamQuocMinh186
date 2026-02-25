@@ -27,7 +27,7 @@
 
 .subtasks-progress {
     font-size: 0.8rem;
-    color: #667eea;
+    color: #3b82f6;
     font-weight: 600;
 }
 
@@ -49,8 +49,8 @@
 }
 
 .subtask-item:hover {
-    border-color: #667eea;
-    box-shadow: 0 2px 8px rgba(102, 126, 234, 0.15);
+    border-color: #3b82f6;
+    box-shadow: 0 2px 8px rgba(59, 130, 246, 0.15);
 }
 
 .subtask-item.completed {
@@ -67,7 +67,7 @@
     width: 18px;
     height: 18px;
     cursor: pointer;
-    accent-color: #667eea;
+    accent-color: #3b82f6;
 }
 
 .subtask-text {
@@ -114,13 +114,13 @@
 
 .add-subtask-row input:focus {
     outline: none;
-    border-color: #667eea;
+    border-color: #3b82f6;
     border-style: solid;
 }
 
 .add-subtask-row button {
     padding: 10px 16px;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%);
     color: white;
     border: none;
     border-radius: 8px;
@@ -131,7 +131,7 @@
 
 .add-subtask-row button:hover {
     transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
 }
 
 /* Subtask Progress Bar */
@@ -279,7 +279,7 @@
 
 .custom-tag-input input:focus {
     outline: none;
-    border-color: #667eea;
+    border-color: #3b82f6;
 }
 
 /* ========================================
@@ -307,7 +307,7 @@
 
 .btn-add-folder {
     padding: 8px 16px;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%);
     color: white;
     border: none;
     border-radius: 8px;
@@ -319,7 +319,7 @@
 
 .btn-add-folder:hover {
     transform: translateY(-2px);
-    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+    box-shadow: 0 4px 15px rgba(59, 130, 246, 0.4);
 }
 
 .project-folders-grid {
@@ -342,11 +342,11 @@
 .project-folder-card:hover {
     transform: translateY(-4px);
     box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
-    border-color: #667eea;
+    border-color: #3b82f6;
 }
 
 .project-folder-card.active {
-    border-color: #667eea;
+    border-color: #3b82f6;
     background: linear-gradient(135deg, #f0f4ff 0%, #e0e7ff 100%);
 }
 
@@ -407,7 +407,7 @@
 
 /* All Tasks Folder */
 .project-folder-card.all-tasks {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%);
     color: white;
 }
 
@@ -448,9 +448,9 @@
 }
 
 .project-pill.active {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%);
     color: white;
-    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
 }
 
 .project-pill .pill-count {

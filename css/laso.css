@@ -8,7 +8,7 @@
     flex-wrap: wrap;
     gap: 8px;
     padding: 15px 20px;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%);
     border-radius: 12px;
     margin-bottom: 25px;
 }
@@ -35,7 +35,7 @@
 
 #laso-section .laso-nav-btn.active {
     background: white;
-    color: #667eea;
+    color: #3b82f6;
     border-color: white;
     font-weight: 600;
 }
@@ -109,8 +109,8 @@
 
 #laso-section .laso-dashboard-card:hover {
     transform: translateY(-5px);
-    box-shadow: 0 8px 25px rgba(102, 126, 234, 0.15);
-    border-color: #667eea;
+    box-shadow: 0 8px 25px rgba(59, 130, 246, 0.15);
+    border-color: #3b82f6;
 }
 
 #laso-section .laso-dashboard-card .laso-card-icon,
@@ -145,14 +145,14 @@
 
 #laso-section .laso-btn-primary,
 #laso-section button[onclick*="openProfileModal"] {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%);
     color: white;
 }
 
 #laso-section .laso-btn-primary:hover,
 #laso-section button[onclick*="openProfileModal"]:hover {
     transform: translateY(-2px);
-    box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+    box-shadow: 0 5px 20px rgba(59, 130, 246, 0.4);
 }
 
 /* Chat Container */
@@ -174,7 +174,7 @@
 }
 
 #laso-section .laso-chat-msg.user {
-    background: linear-gradient(135deg, #667eea, #764ba2);
+    background: linear-gradient(135deg, #3b82f6, #1e40af);
     color: white;
     margin-left: auto;
     border-radius: 12px 12px 4px 12px;
@@ -198,12 +198,12 @@
 
 #laso-section #laso-chat-input:focus {
     outline: none;
-    border-color: #667eea;
+    border-color: #3b82f6;
 }
 
 #laso-section #laso-chat-send {
     padding: 12px 20px;
-    background: linear-gradient(135deg, #667eea, #764ba2);
+    background: linear-gradient(135deg, #3b82f6, #1e40af);
     border: none;
     border-radius: 10px;
     color: white;
@@ -252,7 +252,7 @@
 
 #laso-section .laso-modal-header h3 {
     margin: 0;
-    color: #667eea;
+    color: #3b82f6;
     font-size: 1.3rem;
 }
 
@@ -298,7 +298,7 @@
 #laso-section input:focus,
 #laso-section select:focus {
     outline: none;
-    border-color: #667eea;
+    border-color: #3b82f6;
 }
 
 #laso-section .laso-form-row {
@@ -326,7 +326,7 @@
 }
 
 #laso-section .laso-profile-item:hover {
-    border-color: #667eea;
+    border-color: #3b82f6;
 }
 
 /* Utilities */

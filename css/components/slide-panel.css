@@ -141,8 +141,8 @@
 .slide-panel .form-group input:focus,
 .slide-panel .form-group select:focus,
 .slide-panel .form-group textarea:focus {
-    border-color: #667eea !important;
-    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.2) !important;
+    border-color: #3b82f6 !important;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2) !important;
     background: #ffffff !important;
 }
 
@@ -270,8 +270,8 @@
 .slide-panel select:focus,
 .slide-panel input:focus {
     background: #ffffff !important;
-    border-color: #667eea !important;
-    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.15) !important;
+    border-color: #3b82f6 !important;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15) !important;
     outline: none;
 }
 
@@ -298,8 +298,8 @@
 }
 
 .form-group-hero input:focus {
-    border-color: #667eea !important;
-    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.1) !important;
+    border-color: #3b82f6 !important;
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.1) !important;
 }
 
 [data-theme="dark"] .form-group-hero input {

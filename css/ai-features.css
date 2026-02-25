@@ -4,15 +4,15 @@
    ============================================================ */
 
 :root {
-    --ai-primary: #667eea;
-    --ai-secondary: #764ba2;
-    --ai-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    --ai-primary: #3b82f6;
+    --ai-secondary: #1e40af;
+    --ai-gradient: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%);
     --ai-success: #10b981;
     --ai-warning: #f59e0b;
     --ai-danger: #ef4444;
     --ai-info: #3b82f6;
     --ai-card-bg: rgba(255, 255, 255, 0.95);
-    --ai-shadow: 0 10px 40px rgba(102, 126, 234, 0.15);
+    --ai-shadow: 0 10px 40px rgba(59, 130, 246, 0.15);
     --ai-radius: 16px;
 }
 
@@ -31,7 +31,7 @@
 .ai-widget {
     background: var(--ai-card-bg);
     border-radius: 12px;
-    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.1);
+    box-shadow: 0 4px 15px rgba(59, 130, 246, 0.1);
     padding: 15px;
     transition: transform 0.3s, box-shadow 0.3s;
     position: relative;
@@ -42,7 +42,7 @@
 
 .ai-widget:hover {
     transform: translateY(-5px);
-    box-shadow: 0 15px 50px rgba(102, 126, 234, 0.25);
+    box-shadow: 0 15px 50px rgba(59, 130, 246, 0.25);
 }
 
 .ai-widget::before {
@@ -165,7 +165,7 @@
    ============================================================ */
 
 .gamification-widget {
-    background: linear-gradient(135deg, #667eea10 0%, #764ba210 100%);
+    background: linear-gradient(135deg, #3b82f610 0%, #1e40af10 100%);
 }
 
 .gamification-stats {
@@ -304,7 +304,7 @@
 
 .focus-start-btn:hover {
     transform: translateY(-2px);
-    box-shadow: 0 5px 20px rgba(102, 126, 234, 0.3);
+    box-shadow: 0 5px 20px rgba(59, 130, 246, 0.3);
 }
 
 /* ============================================================
@@ -712,7 +712,7 @@
 
 .ai-btn-primary:hover {
     transform: translateY(-2px);
-    box-shadow: 0 5px 20px rgba(102, 126, 234, 0.3);
+    box-shadow: 0 5px 20px rgba(59, 130, 246, 0.3);
 }
 
 .ai-btn-secondary {

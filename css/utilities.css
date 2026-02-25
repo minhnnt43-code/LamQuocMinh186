@@ -80,7 +80,7 @@
 
 /* Gradient backgrounds - Purple/Blue theme */
 .bg-gradient-purple {
-    background: linear-gradient(135deg, #667eea, #764ba2);
+    background: linear-gradient(135deg, #3b82f6, #1e40af);
     color: white;
 }
 
@@ -118,7 +118,7 @@
 
 /* AI Toolbar style */
 .ai-toolbar-gradient {
-    background: linear-gradient(135deg, #667eea, #764ba2);
+    background: linear-gradient(135deg, #3b82f6, #1e40af);
     padding: 15px 20px;
     border-radius: 12px;
     margin-bottom: 15px;
@@ -157,7 +157,7 @@
 
 .btn-white-text {
     background: rgba(255, 255, 255, 0.9);
-    color: #667eea;
+    color: #3b82f6;
     font-weight: 700;
     border: none;
     padding: 10px 20px;

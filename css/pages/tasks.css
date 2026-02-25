@@ -1,4 +1,4 @@
-ï»¿/* === ENHANCED TASK MANAGEMENT STYLES === */
+/* === ENHANCED TASK MANAGEMENT STYLES === */
 
 /* Header */
 .task-header {
@@ -10,7 +10,7 @@
 
 .task-header h1 {
     margin: 0;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
@@ -21,7 +21,7 @@
     align-items: center;
     gap: 8px;
     padding: 14px 28px;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%);
     color: white;
     border: none;
     border-radius: 12px;
@@ -111,8 +111,8 @@
 .stat-value {
     font-size: 2rem;
     font-weight: 800;
-    /* [FIX] Thay mÃ u Ä‘en báº±ng Gradient tÃ­m xanh premium */
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    /* [FIX] Thay màu den b?ng Gradient tím xanh premium */
+    background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
@@ -182,7 +182,7 @@
 
 .quick-add-container input:focus {
     outline: none;
-    border-color: #667eea;
+    border-color: #3b82f6;
     border-style: solid;
     background: white;
     box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
@@ -215,7 +215,7 @@
 }
 
 .filter-pill.active {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%);
     color: white;
     box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
 }
@@ -238,7 +238,7 @@
 
 .task-search-row #task-search:focus {
     outline: none;
-    border-color: #667eea;
+    border-color: #3b82f6;
 }
 
 .task-search-row #task-sort {
@@ -303,7 +303,7 @@
 }
 
 .column-count {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%);
     color: white;
     padding: 4px 12px;
     border-radius: 20px;
@@ -394,7 +394,7 @@
     transform: translate(-50%, -50%);
     font-size: 0.6rem;
     font-weight: 700;
-    color: #667eea;
+    color: #3b82f6;
 }
 
 .task-card-title {
@@ -446,7 +446,7 @@
 
 .task-progress-fill {
     height: 100%;
-    background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(90deg, #3b82f6 0%, #1e40af 100%);
     border-radius: 3px;
     transition: width 0.5s ease;
 }
@@ -470,7 +470,7 @@
     position: fixed;
     bottom: 30px;
     right: 30px;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%);
     color: white;
     border: none;
     padding: 15px 25px;
@@ -499,7 +499,7 @@
 /* Drag and Drop */
 .column-cards.drag-over {
     background: rgba(102, 126, 234, 0.1);
-    border: 2px dashed #667eea;
+    border: 2px dashed #3b82f6;
     border-radius: 12px;
 }
 
@@ -519,7 +519,7 @@
 
 /* Dark Mode */
 [data-theme="dark"] .task-header h1 {
-    background: linear-gradient(135deg, #a5b4fc 0%, #c4b5fd 100%);
+    background: linear-gradient(135deg, #93c5fd 0%, #bfdbfe 100%);
     -webkit-background-clip: text;
     background-clip: text;
 }
@@ -551,7 +551,7 @@
 }
 
 [data-theme="dark"] .filter-pill.active {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%);
     color: white;
 }
 
@@ -605,7 +605,7 @@
     align-items: center;
     padding: 20px 25px;
     border-bottom: 1px solid #e2e8f0;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%);
     border-radius: 20px 20px 0 0;
 }
 
@@ -664,7 +664,7 @@
 #task-form-modal .form-group select:focus,
 #task-form-modal .form-group textarea:focus {
     outline: none;
-    border-color: #667eea;
+    border-color: #3b82f6;
 }
 
 #task-form-modal .btn-submit {
@@ -675,7 +675,7 @@
     font-weight: 600;
     cursor: pointer;
     transition: all 0.3s;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%);
     color: white;
 }
 
@@ -728,7 +728,7 @@
 
 #task-date-filter:focus {
     outline: none;
-    border-color: #667eea;
+    border-color: #3b82f6;
 }
 
 /* Import Section */
@@ -831,7 +831,7 @@
 
 #import-csv-input:focus {
     outline: none;
-    border-color: #667eea;
+    border-color: #3b82f6;
     border-style: solid;
 }
 
@@ -878,7 +878,7 @@
 }
 
 .import-preview-table th {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%);
     color: white;
     padding: 12px;
     text-align: left;
@@ -940,4 +940,197 @@
 /* Import file label */
 .task-header-actions .btn-import {
     cursor: pointer;
+}
+
+/* =============================================
+   [PHASE 6] POLISH — View Toggle, Todo Groups, Usage Guide
+   ============================================= */
+
+/* --- View Toggle (Kanban / Danh sách / Gantt / Th?ng kê) --- */
+.task-view-toggle {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    background: #f1f5f9;
+    padding: 5px;
+    border-radius: 14px;
+    margin-bottom: 20px;
+    width: fit-content;
+    box-shadow: inset 0 1px 3px rgba(0,0,0,0.06);
+}
+
+.task-view-toggle .view-btn {
+    padding: 9px 18px;
+    border: none;
+    border-radius: 10px;
+    background: transparent;
+    color: #64748b;
+    font-size: 0.88rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    white-space: nowrap;
+    letter-spacing: 0.01em;
+}
+
+.task-view-toggle .view-btn:hover {
+    background: white;
+    color: #334155;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+}
+
+.task-view-toggle .view-btn.active {
+    background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%);
+    color: white;
+    box-shadow: 0 4px 14px rgba(102,126,234,0.4);
+    transform: translateY(-1px);
+}
+
+/* --- Usage Guide collapsible polish --- */
+.usage-guide summary {
+    user-select: none;
+}
+
+.usage-guide summary::-webkit-details-marker {
+    display: none;
+}
+
+.usage-guide[open] summary::before {
+    content: '? ';
+    font-size: 0.75rem;
+}
+
+.usage-guide:not([open]) summary::before {
+    content: '? ';
+    font-size: 0.75rem;
+}
+
+.usage-guide code {
+    background: #e0e7ff;
+    color: #4338ca;
+    padding: 1px 5px;
+    border-radius: 4px;
+    font-size: 0.85em;
+    font-family: monospace;
+}
+
+/* --- Todo Groups Section --- */
+.todo-groups-section {
+    background: linear-gradient(135deg, #fafbff 0%, #f0fdf4 100%);
+    border: 1px solid #e2e8f0;
+    border-radius: 16px;
+    padding: 20px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.04);
+}
+
+.todo-groups-section h2 {
+    background: linear-gradient(135deg, #3b82f6 0%, #10b981 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+/* Group cards rendered by JS */
+.todo-group-card {
+    background: white;
+    border-radius: 14px;
+    margin-bottom: 16px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.06);
+    overflow: hidden;
+    border: 1px solid #e2e8f0;
+    transition: box-shadow 0.2s;
+}
+
+.todo-group-card:hover {
+    box-shadow: 0 6px 20px rgba(0,0,0,0.1);
+}
+
+.todo-group-header {
+    background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%);
+    color: white;
+    padding: 12px 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-weight: 600;
+}
+
+.todo-group-body {
+    padding: 12px 16px;
+}
+
+.todo-item-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 0;
+    border-bottom: 1px solid #f1f5f9;
+    transition: background 0.15s;
+}
+
+.todo-item-row:last-child {
+    border-bottom: none;
+}
+
+.todo-item-row:hover {
+    background: #f8fafc;
+    border-radius: 8px;
+    padding-left: 6px;
+}
+
+/* Promote button hover */
+.btn-promote-todo:hover {
+    opacity: 1 !important;
+    transform: scale(1.1);
+    background: linear-gradient(135deg, #059669, #047857) !important;
+    transition: all 0.2s ease;
+}
+
+/* Todo inline add input */
+#new-group-name {
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+#new-group-name:focus {
+    outline: none;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(102,126,234,0.15);
+}
+
+#btn-create-todo-group {
+    background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%);
+    color: white;
+    border: none;
+    border-radius: 10px;
+    padding: 10px 18px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    box-shadow: 0 3px 10px rgba(102,126,234,0.3);
+}
+
+#btn-create-todo-group:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 18px rgba(102,126,234,0.4);
+}
+
+/* Dark mode for todo groups */
+[data-theme="dark"] .todo-groups-section {
+    background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+    border-color: #334155;
+}
+
+[data-theme="dark"] .todo-group-card {
+    background: #1e293b;
+    border-color: #334155;
+}
+
+[data-theme="dark"] .usage-guide {
+    background: linear-gradient(135deg, #1e293b 0%, #0f2a1e 100%) !important;
+    border-color: #334155 !important;
+}
+
+[data-theme="dark"] .usage-guide summary {
+    color: #93c5fd !important;
 }

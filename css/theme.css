@@ -321,7 +321,7 @@ body.dark-mode .outline-list-item:hover {
 }
 
 body.dark-mode .outline-list-item.active {
-    background: linear-gradient(135deg, #667eea, #764ba2);
+    background: linear-gradient(135deg, #3b82f6, #1e40af);
     color: white;
     border-color: transparent;
 }
