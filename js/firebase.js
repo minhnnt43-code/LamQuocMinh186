@@ -155,7 +155,17 @@ export const getUserData = async (uid) => {
     }
 };
 
-export const saveUserData = async (uid, data, options = {}) => {
+// [FIX C3] Save queue - serialize concurrent writes to prevent race conditions
+// Mỗi lần saveUserData được gọi, nó sẽ xếp hàng sau lần gọi trước đó
+let _saveQueue = Promise.resolve();
+
+export const saveUserData = (uid, data, options = {}) => {
+    // Nối vào chuỗi promise hiện tại — đảm bảo tuần tự, không chạy song song
+    _saveQueue = _saveQueue.then(() => _doSaveUserData(uid, data, options));
+    return _saveQueue;
+};
+
+const _doSaveUserData = async (uid, data, options = {}) => {
     try {
         const docRef = doc(db, "users", uid);
 

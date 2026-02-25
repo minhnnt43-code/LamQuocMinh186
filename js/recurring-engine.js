@@ -57,10 +57,30 @@ function generateOccurrences(event, viewStart, viewEnd) {
 
     let current = new Date(eventStartDate);
 
-    // Tối đa 100 lần lặp (phòng vòng lặp vô hạn)
+    // [FIX M1] Fast-forward `current` đến ngày gần viewStart thay vì lặp từ đầu
+    // Tránh trường hợp event tạo từ lâu bị cắt ngắn bởi safety counter 100
+    if (current < viewStart) {
+        if (rrule.freq === 'daily') {
+            const diffDays = Math.floor((viewStart - current) / (1000 * 60 * 60 * 24));
+            const stepsToSkip = Math.floor(diffDays / interval);
+            current.setDate(current.getDate() + stepsToSkip * interval);
+        } else if (rrule.freq === 'weekly') {
+            const diffDays = Math.floor((viewStart - current) / (1000 * 60 * 60 * 24));
+            const stepsToSkip = Math.floor(diffDays / (7 * interval));
+            current.setDate(current.getDate() + stepsToSkip * 7 * interval);
+        } else if (rrule.freq === 'monthly') {
+            const diffMonths =
+                (viewStart.getFullYear() - current.getFullYear()) * 12 +
+                (viewStart.getMonth() - current.getMonth());
+            const stepsToSkip = Math.floor(diffMonths / interval);
+            current.setMonth(current.getMonth() + stepsToSkip * interval);
+        }
+    }
+
+    // Safety counter — chỉ cần đủ cho view window (vài chục occurrences tối đa)
     let safetyCounter = 0;
 
-    while (current <= maxDate && safetyCounter < 100) {
+    while (current <= maxDate && safetyCounter < 200) {
         safetyCounter++;
         const currentStr = toDateStr(current);
 

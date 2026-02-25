@@ -352,6 +352,13 @@ function setupSmartViewToggle() {
             if (viewRenderers[view]) viewRenderers[view]();
         });
     });
+
+    // [PHASE 3] Chỉ ẩn Focus và Agenda — giữ Kanban, List, Gantt, Analytics
+    const HIDDEN_VIEWS = ['focus', 'agenda'];
+    HIDDEN_VIEWS.forEach(viewName => {
+        const btn = document.querySelector(`#task-view-toggle .view-btn[data-task-view="${viewName}"]`);
+        if (btn) btn.style.display = 'none';
+    });
 }
 
 function populateTaskDropdowns() {
@@ -438,9 +445,8 @@ function setupCalendarEvents() {
     };
 
     if (syncBtn) {
-        const newBtn = syncBtn.cloneNode(true);
-        syncBtn.parentNode.replaceChild(newBtn, syncBtn);
-        newBtn.addEventListener('click', handleGoogleSync);
+        // [PHASE 3] Ẩn nút Google Sync mock — không dùng, tránh nhầm lẫn với sync thật
+        syncBtn.style.display = 'none';
     }
 
     // [FIX] Gán sự kiện cho nút Lưu và Xóa sự kiện
@@ -548,12 +554,21 @@ const doExportCSV = (fromDate, toDate) => {
         // [FIX] Use endDate if available, otherwise fallback to date
         const endDate = formatDateForCSV(e.endDate || e.date);
 
+        // [FIX] Smart endTime: nếu trống → lấy startTime + 1 giờ
+        let endTime = e.endTime;
+        if (!endTime && e.startTime) {
+            const [h, m] = e.startTime.split(':').map(Number);
+            const newH = Math.min(h + 1, 23);
+            endTime = `${String(newH).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
+        }
+        endTime = endTime || '09:00';
+
         return [
             `"${(e.title || '').replace(/"/g, '""')}"`,
             startDate,
-            e.startTime || '00:00',
+            formatTimeForCSV(e.startTime || '08:00'),
             endDate,
-            e.endTime || '23:59',
+            formatTimeForCSV(endTime),
             e.allDay ? 'True' : 'False',
             `"${(e.description || '').replace(/"/g, '""')}"`,
             `"${(e.location || '').replace(/"/g, '""')}"`
@@ -572,11 +587,21 @@ const doExportCSV = (fromDate, toDate) => {
     showNotification(`✅ Đã xuất ${events.length} sự kiện!`);
 };
 
-// Format date for CSV (DD/MM/YYYY - Vietnam Format)
+// Format date for CSV — Google Calendar chuẩn MM/DD/YYYY
+// [FIX L2] Đổi từ DD/MM/YYYY sang MM/DD/YYYY để Google Calendar import đúng ngày
 const formatDateForCSV = (dateStr) => {
     if (!dateStr) return '';
     const [year, month, day] = dateStr.split('-');
-    return `${day}/${month}/${year}`;
+    return `${month}/${day}/${year}`;
+};
+
+// [FIX] Format time 24h → 12h AM/PM cho Google Calendar import
+const formatTimeForCSV = (timeStr) => {
+    if (!timeStr) return '08:00 AM';
+    const [h, m] = timeStr.split(':').map(Number);
+    const period = h >= 12 ? 'PM' : 'AM';
+    const h12 = h === 0 ? 12 : (h > 12 ? h - 12 : h);
+    return `${h12}:${String(m).padStart(2, '0')} ${period}`;
 };
 
 function setupExportCSV() {
@@ -668,7 +693,8 @@ const renderMiniCalendar = () => {
     const daysInMonth = lastDay.getDate();
 
     const today = new Date();
-    const todayStr = `${today.getFullYear()}-${today.getMonth()}-${today.getDate()}`;
+    // [FIX H1] Sử dụng padStart để đảm bảo format YYYY-MM-DD chuẩn (getMonth()+1, không bị thiếu zero)
+    const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
 
     // Get current week range
     const weekStartStr = toLocalISOString(currentWeekStart);
@@ -895,7 +921,7 @@ const showQuickAddPopup = (event, date, time) => {
         <div style="display:flex;gap:8px;margin-bottom:10px;">
             <input type="time" id="quick-start-time" value="${time}" style="flex:1">
             <span style="align-self:center;">→</span>
-            <input type="time" id="quick-end-time" value="${parseInt(time) + 1}:00" style="flex:1">
+            <input type="time" id="quick-end-time" value="${String(Math.min(parseInt(time) + 1, 23)).padStart(2, '0')}:00" style="flex:1">
         </div>
         <div class="quick-add-actions">
             <button class="btn-cancel" onclick="this.closest('.quick-add-popup').remove()">Hủy</button>
@@ -1225,7 +1251,6 @@ const handleSaveEvent = async () => {
         endTime: document.getElementById('event-end-time').value,
         linkedTaskId: document.getElementById('event-task-link').value,
         color: document.getElementById('event-color').value,
-        // [NEW] Save new fields for Google Calendar export
         location: document.getElementById('event-location')?.value || '',
         description: document.getElementById('event-description')?.value || '',
         meetLink: document.getElementById('event-meet-link')?.value || '',
@@ -1234,18 +1259,18 @@ const handleSaveEvent = async () => {
         type: 'manual'
     };
 
-    // [SMART] Lưu quy tắc lặp lại nếu user chọn
+    // Lưu quy tắc lặp lại nếu user chọn
     const recurrenceValue = document.getElementById('event-recurrence')?.value || '';
     if (recurrenceValue) {
         const eventDate = new Date(eventData.date);
         eventData.rrule = {
-            freq: recurrenceValue,          // 'daily' | 'weekly' | 'monthly'
+            freq: recurrenceValue,
             interval: 1,
             byDay: recurrenceValue === 'weekly' ? eventDate.getDay() : undefined
         };
     }
 
-    // [SMART] Nếu user không chọn màu → tự động gắn màu theo tên sự kiện
+    // Nếu user không chọn màu → tự động gắn màu theo tên sự kiện
     if (!eventData.color) {
         const smartResult = applySmartRules(title);
         eventData.color = smartResult.color;
@@ -1253,28 +1278,95 @@ const handleSaveEvent = async () => {
         eventData.autoIcon = smartResult.icon;
     }
 
-    // [SMART] Kiểm tra trùng lịch trước khi lưu
+    // [FIX H3] Tách logic lưu vào hàm riêng — chỉ gọi sau khi user quyết định
+    const doSaveEvent = async () => {
+        if (id) {
+            const index = globalData.calendarEvents.findIndex(e => e.id === id);
+            if (index > -1) globalData.calendarEvents[index] = { ...globalData.calendarEvents[index], ...eventData };
+        } else {
+            globalData.calendarEvents.push(eventData);
+        }
+
+        // [PHASE 4 - Calendar→Task REVERSE SYNC]
+        // Khi user sửa event có liên kết với task → cập nhật ngược về task
+        if (eventData.linkedTaskId && globalData.tasks) {
+            const taskIdx = globalData.tasks.findIndex(t => t.id === eventData.linkedTaskId);
+            if (taskIdx > -1) {
+                const task = globalData.tasks[taskIdx];
+                const updatedTask = {
+                    ...task,
+                    dueDate: eventData.date,
+                    scheduledTime: eventData.startTime,
+                    dueTime: eventData.endTime,
+                    lastUpdated: new Date().toISOString()
+                };
+                globalData.tasks[taskIdx] = updatedTask;
+                showNotification(`🔄 Đã cập nhật lịch hẹn của task "${task.name}"`, 'info');
+            }
+        }
+
+        // [PHASE 7] AUTO-CREATE TASK khi tạo event loại "Việc cần làm" mà chưa link task
+        const activeTab = document.querySelector('.gcal-type-tabs .gcal-tab.active');
+        const isTaskType = activeTab && activeTab.dataset.type === 'task';
+        if (isTaskType && !eventData.linkedTaskId && !id) {
+            // Tạo task mới tự động từ event
+            const newTaskId = generateID('task');
+            const newTask = {
+                id: newTaskId,
+                name: eventData.title,
+                dueDate: eventData.date,
+                scheduledDate: eventData.date,
+                scheduledTime: eventData.startTime,
+                dueTime: eventData.endTime,
+                priority: 'medium',
+                category: 'Công việc',
+                status: 'Chưa thực hiện',
+                syncCalendar: true,
+                linkedEventId: eventData.id,
+                createdAt: new Date().toISOString(),
+                lastUpdated: new Date().toISOString()
+            };
+
+            if (!globalData.tasks) globalData.tasks = [];
+            globalData.tasks.push(newTask);
+
+            // Link ngược event → task
+            eventData.linkedTaskId = newTaskId;
+            const evIdx = globalData.calendarEvents.findIndex(e => e.id === eventData.id);
+            if (evIdx > -1) globalData.calendarEvents[evIdx].linkedTaskId = newTaskId;
+
+            showNotification(`📋 Đã tự tạo task "${eventData.title}" từ lịch!`, 'success');
+        }
+
+        await saveUserData(currentUser.uid, { calendarEvents: globalData.calendarEvents, tasks: globalData.tasks });
+        renderCalendar(); renderDashboard(); renderTasks(); closeModal('event-modal'); showNotification('Đã lưu sự kiện');
+    };
+
+    // Kiểm tra trùng lịch trước khi lưu
     const conflictResult = checkConflict(eventData, globalData.calendarEvents || []);
     if (conflictResult.hasConflict) {
-        showConflictWarning(conflictResult, (suggestedSlot) => {
-            // Người dùng bấm "Dời lịch" → cập nhật thời gian và lưu lại
-            eventData.startTime = suggestedSlot.startTime;
-            eventData.endTime = suggestedSlot.endTime;
-            document.getElementById('event-start-time').value = suggestedSlot.startTime;
-            document.getElementById('event-end-time').value = suggestedSlot.endTime;
-            showNotification(`✅ Đã dời xuống ${suggestedSlot.startTime} - ${suggestedSlot.endTime}`, 'success');
-        });
-        // Vẫn cho lưu (người dùng có thể chọn "Giữ nguyên")
+        // [FIX H3] Hiển thị cảnh báo, KHÔNG lưu ngay — chờ user chọn
+        showConflictWarning(
+            conflictResult,
+            async (suggestedSlot) => {
+                // "Dời lịch" → cập nhật giờ rồi mới lưu
+                eventData.startTime = suggestedSlot.startTime;
+                eventData.endTime = suggestedSlot.endTime;
+                document.getElementById('event-start-time').value = suggestedSlot.startTime;
+                document.getElementById('event-end-time').value = suggestedSlot.endTime;
+                showNotification(`✅ Đã dời xuống ${suggestedSlot.startTime} - ${suggestedSlot.endTime}`, 'success');
+                await doSaveEvent();
+            },
+            async () => {
+                // "Giữ nguyên" → lưu với giờ cũ
+                await doSaveEvent();
+            }
+        );
+        return; // [FIX] KHÔNG lưu tự động, dừng tại đây
     }
 
-    if (id) {
-        const index = globalData.calendarEvents.findIndex(e => e.id === id);
-        if (index > -1) globalData.calendarEvents[index] = { ...globalData.calendarEvents[index], ...eventData };
-    } else {
-        globalData.calendarEvents.push(eventData);
-    }
-    await saveUserData(currentUser.uid, { calendarEvents: globalData.calendarEvents });
-    renderCalendar(); renderDashboard(); closeModal('event-modal'); showNotification('Đã lưu sự kiện');
+    // Không conflict → lưu ngay
+    await doSaveEvent();
 };
 
 // [NEW] Open task in main Tasks section form (for calendar click)
@@ -1699,7 +1791,7 @@ const handleSaveTask = async () => {
         showNotification('Đã thêm công việc mới');
     }
 
-    // Calendar sync logic
+    // [PHASE 4 - Task→Schedule sync (legacy array kept for compatibility)]
     const syncCheckbox = document.getElementById('task-sync-calendar');
     const syncCalendar = syncCheckbox ? syncCheckbox.checked : false;
 
@@ -1707,7 +1799,6 @@ const handleSaveTask = async () => {
         const existingEventIdx = globalData.schedule.findIndex(e => e.linkedTaskId === taskData.id);
 
         if (syncCalendar || scheduledDate) {
-            // Priority: if checkbox checked, use dueDate/dueTime. Else use scheduledDate/scheduledTime
             const eventDate = syncCalendar ? taskData.dueDate : scheduledDate;
             const eventTime = syncCalendar ? taskData.dueTime : scheduledTime;
 
@@ -1729,12 +1820,48 @@ const handleSaveTask = async () => {
                 globalData.schedule.push(calendarEvent);
             }
         } else if (existingEventIdx > -1) {
-            // If unchecked but event existed, we remove it
             globalData.schedule.splice(existingEventIdx, 1);
         }
     }
 
-    await saveUserData(currentUser.uid, { tasks: globalData.tasks, schedule: globalData.schedule });
+    // [PHASE 4 - Task→calendarEvents SYNC: đây là mảng mà Week/Month View hiển thị]
+    // Nếu task có dueDate → tạo/cập nhật event tương ứng trong calendarEvents
+    if (!globalData.calendarEvents) globalData.calendarEvents = [];
+    const ceIdx = globalData.calendarEvents.findIndex(e => e.linkedTaskId === taskData.id);
+
+    if (taskData.dueDate) {
+        // Màu theo priority
+        const taskColor = taskData.priority === 'high' || taskData.priority === 'Cao'
+            ? '#ef4444'
+            : taskData.priority === 'medium' || taskData.priority === 'Trung bình'
+                ? '#f59e0b' : '#22c55e';
+
+        const linkedEvent = {
+            id: ceIdx > -1 ? globalData.calendarEvents[ceIdx].id : generateID('ev'),
+            linkedTaskId: taskData.id,            // Liên kết ngược về task
+            title: `📋 ${taskData.name}`,
+            date: taskData.dueDate,
+            startTime: taskData.scheduledTime || taskData.dueTime || '08:00',
+            endTime: calculateEndTime(taskData.scheduledTime || taskData.dueTime || '08:00', duration),
+            color: taskColor,
+            type: 'task',                         // Phân biệt với event thủ công
+            description: taskData.notes || '',
+            allDay: false
+        };
+
+        if (ceIdx > -1) {
+            // Cập nhật event hiện có
+            globalData.calendarEvents[ceIdx] = { ...globalData.calendarEvents[ceIdx], ...linkedEvent };
+        } else {
+            // Tạo event mới
+            globalData.calendarEvents.push(linkedEvent);
+        }
+    } else if (ceIdx > -1) {
+        // Task không còn dueDate → xóa event tương ứng
+        globalData.calendarEvents.splice(ceIdx, 1);
+    }
+
+    await saveUserData(currentUser.uid, { tasks: globalData.tasks, schedule: globalData.schedule, calendarEvents: globalData.calendarEvents });
     resetTaskForm();
 
     // Close panel
@@ -1753,6 +1880,19 @@ const handleSaveTask = async () => {
     window.dispatchEvent(new CustomEvent('kanban-refresh', {
         detail: { tasks: globalData.tasks }
     }));
+
+    // [PHASE 5] Nếu đang promote todo → xóa todo gốc sau khi task được tạo
+    if (window._promotingTodo) {
+        const { groupId, itemId, todoText } = window._promotingTodo;
+        const group = globalData.todoGroups?.find(g => g.id === groupId);
+        if (group) {
+            group.items = (group.items || []).filter(i => i.id !== itemId);
+            await saveUserData(currentUser.uid, { todoGroups: globalData.todoGroups });
+            renderTodoGroups();
+            showNotification(`✅ Đã chuyển "${todoText}" thành công việc!`, 'success');
+        }
+        window._promotingTodo = null; // Reset marker
+    }
 };
 
 // Helper function to calculate end time
@@ -1768,7 +1908,13 @@ const deleteTask = async (id) => {
     if (confirm('Bạn chắc chắn muốn xóa công việc này?')) {
         globalData.tasks = globalData.tasks.filter(t => t.id !== id);
         if (editingTaskId === id) resetTaskForm();
-        await saveUserData(currentUser.uid, { tasks: globalData.tasks });
+
+        // [PHASE 4] Xóa calendar event liên kết khi task bị xóa
+        if (globalData.calendarEvents) {
+            globalData.calendarEvents = globalData.calendarEvents.filter(e => e.linkedTaskId !== id);
+        }
+
+        await saveUserData(currentUser.uid, { tasks: globalData.tasks, calendarEvents: globalData.calendarEvents });
         renderTasks(); renderDashboard(); renderCalendar();
         showNotification('Đã xóa công việc', 'success');
     }
@@ -1809,7 +1955,6 @@ const renderTodoGroups = () => {
     groups.forEach(group => {
         const groupDiv = document.createElement('div');
         groupDiv.className = 'todo-group-card';
-        groupDiv.style.cssText = 'background: white; border-radius: 12px; margin-bottom: 15px; box-shadow: 0 2px 10px rgba(0,0,0,0.08); overflow: hidden;';
 
         // Tính số item đã hoàn thành
         const items = group.items || [];
@@ -1818,7 +1963,7 @@ const renderTodoGroups = () => {
         const progress = totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0;
 
         groupDiv.innerHTML = `
-            <div class="todo-group-header" style="padding: 15px 20px; background: linear-gradient(135deg, var(--primary-blue), #0088CC); color: white; display: flex; justify-content: space-between; align-items: center; cursor: pointer;">
+            <div class="todo-group-header" style="cursor: pointer;">
                 <div style="display: flex; align-items: center; gap: 12px;">
                     <span class="group-toggle-icon" style="font-size: 1.2rem; transition: transform 0.3s;">▼</span>
                     <div>
@@ -1853,6 +1998,8 @@ const renderTodoGroups = () => {
                         <div class="todo-item-row" style="display: flex; align-items: center; gap: 10px; padding: 10px; border-radius: 8px; margin-bottom: 8px; background: ${item.completed ? '#f9f9f9' : '#fff'}; border: 1px solid #eee; transition: all 0.3s;">
                             <input type="checkbox" class="todo-item-checkbox" data-group-id="${group.id}" data-item-id="${item.id}" ${item.completed ? 'checked' : ''} style="width: 20px; height: 20px; cursor: pointer; accent-color: var(--primary-blue);">
                             <span class="todo-item-text" style="flex: 1; ${item.completed ? 'text-decoration: line-through; color: #999;' : ''}">${escapeHTML(item.text)}</span>
+                            ${item.parsedDate ? `<span style="font-size: 0.75rem; background: #dbeafe; color: #1d4ed8; padding: 2px 8px; border-radius: 12px; white-space: nowrap;">📅 ${item.parsedDate.slice(5).replace('-', '/')}</span>` : ''}
+                            ${!item.completed ? `<button class="btn-promote-todo" data-group-id="${group.id}" data-item-id="${item.id}" style="background: linear-gradient(135deg, #10b981, #059669); border: none; color: white; width: 28px; height: 28px; border-radius: 6px; cursor: pointer; font-size: 0.85rem; flex-shrink: 0;" title="Chuyển thành công việc">📋</button>` : ''}
                             <button class="btn-delete-todo-item" data-group-id="${group.id}" data-item-id="${item.id}" style="background: none; border: none; cursor: pointer; font-size: 1rem; opacity: 0.5; transition: opacity 0.3s;" title="Xóa">✕</button>
                         </div>
                     `).join('')}
@@ -1893,6 +2040,11 @@ const renderTodoGroups = () => {
 
         groupDiv.querySelectorAll('.btn-delete-todo-item').forEach(btn => {
             btn.addEventListener('click', () => handleDeleteTodoItem(btn.dataset.groupId, btn.dataset.itemId));
+        });
+
+        // [PHASE 5] Sự kiện 📋 Promote todo → Task
+        groupDiv.querySelectorAll('.btn-promote-todo').forEach(btn => {
+            btn.addEventListener('click', () => handlePromoteTodoToTask(btn.dataset.groupId, btn.dataset.itemId));
         });
 
         container.appendChild(groupDiv);
@@ -1949,6 +2101,69 @@ const handleDeleteTodoGroup = async (groupId) => {
     }
 };
 
+// [PHASE 5] Parse date shortcuts từ todo text
+// VD: "Nộp báo cáo /T6" → { cleanText: "Nộp báo cáo", parsedDate: "2026-02-27" }
+const parseTodoDate = (rawText) => {
+    const result = { cleanText: rawText.trim(), parsedDate: '' };
+
+    // Regex: tìm /... ở cuối chuỗi
+    const dateMatch = rawText.match(/\s*\/(\S+)\s*$/);
+    if (!dateMatch) return result;
+
+    const dateToken = dateMatch[1].toLowerCase();
+    result.cleanText = rawText.replace(dateMatch[0], '').trim();
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    // /hn → hôm nay
+    if (dateToken === 'hn') {
+        result.parsedDate = toLocalISOString(today);
+        return result;
+    }
+
+    // /mn → ngày mai
+    if (dateToken === 'mn') {
+        const tomorrow = new Date(today);
+        tomorrow.setDate(tomorrow.getDate() + 1);
+        result.parsedDate = toLocalISOString(tomorrow);
+        return result;
+    }
+
+    // /t2 → /t7, /cn → Thứ (2=Monday...7=Saturday, CN=Sunday)
+    const dayMap = { 'cn': 0, 't2': 1, 't3': 2, 't4': 3, 't5': 4, 't6': 5, 't7': 6 };
+    if (dayMap[dateToken] !== undefined) {
+        const targetDay = dayMap[dateToken];
+        const currentDay = today.getDay();
+        let diff = targetDay - currentDay;
+        if (diff <= 0) diff += 7; // Nếu đã qua → tuần sau
+        const targetDate = new Date(today);
+        targetDate.setDate(today.getDate() + diff);
+        result.parsedDate = toLocalISOString(targetDate);
+        return result;
+    }
+
+    // /DD-MM hoặc /DD-MM-YYYY
+    const fullDateMatch = dateToken.match(/^(\d{1,2})-(\d{1,2})(?:-(\d{4}))?$/);
+    if (fullDateMatch) {
+        const day = parseInt(fullDateMatch[1], 10);
+        const month = parseInt(fullDateMatch[2], 10) - 1; // 0-indexed
+        const year = fullDateMatch[3] ? parseInt(fullDateMatch[3], 10) : today.getFullYear();
+
+        const targetDate = new Date(year, month, day);
+        // Nếu ngày đã qua trong năm nay (và user không gõ năm) → sang năm sau
+        if (!fullDateMatch[3] && targetDate < today) {
+            targetDate.setFullYear(targetDate.getFullYear() + 1);
+        }
+        result.parsedDate = toLocalISOString(targetDate);
+        return result;
+    }
+
+    // Không nhận ra → giữ nguyên text gốc, không parse
+    result.cleanText = rawText.trim();
+    return result;
+};
+
 // Hàm thêm to-do vào nhóm
 const handleAddTodoToGroup = async (groupId, text) => {
     if (!text || !text.trim()) return;
@@ -1958,16 +2173,24 @@ const handleAddTodoToGroup = async (groupId, text) => {
 
     if (!group.items) group.items = [];
 
+    // [PHASE 5] Parse date shortcuts
+    const { cleanText, parsedDate } = parseTodoDate(text);
+
     group.items.push({
         id: generateID('ti'),
-        text: text.trim(),
+        text: cleanText,
         completed: false,
-        createdAt: new Date().toISOString()
+        createdAt: new Date().toISOString(),
+        parsedDate: parsedDate // ngày được parse từ shortcut (nếu có)
     });
 
     await saveUserData(currentUser.uid, { todoGroups: globalData.todoGroups });
     renderTodoGroups();
     renderDashboard();
+
+    if (parsedDate) {
+        showNotification(`📅 Đã ghi nhận ngày: ${parsedDate}`);
+    }
 };
 
 // Hàm toggle hoàn thành to-do
@@ -1995,6 +2218,57 @@ const handleDeleteTodoItem = async (groupId, itemId) => {
     await saveUserData(currentUser.uid, { todoGroups: globalData.todoGroups });
     renderTodoGroups();
     renderDashboard();
+};
+
+// [PHASE 5] Chuyển todo → Task chính thức
+const handlePromoteTodoToTask = (groupId, itemId) => {
+    const group = globalData.todoGroups.find(g => g.id === groupId);
+    if (!group) return;
+
+    const item = group.items.find(i => i.id === itemId);
+    if (!item) return;
+
+    // Reset form trước
+    resetTaskForm();
+
+    // Pre-fill tên từ todo
+    const nameInput = document.getElementById('task-name');
+    if (nameInput) nameInput.value = item.text;
+
+    // Pre-fill ngày nếu có parsedDate
+    if (item.parsedDate) {
+        const dueDateInput = document.getElementById('task-due-date');
+        if (dueDateInput) dueDateInput.value = item.parsedDate;
+    }
+
+    // Cập nhật title panel
+    const titleEl = document.getElementById('task-panel-title');
+    if (titleEl) titleEl.textContent = '📋 Chuyển thành Công việc';
+
+    // Cập nhật nút save
+    const btn = document.getElementById('add-task-btn');
+    if (btn) {
+        btn.textContent = '📋 Tạo công việc';
+        btn.style.backgroundColor = 'var(--primary-blue)';
+    }
+
+    // Mở panel
+    if (window.PanelManager) {
+        window.PanelManager.open('task-form-panel');
+    }
+
+    // Focus vào trường ngày nếu chưa có date (để user phải chọn)
+    if (!item.parsedDate) {
+        const dueDateInput = document.getElementById('task-due-date');
+        if (dueDateInput) setTimeout(() => dueDateInput.focus(), 300);
+    } else {
+        if (nameInput) setTimeout(() => nameInput.focus(), 300);
+    }
+
+    // [QUAN TRỌNG] Đánh dấu promote — sau khi handleSaveTask xong sẽ xóa todo này
+    window._promotingTodo = { groupId, itemId, todoText: item.text };
+
+    showNotification(`📋 Điền thêm chi tiết rồi bấm "Tạo công việc"`, 'info');
 };
 
 // Setup sự kiện cho To-do Groups (hỗ trợ cả UI cũ và mới)

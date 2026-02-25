@@ -641,17 +641,40 @@ class FirebaseSyncService {
      * Import data từ JSON
      */
     importData(file) {
+        // [FIX H4] Giới hạn kích thước file (5MB)
+        const MAX_SIZE = 5 * 1024 * 1024;
+        if (file.size > MAX_SIZE) {
+            this.showSyncNotification('error', 'File quá lớn! Tối đa 5MB.');
+            return;
+        }
+
         const reader = new FileReader();
         reader.onload = (e) => {
             try {
-                const data = JSON.parse(e.target.result);
-                Object.keys(data).forEach(key => {
-                    localStorage.setItem(key, data[key]);
+                const rawData = JSON.parse(e.target.result);
+
+                // [FIX H4] Chỉ chấp nhận keys có trong danh sách syncKeys (whitelist)
+                const validKeys = Object.keys(rawData).filter(key => this.syncKeys.includes(key));
+                const rejectedKeys = Object.keys(rawData).filter(key => !this.syncKeys.includes(key));
+
+                if (rejectedKeys.length > 0) {
+                    console.warn(`⚠️ [Import] Bỏ qua ${rejectedKeys.length} key không hợp lệ:`, rejectedKeys);
+                }
+
+                if (validKeys.length === 0) {
+                    this.showSyncNotification('error', 'File backup không hợp lệ hoặc không có dữ liệu phù hợp!');
+                    return;
+                }
+
+                // Chỉ ghi các key hợp lệ
+                validKeys.forEach(key => {
+                    localStorage.setItem(key, rawData[key]);
                 });
-                this.showSyncNotification('success', 'Đã nhập dữ liệu thành công!');
+
+                this.showSyncNotification('success', `Đã nhập ${validKeys.length} mục dữ liệu thành công!`);
                 setTimeout(() => location.reload(), 1000);
             } catch (error) {
-                this.showSyncNotification('error', 'Lỗi đọc file backup!');
+                this.showSyncNotification('error', 'Lỗi đọc file backup! File có thể bị hỏng.');
             }
         };
         reader.readAsText(file);

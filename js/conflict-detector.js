@@ -24,24 +24,43 @@ export function checkConflict(newEvent, existingEvents) {
         e.id !== newEvent.id   // Bỏ qua chính nó (khi sửa)
     );
 
+    // [FIX M2] Cũng kiểm tra sự kiện xuyên đêm từ ngày hôm trước
+    // VD: event 23:00-02:00 của ngày trước có thể đụng event 01:00 của ngày này
+    const prevDate = getPrevDateStr(newEvent.date);
+    const overnightEvents = (existingEvents || []).filter(e =>
+        e && e.date === prevDate &&
+        e.startTime && e.endTime &&
+        e.id !== newEvent.id &&
+        timeToMin(e.endTime) < timeToMin(e.startTime) // overnight: endTime < startTime
+    );
+
+    // Ghép tất cả events cần kiểm tra
+    const allRelevantEvents = [...sameDayEvents, ...overnightEvents];
+
     // Chuyển giờ thành phút để dễ so sánh
     const newStart = timeToMin(newEvent.startTime);
     const newEnd = timeToMin(newEvent.endTime);
 
     // Tìm sự kiện bị trùng
-    for (const existing of sameDayEvents) {
+    for (const existing of allRelevantEvents) {
         const existStart = timeToMin(existing.startTime);
         const existEnd = timeToMin(existing.endTime);
 
-        // Logic trùng: A bắt đầu trước B kết thúc VÀ A kết thúc sau B bắt đầu
-        if (newStart < existEnd && newEnd > existStart) {
-            // Tìm khe trống gần nhất
+        let conflict = false;
+        if (existing.date === newEvent.date) {
+            // Cùng ngày: logic trùng thông thường
+            conflict = newStart < existEnd && newEnd > existStart;
+        } else {
+            // Ngày hôm trước xuyên đêm: phần kéo sang hôm nay là 00:00 → existEnd
+            conflict = newStart < existEnd;
+        }
+
+        if (conflict) {
             const suggested = findNextFreeSlot(
                 newEvent.date,
-                newEnd - newStart,  // Giữ nguyên duration
+                newEnd - newStart,
                 sameDayEvents
             );
-
             return {
                 hasConflict: true,
                 conflictingEvent: existing,
@@ -57,9 +76,16 @@ export function checkConflict(newEvent, existingEvents) {
  * Tìm khe giờ trống gần nhất (tăng dần 15 phút)
  */
 function findNextFreeSlot(date, durationMin, existingEvents) {
-    // Bắt đầu tìm từ giờ hiện tại (hoặc 7h sáng)
+    // [FIX M3] Chỉ dùng giờ hiện tại nếu date là hôm nay
+    // Với ngày khác, bắt đầu tìm từ 7:00 sáng
     const now = new Date();
-    let startMin = Math.max(now.getHours() * 60 + now.getMinutes(), 7 * 60);
+    const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+    let startMin;
+    if (date === todayStr) {
+        startMin = Math.max(now.getHours() * 60 + now.getMinutes(), 7 * 60);
+    } else {
+        startMin = 7 * 60; // Ngày khác: bắt đầu từ 7:00 sáng
+    }
 
     // Làm tròn lên bội 15 phút
     startMin = Math.ceil(startMin / 15) * 15;
@@ -98,14 +124,9 @@ function findNextFreeSlot(date, durationMin, existingEvents) {
 /**
  * Hiển thị popup cảnh báo trùng lịch
  */
-export function showConflictWarning(conflictResult, onAcceptSuggestion) {
+// [FIX H3] Nhận thêm callback onKeep để "Giữ nguyên" cũng kích hoạt save
+export function showConflictWarning(conflictResult, onAcceptSuggestion, onKeep) {
     const { conflictingEvent, suggestedSlot } = conflictResult;
-
-    let message = `⚠️ Trùng lịch với "${conflictingEvent.title}" (${conflictingEvent.startTime} - ${conflictingEvent.endTime})`;
-
-    if (suggestedSlot) {
-        message += `\n\n💡 Gợi ý dời xuống: ${suggestedSlot.startTime} - ${suggestedSlot.endTime}`;
-    }
 
     // Tạo popup toast đẹp
     const toast = document.createElement('div');
@@ -127,7 +148,7 @@ export function showConflictWarning(conflictResult, onAcceptSuggestion) {
                 <strong style="color: #991b1b; font-size: 1rem;">Phát hiện trùng lịch!</strong>
             </div>
             <p style="color: #7f1d1d; margin: 0 0 12px; font-size: 0.9rem; line-height: 1.5;">
-                Khung giờ này đã có sự kiện 
+                Khung giờ này đã có sự kiện
                 <strong>"${conflictingEvent.title}"</strong>
                 (${conflictingEvent.startTime} - ${conflictingEvent.endTime})
             </p>
@@ -163,14 +184,14 @@ export function showConflictWarning(conflictResult, onAcceptSuggestion) {
                     background: #6b7280; color: white; border: none;
                     padding: 8px 16px; border-radius: 8px; cursor: pointer;
                     font-size: 0.85rem;
-                ">Bỏ qua</button>
+                ">Hủy bỏ</button>
             </div>
         </div>
     `;
 
     document.body.appendChild(toast);
 
-    // Xử lý nút bấm
+    // "Dời lịch" → áp dụng slot mới rồi lưu
     toast.querySelector('#conflict-accept-btn')?.addEventListener('click', () => {
         if (onAcceptSuggestion && suggestedSlot) {
             onAcceptSuggestion(suggestedSlot);
@@ -178,15 +199,18 @@ export function showConflictWarning(conflictResult, onAcceptSuggestion) {
         toast.remove();
     });
 
+    // "Giữ nguyên" → lưu với giờ gốc (có conflict, user chấp nhận)
     toast.querySelector('#conflict-keep-btn')?.addEventListener('click', () => {
+        if (onKeep) onKeep(); // [FIX H3] Gọi callback → kích hoạt doSaveEvent()
         toast.remove();
     });
 
+    // "Hủy bỏ" → đóng popup, KHÔNG lưu gì cả
     toast.querySelector('#conflict-dismiss-btn')?.addEventListener('click', () => {
         toast.remove();
     });
 
-    // Tự đóng sau 15 giây
+    // Tự đóng sau 15 giây (không lưu)
     setTimeout(() => toast.remove(), 15000);
 }
 
@@ -201,4 +225,12 @@ function minToTime(minutes) {
     const h = Math.floor(minutes / 60);
     const m = minutes % 60;
     return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}`;
+}
+
+// [FIX M2] Helper: Trả về chuỗi ngày hôm trước (YYYY-MM-DD)
+function getPrevDateStr(dateStr) {
+    if (!dateStr) return '';
+    const d = new Date(dateStr);
+    d.setDate(d.getDate() - 1);
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 }

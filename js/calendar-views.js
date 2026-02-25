@@ -222,6 +222,8 @@ const switchView = (view) => {
 // ============================================================
 const renderMonthView = (container) => {
     const events = globalData?.calendarEvents || [];
+    // [FIX L3] Bao gồm cả tasks có dueDate để đồng nhất với Week View
+    const tasks = globalData?.tasks || [];
     const year = currentDate.getFullYear();
     const month = currentDate.getMonth();
 
@@ -256,19 +258,33 @@ const renderMonthView = (container) => {
     for (let day = 1; day <= daysInMonth; day++) {
         const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
         const dayEvents = events.filter(e => e.date === dateStr);
+        // [FIX L3] Lấy tasks có dueDate trùng với ngày này, chưa hoàn thành
+        const dayTasks = tasks.filter(t => t.dueDate === dateStr && t.status !== 'Hoàn thành');
         const isToday = dateStr === today;
+        const totalItems = dayEvents.length + dayTasks.length;
+
+        // Hiển thị tối đa 3 items: events trước, tasks sau
+        const displayEvents = dayEvents.slice(0, 2);
+        const remainingSlots = 3 - displayEvents.length;
+        const displayTasks = dayTasks.slice(0, remainingSlots);
+        const hiddenCount = totalItems - displayEvents.length - displayTasks.length;
 
         html += `
-            <div class="month-day ${isToday ? 'today' : ''}" data-date="${dateStr}" 
+            <div class="month-day ${isToday ? 'today' : ''}" data-date="${dateStr}"
                  style="background:${isToday ? '#eff6ff' : 'white'};padding:8px;min-height:80px;cursor:pointer;transition:background 0.2s;"
                  onmouseover="this.style.background='#f0f9ff'" onmouseout="this.style.background='${isToday ? '#eff6ff' : 'white'}'">
                 <div style="font-weight:${isToday ? '700' : '500'};color:${isToday ? '#3b82f6' : '#1f2937'};margin-bottom:5px;">${day}</div>
-                ${dayEvents.slice(0, 3).map(e => `
+                ${displayEvents.map(e => `
                     <div style="font-size:0.7rem;background:${e.color || '#667eea'};color:white;padding:2px 5px;border-radius:3px;margin:2px 0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">
                         ${escapeHTML(e.title)}
                     </div>
                 `).join('')}
-                ${dayEvents.length > 3 ? `<div style="font-size:0.65rem;color:#6b7280;">+${dayEvents.length - 3} more</div>` : ''}
+                ${displayTasks.map(t => `
+                    <div style="font-size:0.7rem;background:#22c55e;color:white;padding:2px 5px;border-radius:3px;margin:2px 0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">
+                        📋 ${escapeHTML(t.name)}
+                    </div>
+                `).join('')}
+                ${hiddenCount > 0 ? `<div style="font-size:0.65rem;color:#6b7280;">+${hiddenCount} more</div>` : ''}
             </div>
         `;
     }

@@ -507,24 +507,24 @@ const setupDeleteAllTasks = () => {
     });
 };
 
-// Import via file upload (no modal)
-let importedTasks = [];
+// [PHASE 6] Inline editable table for bulk task entry
+const EXCEL_STORAGE_KEY = 'lqm_excel_draft';
+let _excelSaveTimer = null;
 
 const setupImportModal = () => {
-    const fileInput = document.getElementById('excel-import-input');
-    const downloadBtn = document.getElementById('btn-download-template');
     const openImportBtn = document.getElementById('btn-open-import-modal');
     const importModal = document.getElementById('import-tasks-modal');
     const closeImportBtn = document.getElementById('close-import-modal');
 
-    // Open import modal
+    // Open modal → render table with saved data
     if (openImportBtn && importModal) {
         openImportBtn.addEventListener('click', () => {
             importModal.style.display = 'flex';
+            renderExcelInlineTable();
         });
     }
 
-    // Close import modal
+    // Close modal (data persists in localStorage)
     if (closeImportBtn && importModal) {
         closeImportBtn.addEventListener('click', () => {
             importModal.style.display = 'none';
@@ -534,33 +534,217 @@ const setupImportModal = () => {
         });
     }
 
-    // Download Excel template
-    if (downloadBtn) {
-        downloadBtn.addEventListener('click', () => {
-            generateExcelTemplate();
-            if (importModal) importModal.style.display = 'none';
+    // Add rows button
+    const addRowsBtn = document.getElementById('btn-excel-add-rows');
+    if (addRowsBtn) {
+        addRowsBtn.addEventListener('click', () => {
+            addExcelRows(5);
+            saveExcelDraft();
         });
     }
 
-    // Handle file upload
-    if (fileInput) {
-        fileInput.addEventListener('change', async (e) => {
-            const file = e.target.files[0];
-            if (!file) return;
+    // Clear all button
+    const clearBtn = document.getElementById('btn-excel-clear-all');
+    if (clearBtn) {
+        clearBtn.addEventListener('click', () => {
+            if (!confirm('Xóa toàn bộ bảng nhập? Dữ liệu nháp sẽ bị mất!')) return;
+            localStorage.removeItem(EXCEL_STORAGE_KEY);
+            renderExcelInlineTable();
+            showNotification('🗑️ Đã xóa bảng nhập', 'info');
+        });
+    }
 
-            try {
-                const data = await file.arrayBuffer();
-                parseExcelAndImport(data);
-                if (importModal) importModal.style.display = 'none';
-            } catch (err) {
-                console.error('File read error:', err);
-                showNotification('Không thể đọc file! Vui lòng kiểm tra định dạng.', 'error');
+    // Import all button
+    const importAllBtn = document.getElementById('btn-excel-import-all');
+    if (importAllBtn) {
+        importAllBtn.addEventListener('click', () => {
+            const rows = collectExcelRows();
+            const filledRows = rows.filter(r => r.name.trim());
+
+            if (filledRows.length === 0) {
+                showNotification('Chưa có dòng nào có tên công việc!', 'warning');
+                return;
             }
 
-            // Reset input so same file can be selected again
-            fileInput.value = '';
+            const tasks = filledRows.map((r, i) => ({
+                id: 'bulk_' + Date.now() + '_' + i,
+                name: r.name.trim(),
+                dueDate: r.dueDate || '',
+                scheduledTime: r.time || '08:00',
+                priority: r.priority || 'medium',
+                category: r.category || 'Khác',
+                notes: r.notes || '',
+                status: 'Chưa thực hiện',
+                syncCalendar: true
+            }));
+
+            // Dispatch to work.js import handler
+            window.dispatchEvent(new CustomEvent('import-tasks', {
+                detail: { tasks }
+            }));
+
+            // Clear table after successful import
+            localStorage.removeItem(EXCEL_STORAGE_KEY);
+            renderExcelInlineTable();
+
+            const modal = document.getElementById('import-tasks-modal');
+            if (modal) modal.style.display = 'none';
+
+            showNotification(`✅ Đã nhập ${tasks.length} công việc!`, 'success');
         });
     }
+};
+
+// Render editable table rows
+const renderExcelInlineTable = () => {
+    const tbody = document.getElementById('excel-inline-tbody');
+    if (!tbody) return;
+
+    tbody.innerHTML = '';
+
+    // Load saved draft from localStorage
+    let savedRows = [];
+    try {
+        const raw = localStorage.getItem(EXCEL_STORAGE_KEY);
+        if (raw) savedRows = JSON.parse(raw);
+    } catch (e) { /* ignore */ }
+
+    // Ensure at least 5 rows
+    const rowCount = Math.max(savedRows.length, 5);
+    for (let i = 0; i < rowCount; i++) {
+        const data = savedRows[i] || {};
+        appendExcelRow(tbody, i + 1, data);
+    }
+
+    updateExcelRowCount();
+};
+
+// Append a single row to the table
+const appendExcelRow = (tbody, num, data = {}) => {
+    const tr = document.createElement('tr');
+    tr.style.cssText = 'transition: background 0.15s;';
+    tr.addEventListener('mouseenter', () => tr.style.background = '#f0f9ff');
+    tr.addEventListener('mouseleave', () => tr.style.background = '');
+
+    const cellStyle = 'padding: 6px 8px; border-bottom: 1px solid #f1f5f9;';
+    const inputStyle = 'width: 100%; border: 1px solid transparent; padding: 6px 8px; border-radius: 6px; font-family: inherit; font-size: 0.9rem; background: transparent; transition: all 0.2s; box-sizing: border-box;';
+    const inputFocusCSS = `onfocus="this.style.border='1px solid #3b82f6';this.style.background='white'" onblur="this.style.border='1px solid transparent';this.style.background='transparent'"`;
+
+    tr.innerHTML = `
+        <td style="${cellStyle} text-align: center; color: #94a3b8; font-size: 0.85rem;">${num}</td>
+        <td style="${cellStyle}">
+            <input type="text" class="excel-cell" data-col="name" value="${escapeHTML(data.name || '')}" placeholder="Tên công việc..." style="${inputStyle}" ${inputFocusCSS}>
+        </td>
+        <td style="${cellStyle}">
+            <input type="date" class="excel-cell" data-col="dueDate" value="${data.dueDate || ''}" style="${inputStyle}">
+        </td>
+        <td style="${cellStyle}">
+            <input type="time" class="excel-cell" data-col="time" value="${data.time || ''}" style="${inputStyle}" placeholder="08:00">
+        </td>
+        <td style="${cellStyle}">
+            <select class="excel-cell" data-col="priority" style="${inputStyle} cursor: pointer;">
+                <option value="low" ${data.priority === 'low' ? 'selected' : ''}>🟢 Thấp</option>
+                <option value="medium" ${data.priority !== 'low' && data.priority !== 'high' ? 'selected' : ''}>🟡 TB</option>
+                <option value="high" ${data.priority === 'high' ? 'selected' : ''}>🔴 Cao</option>
+            </select>
+        </td>
+        <td style="${cellStyle}">
+            <select class="excel-cell" data-col="category" style="${inputStyle} cursor: pointer;">
+                <option value="Học tập" ${data.category === 'Học tập' ? 'selected' : ''}>📚 Học tập</option>
+                <option value="Công việc" ${(data.category === 'Công việc' || !data.category) ? 'selected' : ''}>💼 Công việc</option>
+                <option value="Cá nhân" ${data.category === 'Cá nhân' ? 'selected' : ''}>🏠 Cá nhân</option>
+                <option value="Gia đình" ${data.category === 'Gia đình' ? 'selected' : ''}>👨‍👩‍👧 Gia đình</option>
+                <option value="Khác" ${data.category === 'Khác' ? 'selected' : ''}>📌 Khác</option>
+            </select>
+        </td>
+        <td style="${cellStyle}">
+            <input type="text" class="excel-cell" data-col="notes" value="${escapeHTML(data.notes || '')}" placeholder="Ghi chú..." style="${inputStyle}" ${inputFocusCSS}>
+        </td>
+        <td style="${cellStyle} text-align: center;">
+            <button class="excel-row-delete" style="background: none; border: none; cursor: pointer; font-size: 1rem; opacity: 0.4; transition: opacity 0.2s;" title="Xóa dòng">✕</button>
+        </td>
+    `;
+
+    // Auto-save on any change
+    tr.querySelectorAll('.excel-cell').forEach(cell => {
+        cell.addEventListener('input', () => debouncedSaveExcelDraft());
+        cell.addEventListener('change', () => debouncedSaveExcelDraft());
+    });
+
+    // Delete row
+    tr.querySelector('.excel-row-delete').addEventListener('click', () => {
+        tr.remove();
+        renumberExcelRows();
+        saveExcelDraft();
+    });
+
+    tbody.appendChild(tr);
+};
+
+// Add more rows
+const addExcelRows = (count) => {
+    const tbody = document.getElementById('excel-inline-tbody');
+    if (!tbody) return;
+    const currentCount = tbody.children.length;
+    for (let i = 0; i < count; i++) {
+        appendExcelRow(tbody, currentCount + i + 1);
+    }
+    updateExcelRowCount();
+};
+
+// Re-number rows after deletion
+const renumberExcelRows = () => {
+    const tbody = document.getElementById('excel-inline-tbody');
+    if (!tbody) return;
+    Array.from(tbody.children).forEach((tr, i) => {
+        tr.firstElementChild.textContent = i + 1;
+    });
+    updateExcelRowCount();
+};
+
+// Collect all row data from the table
+const collectExcelRows = () => {
+    const tbody = document.getElementById('excel-inline-tbody');
+    if (!tbody) return [];
+    return Array.from(tbody.children).map(tr => {
+        const data = {};
+        tr.querySelectorAll('.excel-cell').forEach(cell => {
+            data[cell.dataset.col] = cell.value;
+        });
+        return data;
+    });
+};
+
+// Save draft to localStorage
+const saveExcelDraft = () => {
+    const rows = collectExcelRows();
+    try {
+        localStorage.setItem(EXCEL_STORAGE_KEY, JSON.stringify(rows));
+    } catch (e) { /* storage full, ignore */ }
+
+    // Update UI
+    updateExcelRowCount();
+    const status = document.getElementById('excel-autosave-status');
+    if (status) {
+        status.textContent = '💾 Đã lưu nháp';
+        status.style.opacity = '1';
+        setTimeout(() => { status.style.opacity = '0.8'; }, 1000);
+    }
+};
+
+// Debounced save (500ms)
+const debouncedSaveExcelDraft = () => {
+    clearTimeout(_excelSaveTimer);
+    _excelSaveTimer = setTimeout(saveExcelDraft, 500);
+};
+
+// Update row count display
+const updateExcelRowCount = () => {
+    const el = document.getElementById('excel-row-count');
+    if (!el) return;
+    const rows = collectExcelRows();
+    const filled = rows.filter(r => r.name && r.name.trim()).length;
+    el.textContent = `${filled} dòng có dữ liệu`;
 };
 
 // Generate Excel template using SheetJS
@@ -676,7 +860,7 @@ const showImportPreviewModal = (tasks) => {
 
     // Build table rows
     const tableRows = tasks.map((task, idx) => `
-        <tr data-id="${task.id}">
+        < tr data - id="${task.id}" >
             <td style="text-align: center;"><input type="checkbox" class="import-task-cb" value="${task.id}" checked style="width: 16px; height: 16px; accent-color: #3b82f6; cursor: pointer;"></td>
             <td>${idx + 1}</td>
             <td><input type="text" value="${escapeHTML(task.name)}" class="edit-import-name" data-id="${task.id}" style="width:100%; min-width:150px; border:1px solid #e2e8f0; padding:6px; border-radius:6px; font-family:inherit;"></td>
@@ -684,36 +868,36 @@ const showImportPreviewModal = (tasks) => {
             <td>${escapeHTML(task.category)}</td>
             <td>${task.dueDate || '-'}</td>
             <td>${escapeHTML(task.status)}</td>
-        </tr>
+        </tr >
     `).join('');
 
     const modal = document.createElement('div');
     modal.className = 'import-preview-modal';
     modal.style.cssText = `
-        position: fixed; top: 0; left: 0; right: 0; bottom: 0;
-        background: rgba(0,0,0,0.6); display: flex; align-items: center;
-        justify-content: center; z-index: 10000; backdrop-filter: blur(4px);
-    `;
+position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+background: rgba(0, 0, 0, 0.6); display: flex; align - items: center;
+justify - content: center; z - index: 10000; backdrop - filter: blur(4px);
+`;
 
     modal.innerHTML = `
-        <div style="
-            background: white; border-radius: 16px; max-width: 900px; width: 95%;
-            max-height: 85vh; overflow: hidden; box-shadow: 0 25px 50px rgba(0,0,0,0.25);
-            display: flex; flex-direction: column;
-        ">
-            <div style="
-                padding: 20px 24px; border-bottom: 1px solid #e5e7eb;
-                display: flex; justify-content: space-between; align-items: center;
-                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-                color: white;
-            ">
-                <h3 style="margin: 0; font-size: 1.2rem;">📋 Xem trước dữ liệu Import (${tasks.length} công việc)</h3>
-                <button class="close-preview-btn" style="
+    < div style = "
+background: white; border - radius: 16px; max - width: 900px; width: 95 %;
+max - height: 85vh; overflow: hidden; box - shadow: 0 25px 50px rgba(0, 0, 0, 0.25);
+display: flex; flex - direction: column;
+">
+    < div style = "
+padding: 20px 24px; border - bottom: 1px solid #e5e7eb;
+display: flex; justify - content: space - between; align - items: center;
+background: linear - gradient(135deg, #667eea 0 %, #764ba2 100 %);
+color: white;
+">
+    < h3 style = "margin: 0; font-size: 1.2rem;" >📋 Xem trước dữ liệu Import(${tasks.length} công việc)</h3 >
+        <button class="close-preview-btn" style="
                     background: rgba(255,255,255,0.2); border: none; color: white;
                     width: 32px; height: 32px; border-radius: 50%; cursor: pointer;
                     font-size: 1.2rem; display: flex; align-items: center; justify-content: center;
                 ">&times;</button>
-            </div>
+            </div >
             
             <div style="padding: 20px; overflow-y: auto; flex: 1;">
                 <table style="width: 100%; border-collapse: collapse; font-size: 0.9rem;">
@@ -750,7 +934,7 @@ const showImportPreviewModal = (tasks) => {
                     color: white; font-weight: 600;
                 ">✅ Xác nhận Import</button>
             </div>
-        </div>
+        </div >
     `;
 
     document.body.appendChild(modal);
@@ -829,7 +1013,7 @@ const formatExcelDate = (value) => {
     if (str.includes('/')) {
         const parts = str.split('/');
         if (parts.length === 3) {
-            return `${parts[2]}-${parts[1].padStart(2, '0')}-${parts[0].padStart(2, '0')}`;
+            return `${parts[2]} -${parts[1].padStart(2, '0')} -${parts[0].padStart(2, '0')} `;
         }
     }
 
@@ -909,13 +1093,13 @@ const setupBatchMode = () => {
         toolbar.id = 'batch-toolbar';
         toolbar.className = 'batch-toolbar';
         toolbar.innerHTML = `
-            <span class="batch-count">0 đã chọn</span>
+    < span class="batch-count" > 0 đã chọn</span >
             <button class="batch-action-btn" data-batch="status">🔄 Đổi trạng thái</button>
             <button class="batch-action-btn" data-batch="priority">🎯 Đổi ưu tiên</button>
             <button class="batch-action-btn" data-batch="myday">☀️ My Day</button>
             <button class="batch-action-btn danger" data-batch="delete">🗑️ Xoá</button>
             <button class="batch-close-btn" title="Đóng">✕</button>
-        `;
+`;
         document.body.appendChild(toolbar);
 
         toolbar.querySelector('.batch-close-btn').addEventListener('click', () => toggleBatchMode(false));
@@ -961,7 +1145,7 @@ const executeBatchAction = async (action) => {
                 t.status = newStatus;
                 t.lastUpdated = new Date().toISOString();
                 if (newStatus === 'Hoàn thành') { t.completedAt = new Date().toISOString(); t.progress = 100; }
-                addActivityLog(t, `Batch: ${old} → ${newStatus}`);
+                addActivityLog(t, `Batch: ${old} → ${newStatus} `);
             });
             showNotification(`✅ Đã cập nhật ${selected.length} task`);
             break;
@@ -969,7 +1153,7 @@ const executeBatchAction = async (action) => {
         case 'priority': {
             const newPri = prompt('Nhập ưu tiên mới: low / medium / high');
             if (!['low', 'medium', 'high'].includes(newPri)) return;
-            selected.forEach(t => { addActivityLog(t, `Batch ưu tiên: ${t.priority} → ${newPri}`); t.priority = newPri; t.lastUpdated = new Date().toISOString(); });
+            selected.forEach(t => { addActivityLog(t, `Batch ưu tiên: ${t.priority} → ${newPri} `); t.priority = newPri; t.lastUpdated = new Date().toISOString(); });
             showNotification(`🎯 Đã cập nhật ưu tiên ${selected.length} task`);
             break;
         }
@@ -978,7 +1162,7 @@ const executeBatchAction = async (action) => {
             showNotification(`☀️ Đã thêm ${selected.length} task vào My Day`);
             break;
         case 'delete':
-            if (!confirm(`Xác nhận xoá ${selected.length} công việc?`)) return;
+            if (!confirm(`Xác nhận xoá ${selected.length} công việc ? `)) return;
             globalData.tasks = tasks.filter(t => !ids.includes(t.id));
             showNotification(`🗑️ Đã xoá ${selected.length} task`);
             break;
@@ -1022,13 +1206,13 @@ const setupAdvancedFilterPanel = () => {
         panel.className = 'advanced-filter-panel';
 
         const categories = [...new Set((globalData.tasks || []).map(t => t.category).filter(Boolean))];
-        const catOptions = categories.map(c => `<option value="${escapeHTML(c)}">${escapeHTML(c)}</option>`).join('');
+        const catOptions = categories.map(c => `< option value = "${escapeHTML(c)}" > ${escapeHTML(c)}</option > `).join('');
 
         panel.innerHTML = `
-            <div class="filter-panel-header">
+    < div class="filter-panel-header" >
                 <h4>🔍 Lọc nâng cao</h4>
                 <button class="filter-panel-close">&times;</button>
-            </div>
+            </div >
             <div class="filter-grid">
                 <div class="filter-group">
                     <label>🎯 Ưu tiên</label>
@@ -1051,7 +1235,7 @@ const setupAdvancedFilterPanel = () => {
                 <button class="filter-reset-btn" id="af-reset">↻ Xoá lọc</button>
                 <button class="filter-apply-btn" id="af-apply">✓ Áp dụng</button>
             </div>
-        `;
+`;
         searchRow.parentElement.insertBefore(panel, searchRow.nextSibling);
 
         panel.querySelector('.filter-panel-close').addEventListener('click', () => panel.classList.remove('open'));
@@ -1088,13 +1272,13 @@ const renderActiveFiltersBar = () => {
 
     const af = advancedFilters;
     const chips = [];
-    if (af.priority) chips.push({ label: `Ưu tiên: ${af.priority}`, key: 'priority' });
-    if (af.category) chips.push({ label: `Danh mục: ${af.category}`, key: 'category' });
-    if (af.dateFrom) chips.push({ label: `Từ: ${af.dateFrom}`, key: 'dateFrom' });
-    if (af.dateTo) chips.push({ label: `Đến: ${af.dateTo}`, key: 'dateTo' });
+    if (af.priority) chips.push({ label: `Ưu tiên: ${af.priority} `, key: 'priority' });
+    if (af.category) chips.push({ label: `Danh mục: ${af.category} `, key: 'category' });
+    if (af.dateFrom) chips.push({ label: `Từ: ${af.dateFrom} `, key: 'dateFrom' });
+    if (af.dateTo) chips.push({ label: `Đến: ${af.dateTo} `, key: 'dateTo' });
 
     bar.innerHTML = chips.map(c =>
-        `<span class="active-filter-chip">${c.label} <span class="remove-filter" data-key="${c.key}">&times;</span></span>`
+        `< span class="active-filter-chip" > ${c.label} <span class="remove-filter" data-key="${c.key}">&times;</span></span > `
     ).join('');
 
     bar.querySelectorAll('.remove-filter').forEach(btn => {
