@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Công cụ Trích dẫn Pháp lý & Học thuật (Chuẩn APA & OSCOLA)</title>
+    <meta name="description"
+        content="Công cụ trích dẫn tự động chuẩn APA 7th & OSCOLA dành cho sinh viên Luật. Hỗ trợ tạo footnote, danh mục TLTK, xuất A-Z.">
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+
+    <!-- HEADER -->
+    <header class="app-header">
+        <h1>⚖️ Công cụ Trích dẫn Pháp lý & Học thuật</h1>
+        <div class="subtitle">Chuẩn APA 7th & OSCOLA — Sản phẩm do SV. Lâm Quốc Minh, Khoa Luật, Trường ĐH Kinh tế -
+            Luật, ĐHQG-HCM xây dựng</div>
+    </header>
+
+    <!-- TOOLBAR -->
+    <nav class="toolbar">
+        <button onclick="exportRefList()" title="Xuất danh mục TLTK theo A-Z">
+            <svg viewBox="0 0 24 24" fill="currentColor">
+                <path
+                    d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z" />
+            </svg>
+            Xuất TLTK (A-Z)
+        </button>
+        <button onclick="exportBackup()" title="Tải dữ liệu backup về máy">
+            <svg viewBox="0 0 24 24" fill="currentColor">
+                <path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z" />
+            </svg>
+            Tải backup
+        </button>
+        <button onclick="importBackup()" title="Nhập dữ liệu từ file JSON">
+            <svg viewBox="0 0 24 24" fill="currentColor">
+                <path d="M9 16h6v-6h4l-7-7-7 7h4zm-4 2h14v2H5z" />
+            </svg>
+            Nhập dữ liệu
+        </button>
+        <button onclick="toggleDarkMode()" title="Chuyển đổi sáng/tối">
+            <svg viewBox="0 0 24 24" fill="currentColor">
+                <path
+                    d="M12 3c-4.97 0-9 4.03-9 9s4.03 9 9 9 9-4.03 9-9c0-.46-.04-.92-.1-1.36-.98 1.37-2.58 2.26-4.4 2.26-2.98 0-5.4-2.42-5.4-5.4 0-1.81.89-3.42 2.26-4.4-.44-.06-.9-.1-1.36-.1z" />
+            </svg>
+            Dark Mode
+        </button>
+    </nav>
+
+    <!-- LAYOUT -->
+    <div class="layout">
+        <div class="main-col">
+
+            <!-- FORM CARD -->
+            <div class="card">
+                <div class="card-title">
+                    <svg viewBox="0 0 24 24" fill="currentColor">
+                        <path
+                            d="M14 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z" />
+                    </svg>
+                    Nhập thông tin tài liệu
+                </div>
+
+                <div class="form-group">
+                    <label for="docType">Loại tài liệu / Nguồn trích dẫn:</label>
+                    <select id="docType" onchange="toggleFields()">
+                        <option value="8">1. Văn bản pháp luật Việt Nam — Quy chuẩn chung khối ngành Luật (OSCOLA)
+                        </option>
+                        <option value="1">2. Sách (Book — APA)</option>
+                        <option value="2">3. Một chương trong sách (Book Chapter — APA)</option>
+                        <option value="3">4. Bài báo trên tạp chí khoa học (Journal Article — APA)</option>
+                        <option value="4">5. Bài trong kỷ yếu hội thảo (Proceeding — APA)</option>
+                        <option value="5">6. Bài trên báo chí (Newspaper — APA)</option>
+                        <option value="6">7. Luận văn, luận án (Thesis — APA)</option>
+                        <option value="7">8. Tài liệu từ Internet / Website (APA)</option>
+                    </select>
+                </div>
+
+                <!-- VĂN BẢN PHÁP LUẬT (OSCOLA) -->
+                <div class="form-group dynamic-field type-8">
+                    <label for="lawName">Tên Bộ Luật / Luật / Văn bản (kèm năm):</label>
+                    <input type="text" id="lawName" placeholder="VD: Bộ luật Dân sự năm 2015">
+                    <div class="help-text">Tự động sửa chữ hoa chuẩn khi bạn rời ô nhập (VD: bộ luật dân sự → Bộ luật
+                        Dân sự)</div>
+                </div>
+                <div class="form-group dynamic-field type-8">
+                    <label for="lawNumber">Ký hiệu văn bản (Nếu là văn bản dưới luật):</label>
+                    <input type="text" id="lawNumber" placeholder="VD: Nghị định số 99/2022/NĐ-CP">
+                    <div class="help-text">Bỏ trống nếu là Bộ luật / Luật.</div>
+                </div>
+                <div class="form-group dynamic-field type-8">
+                    <label for="lawLocation">Vị trí trích dẫn (Điều, khoản, điểm):</label>
+                    <input type="text" id="lawLocation" placeholder="VD: 107.1(b) hoặc Điểm b Khoản 1 Điều 107">
+                    <div class="help-text">Ghi kiểu OSCOLA (107.1(b)) hoặc kiểu thuần Việt đều được.</div>
+                </div>
+                <div class="checkbox-row dynamic-field type-8">
+                    <input type="checkbox" id="lawStyleViet" onchange="livePreview()">
+                    <label for="lawStyleViet">Xuất kiểu thuần Việt (VD: Điểm b Khoản 1 Điều 107)</label>
+                </div>
+
+                <!-- TRÍCH DẪN LẶP LẠI (tlđd) -->
+                <div id="tlddSection">
+                    <div class="checkbox-row">
+                        <input type="checkbox" id="isTldd" onchange="toggleTldd(); livePreview();">
+                        <label for="isTldd">Đây là trích dẫn lặp lại (tlđd / sđd)</label>
+                    </div>
+                    <div id="tlddFields" style="display:none">
+                        <div class="form-group">
+                            <label for="tlddFootnoteNum">Số Footnote đã trích trước đó:</label>
+                            <input type="number" id="tlddFootnoteNum" placeholder="VD: 1">
+                        </div>
+                        <div class="form-group">
+                            <label for="tlddPage">Số trang mới (nếu khác):</label>
+                            <input type="text" id="tlddPage" placeholder="VD: 15">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- CÁC TRƯỜNG HỌC THUẬT -->
+                <div id="mainAcademicFields" style="transition:0.3s opacity">
+                    <div class="form-group type-academic">
+                        <label for="authors">Tác giả (Họ và Tên đầy đủ):</label>
+                        <input type="text" id="authors" placeholder="VD: Đỗ Văn Đại, Bùi Xuân Đức">
+                        <div class="help-text">Nhiều tác giả cách nhau bằng dấu phẩy (,). Bỏ trống nếu không rõ tác giả.
+                        </div>
+                    </div>
+                    <div class="form-group type-academic">
+                        <label for="title">Tên tài liệu / Tên bài viết:</label>
+                        <input type="text" id="title" placeholder="Nhập tên tài liệu, bài viết...">
+                    </div>
+                    <div class="form-group type-year">
+                        <label for="year">Năm xuất bản:</label>
+                        <input type="text" id="year" placeholder="VD: 2023">
+                    </div>
+
+                    <div class="form-group dynamic-field type-5 type-7">
+                        <label for="date">Ngày tháng năm (Báo chí/Website):</label>
+                        <input type="text" id="date" placeholder="VD: 25/10/2023">
+                    </div>
+
+                    <!-- Sách / Kỷ yếu -->
+                    <div class="form-group dynamic-field type-1 type-2 type-4">
+                        <label for="publisherLoc">Nơi xuất bản / Nơi tổ chức:</label>
+                        <input type="text" id="publisherLoc" placeholder="VD: Hà Nội">
+                    </div>
+                    <div class="form-group dynamic-field type-1 type-2 type-4">
+                        <label for="publisher">Nhà xuất bản:</label>
+                        <input type="text" id="publisher" placeholder="VD: NXB Chính trị Quốc gia Sự thật">
+                    </div>
+
+                    <!-- Chương sách -->
+                    <div class="form-group dynamic-field type-2">
+                        <label for="bookEditors">Tên chủ biên (Chủ biên / Eds):</label>
+                        <input type="text" id="bookEditors" placeholder="VD: Nguyễn Văn A">
+                    </div>
+                    <div class="form-group dynamic-field type-2">
+                        <label for="bookTitle">Tên sách gốc:</label>
+                        <input type="text" id="bookTitle" placeholder="Tên cuốn sách chứa chương này">
+                    </div>
+
+                    <!-- Tạp chí -->
+                    <div class="form-group dynamic-field type-3 type-5">
+                        <label for="journalName">Tên Tạp chí / Tên tờ báo:</label>
+                        <input type="text" id="journalName" placeholder="VD: Tạp chí Nghiên cứu Lập pháp">
+                    </div>
+                    <div class="form-group dynamic-field type-3">
+                        <label for="volume">Tập (Volume):</label>
+                        <input type="text" id="volume" placeholder="VD: 15">
+                    </div>
+                    <div class="form-group dynamic-field type-3">
+                        <label for="issue">Số (Issue):</label>
+                        <input type="text" id="issue" placeholder="VD: 2">
+                    </div>
+                    <div class="form-group dynamic-field type-3">
+                        <label for="doi">DOI (Nếu có):</label>
+                        <input type="text" id="doi" placeholder="VD: https://doi.org/10.xxxx/xxxxx">
+                    </div>
+
+                    <!-- Kỷ yếu -->
+                    <div class="form-group dynamic-field type-4">
+                        <label for="proceedingName">Tên kỷ yếu hội thảo:</label>
+                        <input type="text" id="proceedingName" placeholder="VD: Hội thảo quốc gia về dữ liệu cá nhân">
+                    </div>
+
+                    <!-- Luận văn -->
+                    <div class="form-group dynamic-field type-6">
+                        <label for="thesisLevel">Cấp bậc (Luận án TS / Luận văn ThS):</label>
+                        <input type="text" id="thesisLevel" placeholder="VD: Luận án Tiến sĩ">
+                    </div>
+                    <div class="form-group dynamic-field type-6">
+                        <label for="university">Cơ sở đào tạo (Trường):</label>
+                        <input type="text" id="university" placeholder="VD: Trường ĐH Kinh tế - Luật, ĐHQG-HCM">
+                    </div>
+                    <div class="form-group dynamic-field type-6">
+                        <label for="location">Địa điểm:</label>
+                        <input type="text" id="location" placeholder="VD: TP.HCM">
+                    </div>
+
+                    <!-- Internet -->
+                    <div class="form-group dynamic-field type-7">
+                        <label for="url">Đường link (URL):</label>
+                        <input type="text" id="url" placeholder="VD: https://www...">
+                    </div>
+
+                    <!-- Trang dùng chung -->
+                    <div class="form-group dynamic-field type-2 type-3 type-4 type-5 type-8">
+                        <label for="pages">Số trang / Trang trích dẫn:</label>
+                        <input type="text" id="pages" placeholder="VD: 45-60 hoặc tr. 12">
+                    </div>
+                </div>
+
+                <div class="btn-group" style="flex-direction:column">
+                    <button class="btn btn-primary" onclick="generate()">⚡ Xử lý & Tạo Trích dẫn</button>
+                    <button class="btn btn-secondary" onclick="clearForm()">🔄 Làm mới Biểu mẫu</button>
+                </div>
+            </div>
+
+            <!-- RESULT CARD -->
+            <div class="card">
+                <div class="card-title">
+                    <svg viewBox="0 0 24 24" fill="currentColor">
+                        <path
+                            d="M9 11.75c-.69 0-1.25.56-1.25 1.25s.56 1.25 1.25 1.25 1.25-.56 1.25-1.25-.56-1.25-1.25-1.25zm6 0c-.69 0-1.25.56-1.25 1.25s.56 1.25 1.25 1.25 1.25-.56 1.25-1.25-.56-1.25-1.25-1.25zM12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8 0-.29.02-.58.05-.86 2.36-1.05 4.23-2.98 5.21-5.37C11.07 8.33 14.05 10 17.42 10c.78 0 1.53-.09 2.25-.26.21.71.33 1.47.33 2.26 0 4.41-3.59 8-8 8z" />
+                    </svg>
+                    Kết quả hiện tại (Live Preview)
+                </div>
+
+                <div class="output-label">📝 Trích dẫn trong bài / Footnote:</div>
+                <div class="output-box" id="outInText"><span style="color:var(--text-muted)">Kết quả sẽ hiện ở
+                        đây...</span></div>
+                <button class="btn btn-secondary btn-sm" onclick="copyText('outInText')" style="margin-top:8px">📋 Copy
+                    Footnote</button>
+
+                <div class="output-label" style="margin-top:20px">📚 Danh mục Tài liệu tham khảo (Reference):</div>
+                <div class="output-box" id="outRefList"><span style="color:var(--text-muted)">Kết quả sẽ hiện ở
+                        đây...</span></div>
+                <button class="btn btn-secondary btn-sm" onclick="copyText('outRefList')" style="margin-top:8px">📋 Copy
+                    TLTK</button>
+            </div>
+        </div>
+
+        <!-- SIDEBAR -->
+        <div class="side-col">
+            <div class="history-container">
+                <div class="card-title">
+                    <svg viewBox="0 0 24 24" fill="currentColor">
+                        <path
+                            d="M13 3c-4.97 0-9 4.03-9 9H1l3.89 3.89.07.14L9 12H6c0-3.87 3.13-7 7-7s7 3.13 7 7-3.13 7-7 7c-1.93 0-3.68-.79-4.94-2.06l-1.42 1.42C8.27 19.99 10.51 21 13 21c4.97 0 9-4.03 9-9s-4.03-9-9-9zm-1 5v5l4.28 2.54.72-1.21-3.5-2.08V8H12z" />
+                    </svg>
+                    Lịch sử đã lưu
+                </div>
+                <div class="btn-group" style="margin-bottom:14px">
+                    <button class="btn btn-danger btn-sm" onclick="clearHistory()" style="flex:1">🗑️ Xóa tất
+                        cả</button>
+                    <button class="btn btn-accent btn-sm" onclick="exportRefList()" style="flex:1">📄 Xuất A-Z</button>
+                </div>
+                <div id="historyList"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- FOOTER -->
+    <footer class="app-footer">
+        &copy; 2026 — Sản phẩm do SV. <strong>Lâm Quốc Minh</strong> — Khoa Luật, Trường ĐH Kinh tế - Luật (UEL),
+        ĐHQG-HCM xây dựng.<br>
+        <em>Quy chuẩn chung khối ngành Luật (OSCOLA) & APA 7th Edition</em>
+    </footer>
+
+    <script src="app.js"></script>
+</body>
+
+</html>
